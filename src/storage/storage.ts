@@ -125,7 +125,7 @@ export const getAccessToken = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const accessToken = localStorage.getItem(ACCESS_TOKEN);
-      return accessToken ? JSON.parse(accessToken) : null;
+      return accessToken ? accessToken : null;
     }
   } catch (e) {
     console.error(e);
