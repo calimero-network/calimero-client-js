@@ -81,7 +81,7 @@ export const clearApplicationId = (): void => {
 
 /**
  * @function setAccessToken
- * @description Sets the access token in localStorage and updates the 
+ * @description Sets the access token in localStorage and updates the
  * context ID and executor public key.
  * @param {string} accessToken - The access token to store.
  */
@@ -101,12 +101,15 @@ export const setAccessToken = (accessToken: string) => {
     if (jwt.context_id) {
       localStorage.setItem(CONTEXT_ID, JSON.stringify(jwt.context_id));
     } else {
-       console.warn('JWT payload missing context_id');
+      console.warn('JWT payload missing context_id');
     }
     if (jwt.executor_public_key) {
-       localStorage.setItem(CONTEXT_IDENTITY, JSON.stringify(jwt.executor_public_key));
+      localStorage.setItem(
+        CONTEXT_IDENTITY,
+        JSON.stringify(jwt.executor_public_key),
+      );
     } else {
-        console.warn('JWT payload missing executor_public_key');
+      console.warn('JWT payload missing executor_public_key');
     }
   } catch (error) {
     console.error('Failed to set access token or extract JWT info:', error);
