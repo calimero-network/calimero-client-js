@@ -1,7 +1,7 @@
 import apiClient from '../api';
 import { JwtTokenResponse } from '../api/nodeApi';
 import {
-  clearJWT,
+  clearAccessToken,
   getRefreshToken,
   setAccessToken,
   setRefreshToken,
@@ -69,16 +69,16 @@ export const handleRpcError = async (
         const refreshToken = getRefreshToken();
         const response = await getNewJwtToken({ refreshToken, getNodeUrl });
         if (response?.error) {
-          clearJWT();
+          clearAccessToken();
           return invalidSession;
         }
         return expiredSession;
       } catch (error) {
-        clearJWT();
+        clearAccessToken();
         return invalidSession;
       }
     }
-    clearJWT();
+    clearAccessToken();
     return invalidSession;
   }
   const errorType = error?.error?.name;

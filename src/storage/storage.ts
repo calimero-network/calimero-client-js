@@ -273,3 +273,13 @@ export const getJWTObject = (): JsonWebToken | null => {
   }
   return null;
 };
+
+/**
+ * @function clientLogout
+ * @description Clears the app endpoint, access token, and application ID from localStorage.
+ */
+export const clientLogout = (): void => {
+  clearAppEndpoint();
+  clearAccessToken();
+  clearApplicationId();
+};
