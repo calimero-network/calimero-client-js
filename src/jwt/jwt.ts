@@ -30,7 +30,12 @@ export const prepareAuthenticatedRequestConfig = (): RequestConfigResponse => {
   const headers: AxiosHeader | null = createJwtHeader();
 
   // Combine checks for headers, jwtObject, and its properties
-  if (!headers || !jwtObject || !jwtObject.executor_public_key || !jwtObject.context_id) {
+  if (
+    !headers ||
+    !jwtObject ||
+    !jwtObject.executor_public_key ||
+    !jwtObject.context_id
+  ) {
     let errorMessage = 'Failed to prepare authenticated request'; // Default message
     if (!headers) {
       errorMessage = 'Failed to create auth headers';
