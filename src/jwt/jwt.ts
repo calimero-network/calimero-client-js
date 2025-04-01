@@ -14,8 +14,8 @@ export interface AxiosHeader {
  * @description Response interface for request configuration.
  */
 export interface RequestConfigResponse {
-  publicKey?: string;
-  contextId?: string;
+  publicKey: string;
+  contextId: string;
   config?: RequestConfig;
   error?: ErrorResponse;
 }
@@ -25,22 +25,27 @@ export interface RequestConfigResponse {
  * Extracts public key and context ID from the JWT.
  * @returns An object containing the public key, context ID, and request config, or an error object.
  */
-export const prepareAuthenticatedRequestConfig = () => {
+export const prepareAuthenticatedRequestConfig = (): RequestConfigResponse => {
   const jwtObject: JsonWebToken | null = getJWTObject();
   const headers: AxiosHeader | null = createJwtHeader();
-  if (!headers) {
+
+  // Combine checks for headers, jwtObject, and its properties
+  if (!headers || !jwtObject || !jwtObject.executor_public_key || !jwtObject.context_id) {
+    let errorMessage = 'Failed to prepare authenticated request'; // Default message
+    if (!headers) {
+      errorMessage = 'Failed to create auth headers';
+    } else if (!jwtObject) {
+      errorMessage = 'Failed to get JWT token';
+    } else if (!jwtObject.executor_public_key) {
+      errorMessage = 'Failed to get executor public key from JWT';
+    } else if (!jwtObject.context_id) {
+      errorMessage = 'Failed to get context id from JWT';
+    }
+
     return {
-      error: { message: 'Failed to create auth headers', code: 500 },
-    };
-  }
-  if (!jwtObject) {
-    return {
-      error: { message: 'Failed to get JWT token', code: 500 },
-    };
-  }
-  if (jwtObject.executor_public_key === null) {
-    return {
-      error: { message: 'Failed to get executor public key', code: 500 },
+      error: { message: errorMessage, code: 500 },
+      publicKey: '',
+      contextId: '',
     };
   }
 
