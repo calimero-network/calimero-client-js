@@ -39,6 +39,10 @@ interface JsonRpcResponse<Result> {
   error?: ErrorData;
 }
 
+/**
+ * @class JsonRpcClient
+ * @description A client for the JSON RPC.
+ */
 export class JsonRpcClient implements RpcClient {
   readonly path: string;
   readonly axiosInstance: AxiosInstance;
@@ -83,6 +87,13 @@ export class JsonRpcClient implements RpcClient {
     );
   }
 
+  /**
+   * @function execute
+   * @description Executes a JSON RPC request - query or mutate.
+   * @param {RpcQueryParams<Args>} params - The parameters for the JSON RPC request.
+   * @param {RequestConfig} config - The configuration for the JSON RPC request.
+   * @returns {Promise<RpcResult<RpcQueryResponse<Output>>>} The result of the JSON RPC request.
+   */
   public async execute<Args, Output>(
     params: RpcQueryParams<Args>,
     config?: RequestConfig,
