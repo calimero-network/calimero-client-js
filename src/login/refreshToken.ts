@@ -19,7 +19,8 @@ type JsonRpcErrorType =
   | 'FunctionCallError'
   | 'CallError'
   | 'MissmatchedRequestIdError'
-  | 'InvalidRequestError';
+  | 'InvalidRequestError'
+  | 'ParseError';
 
 const errorTypes: JsonRpcErrorType[] = [
   'UnknownServerError',
@@ -28,6 +29,7 @@ const errorTypes: JsonRpcErrorType[] = [
   'CallError',
   'MissmatchedRequestIdError',
   'InvalidRequestError',
+  'ParseError',
 ];
 
 export const getNewJwtToken = async ({
