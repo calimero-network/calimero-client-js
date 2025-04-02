@@ -135,7 +135,7 @@ export class JsonRpcClient implements RpcClient {
 
         if (response?.data?.error) {
           let messageData = response?.data?.error?.data;
-          let errorMessage = "";
+          let errorMessage = '';
           if (typeof messageData === 'string') {
             errorMessage = messageData;
           } else {
@@ -165,12 +165,12 @@ export class JsonRpcClient implements RpcClient {
         };
       } else {
         let messageData = response?.data?.error?.data?.data;
-          let errorMessage = "";
-          if (typeof messageData === 'string') {
-            errorMessage = messageData;
-          } else {
-            errorMessage = messageData.type;
-          }
+        let errorMessage = '';
+        if (typeof messageData === 'string') {
+          errorMessage = messageData;
+        } else {
+          errorMessage = messageData.type;
+        }
         return {
           error: {
             id: response?.data?.id,
@@ -199,7 +199,7 @@ export class JsonRpcClient implements RpcClient {
             cause: {
               name: 'UnknownServerError',
               info: {
-                message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.` ,
+                message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.`,
               },
             },
           },
