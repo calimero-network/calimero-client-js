@@ -49,7 +49,7 @@ export interface RpcErrorInfo {
 export interface RpcError {
   id: RpcRequestId;
   jsonrpc: string;
-  code: number;
+  code?: number;
   error: RpcErrorInfo;
 }
 

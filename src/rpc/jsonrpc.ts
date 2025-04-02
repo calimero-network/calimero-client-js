@@ -19,12 +19,14 @@ interface JsonRpcRequest<Params> {
   params: Params;
 }
 
+type DataType = {
+  type: string;
+  [key: string]: any;
+};
+
 interface ErrorData {
   data: {
-    data: {
-      type: string;
-      [key: string]: any;
-    };
+    data: string | DataType;
     type: string;
   };
   type: string;
@@ -37,6 +39,10 @@ interface JsonRpcResponse<Result> {
   error?: ErrorData;
 }
 
+/**
+ * @class JsonRpcClient
+ * @description A client for the JSON RPC.
+ */
 export class JsonRpcClient implements RpcClient {
   readonly path: string;
   readonly axiosInstance: AxiosInstance;
@@ -81,6 +87,13 @@ export class JsonRpcClient implements RpcClient {
     );
   }
 
+  /**
+   * @function execute
+   * @description Executes a JSON RPC request - query or mutate.
+   * @param {RpcQueryParams<Args>} params - The parameters for the JSON RPC request.
+   * @param {RequestConfig} config - The configuration for the JSON RPC request.
+   * @returns {Promise<RpcResult<RpcQueryResponse<Output>>>} The result of the JSON RPC request.
+   */
   public async execute<Args, Output>(
     params: RpcQueryParams<Args>,
     config?: RequestConfig,
@@ -132,6 +145,13 @@ export class JsonRpcClient implements RpcClient {
         }
 
         if (response?.data?.error) {
+          let messageData = response?.data?.error?.data;
+          let errorMessage = '';
+          if (typeof messageData === 'string') {
+            errorMessage = messageData;
+          } else {
+            errorMessage = messageData.type;
+          }
           return {
             error: {
               code: 400,
@@ -144,7 +164,7 @@ export class JsonRpcClient implements RpcClient {
                     response?.data?.error?.data?.type ??
                     response?.data?.error?.type,
                   info: {
-                    message: response?.data?.error?.data?.data?.type,
+                    message: errorMessage,
                   },
                 },
               },
@@ -155,6 +175,13 @@ export class JsonRpcClient implements RpcClient {
           result: response?.data?.result,
         };
       } else {
+        let messageData = response?.data?.error?.data?.data;
+        let errorMessage = '';
+        if (typeof messageData === 'string') {
+          errorMessage = messageData;
+        } else {
+          errorMessage = messageData.type;
+        }
         return {
           error: {
             id: response?.data?.id,
@@ -165,7 +192,7 @@ export class JsonRpcClient implements RpcClient {
               cause: {
                 name: 'InvalidRequestError',
                 info: {
-                  message: response?.data?.error?.data?.data?.type,
+                  message: errorMessage,
                 },
               },
             },
@@ -177,13 +204,13 @@ export class JsonRpcClient implements RpcClient {
         error: {
           id: requestId,
           jsonrpc: '2.0',
-          code: error.response.code,
+          code: 500,
           error: {
             name: 'UnknownServerError',
             cause: {
               name: 'UnknownServerError',
               info: {
-                message: error?.response?.data,
+                message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.`,
               },
             },
           },
