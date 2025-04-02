@@ -4,11 +4,40 @@
  * authentication tokens, and other context information.
  */
 
+/**
+ * @constant {string} APP_URL
+ * @description The key for the Node server URL in localStorage.
+ */
 export const APP_URL = 'app-url';
+
+/**
+ * @constant {string} CONTEXT_IDENTITY
+ * @description The key for the executor public key in localStorage.
+ */
 export const CONTEXT_IDENTITY = 'context-identity';
+
+/**
+ * @constant {string} ACCESS_TOKEN
+ * @description The key for the JWT access token in localStorage.
+ */
 export const ACCESS_TOKEN = 'access-token';
+
+/**
+ * @constant {string} CONTEXT_ID
+ * @description The key for the context ID in localStorage.
+ */
 export const CONTEXT_ID = 'context-id';
+
+/**
+ * @constant {string} REFRESH_TOKEN
+ * @description The key for the JWT refresh token in localStorage.
+ */
 export const REFRESH_TOKEN = 'refresh-token';
+
+/**
+ * @constant {string} APPLICATION_ID
+ * @description The key for the application ID in localStorage.
+ */
 export const APPLICATION_ID = 'application-id';
 
 /**
