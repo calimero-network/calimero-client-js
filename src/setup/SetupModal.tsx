@@ -1,16 +1,32 @@
-import { useCallback, useEffect, useState } from 'react';
-import apiClient from '../api';
 import React from 'react';
-import Spinner from '../components/loader/Spinner';
+import { useCallback, useEffect, useState } from 'react';
 
+import apiClient from '../api';
+import Spinner from '../components/loader/Spinner';
+import {
+  getAppEndpointKey,
+  getApplicationId,
+  setAppEndpointKey,
+  setApplicationId,
+} from '../storage';
+import styles from './setup.styles';
+
+import '../../styles/setup.css';
+
+/**
+ * @interface SetupModalProps
+ * @property {() => void} successRoute - The route to redirect to after the setup is successful.
+ */
 export interface SetupModalProps {
   successRoute: () => void;
-  getNodeUrl: () => string | null;
-  setNodeUrl: (url: string) => void;
-  getApplicationId: () => string | null;
-  setApplicationId: (applicationId: string) => void;
 }
 
+/**
+ * @component SetupModal
+ * @description A modal for setting up the application.
+ * @param {SetupModalProps} props - The props for the SetupModal component.
+ * @returns {React.ReactNode} The SetupModal component.
+ */
 export const SetupModal: React.FC<SetupModalProps> = (
   props: SetupModalProps,
 ) => {
@@ -18,12 +34,13 @@ export const SetupModal: React.FC<SetupModalProps> = (
   const [applicationError, setApplicationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
-  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [appId, setAppId] = useState<string | null>(null);
+  const [isDisabled, setIsDisabled] = useState(true);
   const MINIMUM_LOADING_TIME_MS = 1000;
 
   useEffect(() => {
-    setUrl(props.getNodeUrl());
-    setApplicationId(props.getApplicationId());
+    setUrl(getAppEndpointKey());
+    setAppId(getApplicationId());
   }, [props]);
 
   function validateUrl(value: string): boolean {
@@ -53,14 +70,14 @@ export const SetupModal: React.FC<SetupModalProps> = (
     }
   }
 
-  const handleChange = (url: string) => {
+  const handleChange = (urlValue: string) => {
     setError('');
-    setUrl(url);
+    setUrl(urlValue);
   };
 
   const handleChangeContextId = (value: string) => {
     setApplicationError('');
-    setApplicationId(value);
+    setAppId(value);
     validateContext(value);
   };
 
@@ -76,8 +93,8 @@ export const SetupModal: React.FC<SetupModalProps> = (
       Promise.all([timer, fetchData]).then(([, response]) => {
         if (response.data) {
           setError('');
-          props.setNodeUrl(url);
-          props.setApplicationId(applicationId || '');
+          setAppEndpointKey(url);
+          setApplicationId(appId || '');
           props.successRoute();
         } else {
           setError('Connection failed. Please check if node url is correct.');
@@ -87,145 +104,60 @@ export const SetupModal: React.FC<SetupModalProps> = (
     } else {
       setError('Connection failed. Please check if node url is correct.');
     }
-  }, [props, url, applicationId]);
+  }, [props, url, appId]);
 
-  const disableButton = (): boolean => {
-    if (!url) return true;
-    if (applicationError) return true;
-    if (!applicationId) return true;
-    return false;
-  };
+  useEffect(() => {
+    let status = !url || !appId || !!applicationError;
+    setIsDisabled(status);
+  }, [url, appId, applicationError]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        height: '100vh',
-        justifyContent: 'center',
-        backgroundColor: '#111111',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            backgroundColor: '#1c1c1c',
-            padding: '2rem',
-            gap: '1rem',
-            borderRadius: '0.5rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '2rem',
-              padding: '0 3.5rem',
-            }}
-          >
-            <div
-              style={{
-                color: 'white',
-                fontSize: '2.5rem',
-                fontWeight: 600,
-              }}
-            >
-              App setup
-            </div>
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContainer}>
+        <div className={styles.modalContent}>
+          <div className={styles.formContainer}>
+            <div className={styles.title}>App setup</div>
             {loading ? (
-              <Spinner />
+              <div className={styles.spinnerContainer}>
+                <Spinner />
+              </div>
             ) : (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <>
-                    <input
-                      type="text"
-                      placeholder="application id"
-                      value={applicationId?.toString() || ''}
-                      onChange={(e: { target: { value: string } }) => {
-                        handleChangeContextId(e.target.value);
-                      }}
-                      style={{
-                        width: '400px',
-                        padding: '0.5rem',
-                        borderRadius: '0.375rem',
-                      }}
-                    />
-                    <div
-                      style={{
-                        color: '#ef4444',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {applicationError}
-                    </div>
-                  </>
-                  <input
-                    type="text"
-                    placeholder="node url"
-                    inputMode="url"
-                    value={url?.toString() || ''}
-                    onChange={(e: { target: { value: string } }) => {
-                      handleChange(e.target.value);
-                    }}
-                    style={{
-                      width: '400px',
-                      padding: '0.5rem',
-                      borderRadius: '0.375rem',
-                    }}
-                  />
-                  <div
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {error}
-                  </div>
-                  <button
-                    style={{
-                      backgroundColor: '#6b7280',
-                      color: 'white',
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      height: '46px',
-                      fontSize: '1rem',
-                      fontWeight: 500,
-                      borderRadius: '0.375rem',
-                      border: 'none',
-                      outline: 'none',
-                      padding: '0.5rem',
-                      cursor: disableButton() ? 'not-allowed' : 'pointer',
-                    }}
-                    disabled={disableButton()}
-                    onClick={() => {
-                      checkConnection();
-                    }}
-                  >
-                    <span>Set values</span>
-                  </button>
+              <div className={styles.inputGroup}>
+                <input
+                  type="text"
+                  placeholder="application id"
+                  value={appId || ''}
+                  onChange={(e) => handleChangeContextId(e.target.value)}
+                  className={styles.inputField}
+                  aria-invalid={!!applicationError}
+                  aria-describedby="appIdError"
+                />
+                <div id="appIdError" className={styles.errorText}>
+                  {applicationError}
                 </div>
-              </>
+
+                <input
+                  type="text"
+                  placeholder="node url"
+                  inputMode="url"
+                  value={url || ''}
+                  onChange={(e) => handleChange(e.target.value)}
+                  className={styles.inputField}
+                  aria-invalid={!!error}
+                  aria-describedby="urlError"
+                />
+                <div id="urlError" className={styles.errorText}>
+                  {error}
+                </div>
+
+                <button
+                  className={styles.submitButton}
+                  disabled={isDisabled}
+                  onClick={checkConnection}
+                >
+                  <span>Set values</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
