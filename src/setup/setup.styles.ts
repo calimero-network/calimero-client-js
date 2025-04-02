@@ -8,7 +8,7 @@ const styles = {
   inputField: 'setup-input-field',
   errorText: 'setup-error-text',
   submitButton: 'setup-submit-button',
-  spinnerContainer: 'setup-spinner-container'
+  spinnerContainer: 'setup-spinner-container',
 };
 
-export default styles; 
+export default styles;

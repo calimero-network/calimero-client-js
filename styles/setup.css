@@ -1,4 +1,4 @@
- .setup-modal-overlay {
+.setup-modal-overlay {
   display: flex;
   height: 100vh;
   justify-content: center;
@@ -78,7 +78,7 @@
   outline: none;
   padding: 0.5rem;
   cursor: pointer;
-  background-color: #FF7A00;
+  background-color: #ff7a00;
   transition: background-color 0.2s ease;
 }
 
