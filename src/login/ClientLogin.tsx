@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { setAccessToken, setRefreshToken } from '../storage/storage';
+import {
+  getAppEndpointKey,
+  getApplicationId,
+  setAccessToken,
+  setRefreshToken,
+} from '../storage/storage';
+import styles from './login.styles';
+
+import '../../styles/login.css';
 
 interface ClientLoginProps {
-  getNodeUrl: () => string | null;
-  getApplicationId: () => string | null;
   sucessRedirect: () => void;
 }
 
-export const ClientLogin: React.FC<ClientLoginProps> = ({
-  getApplicationId,
-  getNodeUrl,
-  sucessRedirect,
-}) => {
+export const ClientLogin: React.FC<ClientLoginProps> = ({ sucessRedirect }) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const redirectToDashboardLogin = () => {
-    const nodeUrl = getNodeUrl();
+    const nodeUrl = getAppEndpointKey();
     const applicationId = getApplicationId();
     if (!nodeUrl) {
       setErrorMessage('Node URL is not set');
@@ -45,66 +47,16 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '0.5rem',
-        maxWidth: '400px',
-      }}
-    >
-      <div
-        style={{
-          marginTop: '1.5rem',
-          display: 'grid',
-          color: 'white',
-          fontSize: '1.25rem',
-          fontWeight: '500',
-          textAlign: 'center',
-        }}
-      >
-        <span
-          style={{
-            marginBottom: '0.5rem',
-            color: '#fff',
-          }}
-        >
+    <div className={styles.loginContainer}>
+      <div className={styles.loginHeader}>
+        <span className={styles.loginHeaderSpan}>
           Login with Admin Dashboard
         </span>
       </div>
-      <button
-        style={{
-          backgroundColor: '#FF7A00',
-          color: 'white',
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '0.5rem',
-          height: '46px',
-          cursor: 'pointer',
-          fontSize: '1rem',
-          fontWeight: '500',
-          borderRadius: '0.375rem',
-          border: 'none',
-          outline: 'none',
-          paddingLeft: '0.5rem',
-          paddingRight: '0.5rem',
-        }}
-        onClick={redirectToDashboardLogin}
-      >
+      <button className={styles.loginButton} onClick={redirectToDashboardLogin}>
         Login
       </button>
-      <div
-        style={{
-          color: '#ef4444',
-          fontSize: '0.875rem',
-          marginTop: '0.5rem',
-        }}
-      >
-        {errorMessage}
-      </div>
+      <div className={styles.errorMessage}>{errorMessage}</div>
     </div>
   );
 };
