@@ -1,16 +1,14 @@
 import React, { useCallback, useEffect } from 'react';
-import { getAccessToken, getRefreshToken } from '../storage';
+import { getAccessToken, getAppEndpointKey, getRefreshToken } from '../storage';
 import { jwtDecode } from 'jwt-decode';
 import { getNewJwtToken } from './refreshToken';
 
 interface AccessTokenWrapperProps {
   children: React.ReactNode;
-  getNodeUrl: () => string;
 }
 
 export const AccessTokenWrapper: React.FC<AccessTokenWrapperProps> = ({
   children,
-  getNodeUrl,
 }) => {
   const decodeToken = useCallback((token: string) => {
     try {
@@ -46,12 +44,12 @@ export const AccessTokenWrapper: React.FC<AccessTokenWrapperProps> = ({
 
     if (isTokenExpiringSoon(accessToken)) {
       try {
-        await getNewJwtToken({ refreshToken, getNodeUrl });
+        await getNewJwtToken({ refreshToken, getNodeUrl: getAppEndpointKey });
       } catch (error) {
         console.error(error);
       }
     }
-  }, [getNodeUrl, isTokenExpiringSoon]);
+  }, [isTokenExpiringSoon]);
 
   useEffect(() => {
     validateAccessToken();

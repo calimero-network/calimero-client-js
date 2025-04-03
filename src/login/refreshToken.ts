@@ -17,7 +17,7 @@ import { ErrorResponse, ResponseData, RpcError } from '../types';
  */
 interface GetNewJwtTokenProps {
   refreshToken: string;
-  getNodeUrl: () => string;
+  getNodeUrl: () => string | null;
 }
 
 /**
@@ -57,9 +57,13 @@ export const getNewJwtToken = async ({
   refreshToken,
   getNodeUrl,
 }: GetNewJwtTokenProps): Promise<ResponseData<JwtTokenResponse>> => {
+  let nodeUrl = getNodeUrl();
+  if (!nodeUrl) {
+    return { error: { message: 'Node URL is not set', code: 400 } };
+  }
   const tokenResponse: ResponseData<JwtTokenResponse> = await apiClient
     .node()
-    .refreshToken(refreshToken, getNodeUrl());
+    .refreshToken(refreshToken, nodeUrl);
 
   if (tokenResponse.error) {
     return { error: tokenResponse.error };
@@ -73,12 +77,12 @@ export const getNewJwtToken = async ({
  * @function handleRpcError
  * @description Handles the error that can occur in the JSON RPC from the frontend.
  * @param {RpcError} error - The error that can occur in the JSON RPC.
- * @param {() => string} getNodeUrl - The function to get the node URL.
+ * @param {() => string | null} getNodeUrl - The function to get the node URL.
  * @returns {Promise<ErrorResponse>} The error response.
  */
 export const handleRpcError = async (
   error: RpcError,
-  getNodeUrl: () => string,
+  getNodeUrl: () => string | null,
 ): Promise<ErrorResponse> => {
   const invalidSession = {
     message: 'Your session is no longer valid. Please log in again.',
