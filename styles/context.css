@@ -34,7 +34,8 @@
   margin-bottom: 1rem;
 }
 
-.form-group input, .protocol-selection select {
+.form-group input,
+.protocol-selection select {
   width: 100%;
   padding: 0.625rem;
   border: 1px solid #ddd;

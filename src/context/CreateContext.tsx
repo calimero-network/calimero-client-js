@@ -84,7 +84,9 @@ export const CreateContext: React.FC = () => {
       <div className="scrollable-list">
         {contexts.map((context, index) => (
           <div key={index} className="list-item">
-            <span>{index + 1}. {context.id}</span>
+            <span>
+              {index + 1}. {context.id}
+            </span>
             {isDeleting ? (
               <Spinner />
             ) : (
