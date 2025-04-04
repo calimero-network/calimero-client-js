@@ -1,6 +1,6 @@
 {
   "name": "@calimero-network/calimero-client",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Javascript library to interact with Calimero P2P node",
   "type": "module",
   "main": "lib/index.js",
