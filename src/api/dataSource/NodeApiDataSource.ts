@@ -2,11 +2,14 @@ import { ApiResponse } from '../../types/api-response';
 import {
   CreateContextResponse,
   DeleteContextResponse,
+  FetchContextIdentitiesResponse,
   GetContextsResponse,
   HealthRequest,
   HealthStatus,
+  JoinContextResponse,
   JwtTokenResponse,
   NodeApi,
+  NodeIdentity,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
@@ -61,7 +64,6 @@ export class NodeApiDataSource implements NodeApi {
           protocol,
         },
       );
-      console.log('Context created:', response);
       return response;
     } catch (error) {
       console.error('Error starting contexts:', error);
@@ -78,6 +80,74 @@ export class NodeApiDataSource implements NodeApi {
     } catch (error) {
       console.error('Error deleting context:', error);
       return { error: { code: 500, message: 'Failed to delete context.' } };
+    }
+  }
+
+  async fetchContextIdentities(
+    contextId: string,
+  ): ApiResponse<FetchContextIdentitiesResponse> {
+    try {
+      const response = await this.client.get<FetchContextIdentitiesResponse>(
+        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/identities-owned`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error deleting context:', error);
+      return { error: { code: 500, message: 'Failed to delete context.' } };
+    }
+  }
+
+  async createNewIdentity(): ApiResponse<NodeIdentity> {
+    try {
+      const response = await this.client.post<NodeIdentity>(
+        `${getAppEndpointKey()}/admin-api/identity/context`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error creating new identity:', error);
+      return {
+        error: { code: 500, message: 'Failed to create new identity.' },
+      };
+    }
+  }
+
+  async contextInvite(
+    contextId: string,
+    inviterPublicKey: string,
+    inviteePublicKey: string,
+  ): ApiResponse<string> {
+    try {
+      const response = await this.client.post<string>(
+        `${getAppEndpointKey()}/admin-api/contexts/invite`,
+        {
+          contextId: contextId,
+          inviterId: inviterPublicKey,
+          inviteeId: inviteePublicKey,
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error('Error inviting to context:', error);
+      return { error: { code: 500, message: 'Failed to invite to context.' } };
+    }
+  }
+
+  async joinContext(
+    privateKey: string,
+    invitationPayload: string,
+  ): ApiResponse<JoinContextResponse> {
+    try {
+      const response = await this.client.post<JoinContextResponse>(
+        `${getAppEndpointKey()}/admin-api/contexts/join`,
+        {
+          privateKey,
+          invitationPayload,
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error('Error joining context:', error);
+      return { error: { code: 500, message: 'Failed to join context.' } };
     }
   }
 }

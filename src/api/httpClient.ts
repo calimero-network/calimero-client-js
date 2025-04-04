@@ -106,7 +106,6 @@ export class AxiosHttpClient implements HttpClient {
         return response.data;
       }
     } catch (e: unknown) {
-      console.log('Response here:', e);
       if (e instanceof AxiosError) {
         //head does not return body so we are adding error manually
         if (e?.config?.method?.toUpperCase() === 'HEAD') {
@@ -118,7 +117,8 @@ export class AxiosHttpClient implements HttpClient {
           };
         }
 
-        const error: ErrorResponse | string = e.response?.data.error;
+        const error: ErrorResponse | string =
+          e.response?.data.error ?? e.response?.data;
         if (!error) {
           return {
             error: GENERIC_ERROR,

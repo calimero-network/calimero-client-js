@@ -37,7 +37,7 @@
 .form-group input,
 .protocol-selection select {
   width: 100%;
-  padding: 0.625rem;
+  padding: 0.625rem 1rem;
   border: 1px solid #ddd;
   border-radius: 0.375rem;
   font-size: 1rem;
@@ -129,4 +129,59 @@ p {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.context-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+.dropdown-selector {
+  padding: 0.625rem 1rem;
+}
+
+.text-sm {
+  font-size: 12px;
+}
+
+.identity-container {
+  position: relative;
+}
+
+.delete-icon {
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.delete-icon:hover {
+  color: #ef4444;
+}
+
+button:disabled {
+  background-color: #6b7280;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding-right: 10px;
+  white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
+  overflow-wrap: break-word;
+  padding-bottom: 10px;
+}
+
+.payload {
+  font-size: 12px;
+  color: #666;
+}
+
+.button-size-md {
+  width: 150px;
 }

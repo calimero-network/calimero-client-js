@@ -36,6 +36,20 @@ export interface GetContextsResponse {
   contexts: Context[];
 }
 
+export interface FetchContextIdentitiesResponse {
+  identities: string[];
+}
+
+export interface NodeIdentity {
+  publicKey: string;
+  privateKey: string;
+}
+
+export interface JoinContextResponse {
+  contextId: string;
+  memberPublicKey: SigningKey;
+}
+
 export interface NodeApi {
   refreshToken(
     refreshToken: string,
@@ -48,4 +62,17 @@ export interface NodeApi {
     applicationId: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse>;
+  fetchContextIdentities(
+    contextId: string,
+  ): ApiResponse<FetchContextIdentitiesResponse>;
+  createNewIdentity(): ApiResponse<NodeIdentity>;
+  contextInvite(
+    contextId: string,
+    inviterPublicKey: string,
+    inviteePublicKey: string,
+  ): ApiResponse<string>;
+  joinContext(
+    privateKey: string,
+    invitationPayload: string,
+  ): ApiResponse<JoinContextResponse>;
 }
