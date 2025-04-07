@@ -5,6 +5,17 @@ import { ResponseData } from '../types';
 import { Context, GetContextsResponse } from '../api/nodeApi';
 import Spinner from '../components/loader/Spinner';
 import { DeleteIcon } from '../components';
+import {
+  Button,
+  DropdownSelector,
+  ErrorMessage,
+  FlexContainer,
+  Heading2,
+  Heading3,
+  ListItem,
+  Paragraph,
+  ScrollableList,
+} from './Components';
 
 export const CreateContext: React.FC = () => {
   const applicationId = getApplicationId();
@@ -55,12 +66,12 @@ export const CreateContext: React.FC = () => {
 
   return (
     <div className="create-tab">
-      <h2>Create Context</h2>
-      <p>Application ID: {applicationId}</p>
+      <Heading2>Create Context</Heading2>
+      <Paragraph>Application ID: {applicationId}</Paragraph>
       <label>Choose Protocol:</label>
-      <div className="flex-container">
-        <div className="protocol-selection">
-          <select
+      <FlexContainer>
+        <div>
+          <DropdownSelector
             value={selectedProtocol}
             onChange={(e) => setSelectedProtocol(e.target.value)}
           >
@@ -69,21 +80,22 @@ export const CreateContext: React.FC = () => {
             <option value="starknet">Starknet</option>
             <option value="stellar">Stellar</option>
             <option value="icp">ICP</option>
-          </select>
+          </DropdownSelector>
         </div>
-        <button
+        <Button
           disabled={isLoading}
           onClick={handleCreateContext}
-          className="button-rounded btn-static"
+          className="button-rounded"
+          style={{ width: '177px' }}
         >
           {isLoading ? <Spinner /> : 'Create New Context'}
-        </button>
-      </div>
-      {error && <div className="error-message">{error}</div>}
-      <h3>Existing Contexts</h3>
-      <div className="scrollable-list">
+        </Button>
+      </FlexContainer>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      <Heading3>Existing Contexts</Heading3>
+      <ScrollableList>
         {contexts.map((context, index) => (
-          <div key={index} className="list-item">
+          <ListItem key={index}>
             <span>
               {index + 1}. {context.id}
             </span>
@@ -92,9 +104,9 @@ export const CreateContext: React.FC = () => {
             ) : (
               <DeleteIcon onClick={() => handleDeleteContext(context.id)} />
             )}
-          </div>
+          </ListItem>
         ))}
-      </div>
+      </ScrollableList>
     </div>
   );
 };

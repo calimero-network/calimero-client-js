@@ -12,7 +12,7 @@ export default function DeleteIcon({ onClick }: DeleteIconProps) {
       fill="white"
       viewBox="0 0 485 485"
       onClick={onClick}
-      className="cursor-pointer"
+      style={{ cursor: 'pointer' }}
     >
       <g>
         <g>

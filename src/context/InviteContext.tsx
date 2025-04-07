@@ -4,6 +4,17 @@ import apiClient from '../api';
 import { ResponseData } from '../types';
 import { Context, GetContextsResponse } from '../api/nodeApi';
 import { getApplicationId } from '../storage';
+import {
+  Button,
+  ContextSelector,
+  DropdownSelector,
+  ErrorMessage,
+  FormGroup,
+  FormInput,
+  Heading2,
+  Paragraph,
+  SuccessMessage,
+} from './Components';
 
 export const InviteContext: React.FC = () => {
   const applicationId = getApplicationId();
@@ -56,18 +67,17 @@ export const InviteContext: React.FC = () => {
 
   return (
     <div className="invite-tab">
-      <h2>Invite to Context</h2>
-      <p>Fill in the details to create an invitation</p>
+      <Heading2>Invite to Context</Heading2>
+      <Paragraph>Fill in the details to create an invitation</Paragraph>
       <form onSubmit={handleInviteSubmit}>
-        <div className="form-group">
-          <div className="context-selector">
+        <FormGroup>
+          <ContextSelector>
             <label>Select Context:</label>
             {contextLoading ? (
               <div>Loading contexts...</div>
             ) : (
-              <select
+              <DropdownSelector
                 id="context-select"
-                className="dropdown-selector"
                 value={contextId || ''}
                 onChange={(e) => {
                   const selected = contexts?.find(
@@ -81,42 +91,42 @@ export const InviteContext: React.FC = () => {
                     {context.id}
                   </option>
                 ))}
-              </select>
+              </DropdownSelector>
             )}
-          </div>
-        </div>
-        <div className="form-group">
-          <input
+          </ContextSelector>
+        </FormGroup>
+        <FormGroup>
+          <FormInput
             type="text"
             value={invitatorKey}
             onChange={(e) => setInvitatorKey(e.target.value)}
             placeholder="Inviter Public Key"
           />
-        </div>
-        <div className="form-group">
-          <input
+        </FormGroup>
+        <FormGroup>
+          <FormInput
             type="text"
             value={inviteeKey}
             onChange={(e) => setInviteeKey(e.target.value)}
             placeholder="Invitee Public Key"
           />
-        </div>
-        {error && <div className="error-message">{error}</div>}
+        </FormGroup>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         {invitation && (
-          <div className="success-message">
-            <p>Invitation created successfully</p>
+          <SuccessMessage>
+            <Paragraph>Invitation created successfully</Paragraph>
             <div>
               invitation payload: <span className="payload">{invitation}</span>
             </div>
-          </div>
+          </SuccessMessage>
         )}
-        <button
+        <Button
           type="submit"
           className="button-rounded button-size-md"
           disabled={isLoading || !invitatorKey || !inviteeKey}
         >
           {isLoading ? <Spinner /> : 'Create Invitation'}
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -1,18 +1,20 @@
-.setup-modal-overlay {
+import styled from 'styled-components';
+
+export const SetupModalOverlay = styled.div`
   display: flex;
   height: 100vh;
   justify-content: center;
   background-color: #111111;
-}
+`;
 
-.setup-modal-container {
+export const SetupModalContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
+`;
 
-.setup-modal-content {
+export const SetupModalContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,50 +22,50 @@
   padding: 1rem;
   border-radius: 0.5rem;
   color: white;
-}
+`;
 
-.setup-form-container {
+export const SetupFormContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 2rem;
   padding: 0 2rem;
-}
+`;
 
-.setup-title {
+export const SetupTitle = styled.h1`
   font-size: 2.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
-}
+`;
 
-.setup-input-group {
+export const SetupInputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
-}
+`;
 
-.setup-input-field {
+export const SetupInputField = styled.input`
   width: 400px;
   padding: 0.5rem;
   border-radius: 0.375rem;
   border: none;
   background-color: #333;
   color: white;
-}
 
-.setup-input-field::placeholder {
-  color: #888;
-}
+  &::placeholder {
+    color: #888;
+  }
+`;
 
-.setup-error-text {
+export const SetupErrorText = styled.span`
   color: #ef4444;
   font-size: 0.875rem;
   min-height: 1.2em;
-}
+`;
 
-.setup-submit-button {
+export const SetupSubmitButton = styled.button`
   color: white;
   width: 100%;
   display: flex;
@@ -80,16 +82,16 @@
   cursor: pointer;
   background-color: #ff7a00;
   transition: background-color 0.2s ease;
-}
 
-.setup-submit-button:disabled {
-  background-color: #6b7280;
-  cursor: not-allowed;
-}
+  &:disabled {
+    background-color: #6b7280;
+    cursor: not-allowed;
+  }
+`;
 
-.setup-spinner-container {
+export const SetupSpinnerContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
-}
+`;
