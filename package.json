@@ -29,6 +29,7 @@
     "browserify-css": "^0.15.0",
     "bundlewatch": "^0.3.1",
     "concurrently": "^7.3.0",
+    "css-loader": "^7.1.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-react-app": "^7.0.1",
@@ -51,7 +52,7 @@
   },
   "scripts": {
     "dist": "pnpm browserify",
-    "browserify": "browserify -i node-fetch -i http -i https -o dist/calimero-sdk.js && browserify -i node-fetch -g uglifyify --plugin browserify-css -o dist/calimero-sdk.min.js",
+    "browserify": "browserify -i node-fetch -i http -i https --plugin browserify-css -g uglifyify -o dist/calimero-sdk.min.js",
     "compile": "tsc -p ./tsconfig.json",
     "dev": "pnpm compile -w",
     "build": "pnpm compile && pnpm browserify",
