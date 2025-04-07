@@ -9,9 +9,18 @@ import {
   setAppEndpointKey,
   setApplicationId,
 } from '../storage';
-import styles from './setup.styles';
-
-import '../../styles/setup.css';
+import {
+  SetupErrorText,
+  SetupFormContainer,
+  SetupInputField,
+  SetupInputGroup,
+  SetupModalContainer,
+  SetupModalContent,
+  SetupModalOverlay,
+  SetupSpinnerContainer,
+  SetupSubmitButton,
+  SetupTitle,
+} from './Components';
 
 /**
  * @interface SetupModalProps
@@ -112,56 +121,49 @@ export const SetupModal: React.FC<SetupModalProps> = (
   }, [url, appId, applicationError]);
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContainer}>
-        <div className={styles.modalContent}>
-          <div className={styles.formContainer}>
-            <div className={styles.title}>App setup</div>
+    <SetupModalOverlay>
+      <SetupModalContainer>
+        <SetupModalContent>
+          <SetupFormContainer>
+            <SetupTitle>App setup</SetupTitle>
             {loading ? (
-              <div className={styles.spinnerContainer}>
+              <SetupSpinnerContainer>
                 <Spinner />
-              </div>
+              </SetupSpinnerContainer>
             ) : (
-              <div className={styles.inputGroup}>
-                <input
+              <SetupInputGroup>
+                <SetupInputField
                   type="text"
                   placeholder="application id"
                   value={appId || ''}
                   onChange={(e) => handleChangeContextId(e.target.value)}
-                  className={styles.inputField}
                   aria-invalid={!!applicationError}
                   aria-describedby="appIdError"
                 />
-                <div id="appIdError" className={styles.errorText}>
-                  {applicationError}
-                </div>
+                <SetupErrorText>{applicationError}</SetupErrorText>
 
-                <input
+                <SetupInputField
                   type="text"
                   placeholder="node url"
                   inputMode="url"
                   value={url || ''}
                   onChange={(e) => handleChange(e.target.value)}
-                  className={styles.inputField}
                   aria-invalid={!!error}
                   aria-describedby="urlError"
                 />
-                <div id="urlError" className={styles.errorText}>
-                  {error}
-                </div>
+                <SetupErrorText>{error}</SetupErrorText>
 
-                <button
-                  className={styles.submitButton}
+                <SetupSubmitButton
                   disabled={isDisabled}
                   onClick={checkConnection}
                 >
                   <span>Set values</span>
-                </button>
-              </div>
+                </SetupSubmitButton>
+              </SetupInputGroup>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </SetupFormContainer>
+        </SetupModalContent>
+      </SetupModalContainer>
+    </SetupModalOverlay>
   );
 };

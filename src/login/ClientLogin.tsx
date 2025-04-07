@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   getAppEndpointKey,
   getApplicationId,
   setAccessToken,
   setRefreshToken,
 } from '../storage/storage';
-import styles from './login.styles';
-
-import '../../styles/login.css';
+import {
+  ErrorMessage,
+  LoginButton,
+  LoginContainer,
+  LoginHeader,
+  LoginHeaderSpan,
+} from './Components';
 
 interface ClientLoginProps {
   sucessRedirect: () => void;
@@ -47,16 +52,12 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({ sucessRedirect }) => {
   }, []);
 
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.loginHeader}>
-        <span className={styles.loginHeaderSpan}>
-          Login with Admin Dashboard
-        </span>
-      </div>
-      <button className={styles.loginButton} onClick={redirectToDashboardLogin}>
-        Login
-      </button>
-      <div className={styles.errorMessage}>{errorMessage}</div>
-    </div>
+    <LoginContainer>
+      <LoginHeader>
+        <LoginHeaderSpan>Login with Admin Dashboard</LoginHeaderSpan>
+      </LoginHeader>
+      <LoginButton onClick={redirectToDashboardLogin}>Login</LoginButton>
+      <ErrorMessage>{errorMessage}</ErrorMessage>
+    </LoginContainer>
   );
 };

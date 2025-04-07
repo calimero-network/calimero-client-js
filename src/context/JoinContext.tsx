@@ -3,6 +3,15 @@ import Spinner from '../components/loader/Spinner';
 import apiClient from '../api';
 import { JoinContextResponse } from '../api/nodeApi';
 import { ResponseData } from '../types';
+import {
+  Button,
+  ErrorMessage,
+  FormGroup,
+  FormInput,
+  Heading2,
+  Paragraph,
+  SuccessMessage,
+} from './Components';
 
 export const JoinContext: React.FC = () => {
   const [identityPrivateKey, setIdentityPrivateKey] = useState<string>('');
@@ -32,36 +41,38 @@ export const JoinContext: React.FC = () => {
 
   return (
     <div className="join-tab">
-      <h2>Join Existing Context</h2>
-      <p>To join context you need to have invitation payload.</p>
+      <Heading2>Join Existing Context</Heading2>
+      <Paragraph>
+        To join context you need to have invitation payload.
+      </Paragraph>
       <form onSubmit={handleJoinSubmit}>
-        <div className="form-group">
-          <input
+        <FormGroup>
+          <FormInput
             type="text"
             value={identityPrivateKey}
             onChange={(e) => setIdentityPrivateKey(e.target.value)}
             placeholder="Enter your identity private key"
           />
-        </div>
-        <div className="form-group">
-          <input
+        </FormGroup>
+        <FormGroup>
+          <FormInput
             type="text"
             value={joinPayload}
             onChange={(e) => setJoinPayload(e.target.value)}
             placeholder="Paste invitation payload"
           />
-        </div>
-        {joinError && <div className="error-message">{joinError}</div>}
+        </FormGroup>
+        {joinError && <ErrorMessage>{joinError}</ErrorMessage>}
         {isSuccess && (
-          <div className="success-message">Successfully joined context</div>
+          <SuccessMessage>Successfully joined context</SuccessMessage>
         )}
-        <button
+        <Button
           type="submit"
           className="button-rounded button-size-md"
           disabled={isLoading || !identityPrivateKey || !joinPayload}
         >
           {isLoading ? <Spinner /> : 'Join'}
-        </button>
+        </Button>
       </form>
     </div>
   );

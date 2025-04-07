@@ -9,6 +9,19 @@ import {
 } from '../api/nodeApi';
 import apiClient from '../api';
 import Spinner from '../components/loader/Spinner';
+import {
+  Button,
+  ContextSelector,
+  DeleteIcon,
+  DropdownSelector,
+  ErrorMessage,
+  FlexContainer,
+  Heading2,
+  IdentityContainer,
+  ListItem,
+  Paragraph,
+  ScrollableList,
+} from './Components';
 
 const NEW_IDENTITY_KEY = 'new-identity';
 
@@ -93,42 +106,40 @@ export const Identity: React.FC = () => {
 
   return (
     <div className="identity-tab">
-      <div className="flex-container">
+      <FlexContainer>
         <div>
-          <h2>Identities</h2>
-          <button
+          <Heading2>Identities</Heading2>
+          <Button
             onClick={handleCreateIdentity}
             className="button-rounded"
             disabled={isLoading}
           >
             {isLoading ? <Spinner /> : 'Create New Identity'}
-          </button>
+          </Button>
         </div>
         {newIdentity && (
-          <div className="identity-container">
+          <IdentityContainer>
             <label>New Identity</label>
-            <p className="text-sm">
+            <Paragraph className="text-sm">
               Public Key: <br></br>
               {newIdentity?.publicKey}
-            </p>
-            <p className="text-sm">
+            </Paragraph>
+            <Paragraph className="text-sm">
               Private Key: <br></br>
               {newIdentity?.privateKey}
-            </p>
-            <div className="delete-icon" onClick={deleteIdentity}>
-              x
-            </div>
-          </div>
+            </Paragraph>
+            <DeleteIcon onClick={deleteIdentity}>x</DeleteIcon>
+          </IdentityContainer>
         )}
-      </div>
+      </FlexContainer>
 
-      {error && <div className="error-message">{error}</div>}
-      <div className="context-selector">
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      <ContextSelector>
         <label>Select Context:</label>
         {contextLoading ? (
           <div>Loading contexts...</div>
         ) : (
-          <select
+          <DropdownSelector
             id="context-select"
             className="dropdown-selector"
             value={selectedContext?.id || ''}
@@ -144,24 +155,24 @@ export const Identity: React.FC = () => {
                 {context.id}
               </option>
             ))}
-          </select>
+          </DropdownSelector>
         )}
-      </div>
+      </ContextSelector>
       <label>Available Identities:</label>
-      <div className="scrollable-list">
+      <ScrollableList>
         {identityLoading ? (
           <div>Loading identities...</div>
         ) : (
           identities.length > 0 &&
           identities.map((identity, index) => (
-            <div key={index} className="list-item">
+            <ListItem key={index}>
               <span>
                 {index + 1}. {identity}
               </span>
-            </div>
+            </ListItem>
           ))
         )}
-      </div>
+      </ScrollableList>
     </div>
   );
 };

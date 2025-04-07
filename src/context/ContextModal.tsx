@@ -3,8 +3,7 @@ import { JoinContext } from './JoinContext';
 import { InviteContext } from './InviteContext';
 import { CreateContext } from './CreateContext';
 import { Identity } from './Identity';
-
-import '../../styles/context.css';
+import { ContextModalWrapper, TabButton, TabContent, Tabs } from './Components';
 
 const contextActions = [
   {
@@ -29,24 +28,24 @@ export const ContextModal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('join');
 
   return (
-    <div className="context-modal">
-      <div className="tabs">
+    <ContextModalWrapper>
+      <Tabs>
         {contextActions.map((item, i) => (
-          <button
+          <TabButton
             key={i}
-            className={`${activeTab === item.id ? 'active' : ''} button-tab`}
             onClick={() => setActiveTab(item.id)}
+            className={activeTab === item.id ? 'active' : ''}
           >
             {item.label}
-          </button>
+          </TabButton>
         ))}
-      </div>
-      <div className="tab-content">
+      </Tabs>
+      <TabContent>
         {activeTab === 'join' && <JoinContext />}
         {activeTab === 'invite' && <InviteContext />}
         {activeTab === 'create' && <CreateContext />}
         {activeTab === 'identity' && <Identity />}
-      </div>
-    </div>
+      </TabContent>
+    </ContextModalWrapper>
   );
 };
