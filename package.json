@@ -1,6 +1,6 @@
 {
   "name": "@calimero-network/calimero-client",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Javascript library to interact with Calimero P2P node",
   "type": "module",
   "main": "lib/index.js",
@@ -26,6 +26,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "browserify": "^16.2.3",
+    "browserify-css": "^0.15.0",
     "bundlewatch": "^0.3.1",
     "concurrently": "^7.3.0",
     "eslint": "^8.57.0",
@@ -50,7 +51,7 @@
   },
   "scripts": {
     "dist": "pnpm browserify",
-    "browserify": "browserify -i node-fetch -i http -i https -o dist/calimero-sdk.js && browserify -i node-fetch -g uglifyify -o dist/calimero-sdk.min.js",
+    "browserify": "browserify -i node-fetch -i http -i https -o dist/calimero-sdk.js && browserify -i node-fetch -g uglifyify --plugin browserify-css -o dist/calimero-sdk.min.js",
     "compile": "tsc -p ./tsconfig.json",
     "dev": "pnpm compile -w",
     "build": "pnpm compile && pnpm browserify",
