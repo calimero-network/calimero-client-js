@@ -48,11 +48,12 @@ export const SetupInputGroup = styled.div`
 
 export const SetupInputField = styled.input`
   width: 400px;
-  padding: 0.5rem;
+  padding: 0.8rem;
   border-radius: 0.375rem;
   border: none;
   background-color: #333;
   color: white;
+  font-size: 16px;
 
   &::placeholder {
     color: #888;
@@ -86,6 +87,10 @@ export const SetupSubmitButton = styled.button`
   &:disabled {
     background-color: #6b7280;
     cursor: not-allowed;
+  }
+
+  &:hover {
+    background-color: #ff8c00;
   }
 `;
 

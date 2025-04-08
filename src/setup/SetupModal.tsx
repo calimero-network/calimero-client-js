@@ -1,14 +1,9 @@
 import React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import apiClient from '../api';
 import Spinner from '../components/loader/Spinner';
-import {
-  getAppEndpointKey,
-  getApplicationId,
-  setAppEndpointKey,
-  setApplicationId,
-} from '../storage';
+
 import {
   SetupErrorText,
   SetupFormContainer,
@@ -21,14 +16,61 @@ import {
   SetupSubmitButton,
   SetupTitle,
 } from './Components';
+import { setApplicationId, setAppEndpointKey } from '../storage';
 
 /**
  * @interface SetupModalProps
- * @property {() => void} successRoute - The route to redirect to after the setup is successful.
+ * @property {() => void} setAppId - The function to set the application id.
+ * @property {() => void} setNodeServerUrl - The function to set the app endpoint key.
  */
 export interface SetupModalProps {
-  successRoute: () => void;
+  setAppId: (appId: string) => void;
+  setNodeServerUrl: (nodeServerUrl: string) => void;
 }
+
+interface SetupState {
+  url: string;
+  applicationId: string;
+  errors: {
+    url: string;
+    applicationId: string;
+  };
+  isLoading: boolean;
+}
+
+const MINIMUM_LOADING_TIME_MS = 1000;
+
+const initialState: SetupState = {
+  url: '',
+  applicationId: '',
+  errors: {
+    url: '',
+    applicationId: '',
+  },
+  isLoading: false,
+};
+
+const validateUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const validateApplicationId = (value: string): string => {
+  if (value.length < 32 || value.length > 44) {
+    return 'Application ID must be between 32 and 44 characters long.';
+  }
+
+  const validChars = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+  if (!validChars.test(value)) {
+    return 'Application ID must contain only base58 characters.';
+  }
+
+  return '';
+};
 
 /**
  * @component SetupModal
@@ -36,89 +78,80 @@ export interface SetupModalProps {
  * @param {SetupModalProps} props - The props for the SetupModal component.
  * @returns {React.ReactNode} The SetupModal component.
  */
-export const SetupModal: React.FC<SetupModalProps> = (
-  props: SetupModalProps,
-) => {
-  const [error, setError] = useState<string | null>(null);
-  const [applicationError, setApplicationError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [url, setUrl] = useState<string | null>(null);
-  const [appId, setAppId] = useState<string | null>(null);
-  const [isDisabled, setIsDisabled] = useState(true);
-  const MINIMUM_LOADING_TIME_MS = 1000;
+export const SetupModal: React.FC<SetupModalProps> = ({
+  setAppId,
+  setNodeServerUrl,
+}) => {
+  const [state, setState] = useState<SetupState>(initialState);
+  const { url, applicationId, errors, isLoading } = state;
 
-  useEffect(() => {
-    setUrl(getAppEndpointKey());
-    setAppId(getApplicationId());
-  }, [props]);
-
-  function validateUrl(value: string): boolean {
-    try {
-      new URL(value);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function validateContext(value: string) {
-    if (value.length < 32 || value.length > 44) {
-      setApplicationError(
-        'Application ID must be between 32 and 44 characters long.',
-      );
-      return;
-    }
-    const validChars =
-      /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
-
-    if (!validChars.test(value)) {
-      setApplicationError(
-        'Application ID must contain only base58 characters.',
-      );
-      return;
-    }
-  }
-
-  const handleChange = (urlValue: string) => {
-    setError('');
-    setUrl(urlValue);
+  const updateState = (newState: Partial<SetupState>) => {
+    setState(prev => ({ ...prev, ...newState }));
   };
 
-  const handleChangeContextId = (value: string) => {
-    setApplicationError('');
-    setAppId(value);
-    validateContext(value);
+  const updateError = (field: keyof SetupState['errors'], message: string) => {
+    setState(prev => ({
+      ...prev,
+      errors: {
+        ...prev.errors,
+        [field]: message
+      }
+    }));
   };
 
-  const checkConnection = useCallback(async () => {
+  const handleUrlChange = (value: string) => {
+    updateState({ 
+      url: value,
+      errors: {
+        ...state.errors,
+        url: ''
+      }
+    });
+  };
+
+  const handleApplicationIdChange = (value: string) => {
+    const error = validateApplicationId(value);
+    updateState({
+      applicationId: value,
+      errors: {
+        ...state.errors,
+        applicationId: error
+      }
+    });
+  };
+
+  const handleSubmit = useCallback(async () => {
     if (!url) return;
-    if (validateUrl(url.toString())) {
-      setLoading(true);
-      const timer = new Promise((resolve) =>
-        setTimeout(resolve, MINIMUM_LOADING_TIME_MS),
-      );
 
-      const fetchData = apiClient.node().health({ url: url });
-      Promise.all([timer, fetchData]).then(([, response]) => {
-        if (response.data) {
-          setError('');
-          setAppEndpointKey(url);
-          setApplicationId(appId || '');
-          props.successRoute();
-        } else {
-          setError('Connection failed. Please check if node url is correct.');
-        }
-        setLoading(false);
-      });
-    } else {
-      setError('Connection failed. Please check if node url is correct.');
+    if (!validateUrl(url)) {
+      updateError('url', 'Connection failed. Please check if node url is correct.');
+      return;
     }
-  }, [props, url, appId]);
 
-  useEffect(() => {
-    let status = !url || !appId || !!applicationError;
-    setIsDisabled(status);
-  }, [url, appId, applicationError]);
+    updateState({ isLoading: true });
+
+    try {
+      const [, response] = await Promise.all([
+        new Promise(resolve => setTimeout(resolve, MINIMUM_LOADING_TIME_MS)),
+        apiClient.node().health({ url })
+      ]);
+
+      if (response.data) {
+        setAppEndpointKey(url);
+        setApplicationId(applicationId);
+        setNodeServerUrl(url);
+        setAppId(applicationId);
+      } else {
+        updateError('url', 'Connection failed. Please check if node url is correct.');
+      }
+    } catch (error) {
+      updateError('url', 'Connection failed. Please try again.');
+    } finally {
+      updateState({ isLoading: false });
+    }
+  }, [url, applicationId, setNodeServerUrl, setAppId]);
+
+  const isSubmitDisabled = !url || !applicationId || Boolean(errors.url || errors.applicationId);
 
   return (
     <SetupModalOverlay>
@@ -126,7 +159,7 @@ export const SetupModal: React.FC<SetupModalProps> = (
         <SetupModalContent>
           <SetupFormContainer>
             <SetupTitle>App setup</SetupTitle>
-            {loading ? (
+            {isLoading ? (
               <SetupSpinnerContainer>
                 <Spinner />
               </SetupSpinnerContainer>
@@ -134,28 +167,28 @@ export const SetupModal: React.FC<SetupModalProps> = (
               <SetupInputGroup>
                 <SetupInputField
                   type="text"
-                  placeholder="application id"
-                  value={appId || ''}
-                  onChange={(e) => handleChangeContextId(e.target.value)}
-                  aria-invalid={!!applicationError}
+                  placeholder="Application ID"
+                  value={applicationId}
+                  onChange={(e) => handleApplicationIdChange(e.target.value)}
+                  aria-invalid={!!errors.applicationId}
                   aria-describedby="appIdError"
                 />
-                <SetupErrorText>{applicationError}</SetupErrorText>
+                <SetupErrorText>{errors.applicationId}</SetupErrorText>
 
                 <SetupInputField
                   type="text"
-                  placeholder="node url"
+                  placeholder="Node URL"
                   inputMode="url"
-                  value={url || ''}
-                  onChange={(e) => handleChange(e.target.value)}
-                  aria-invalid={!!error}
+                  value={url}
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                  aria-invalid={!!errors.url}
                   aria-describedby="urlError"
                 />
-                <SetupErrorText>{error}</SetupErrorText>
+                <SetupErrorText>{errors.url}</SetupErrorText>
 
                 <SetupSubmitButton
-                  disabled={isDisabled}
-                  onClick={checkConnection}
+                  disabled={isSubmitDisabled}
+                  onClick={handleSubmit}
                 >
                   <span>Set values</span>
                 </SetupSubmitButton>
