@@ -328,7 +328,7 @@ const createErrorResponse = (error: string): AuthConfig => ({
   contextId: null,
   executorPublicKey: null,
   jwtObject: null,
-  error
+  error,
 });
 
 /**
@@ -342,14 +342,14 @@ export const getAuthConfig = (): AuthConfig => {
     contextId: getContextId(),
     executorPublicKey: getExecutorPublicKey(),
     jwtObject: getJWTObject(),
-    error: null as string | null
+    error: null as string | null,
   };
 
   const validations: Array<[keyof AuthConfig, string]> = [
     ['appEndpointKey', 'Missing app endpoint key'],
     ['contextId', 'Missing context id'],
     ['executorPublicKey', 'Missing executor public key'],
-    ['jwtObject', 'Missing jwt object']
+    ['jwtObject', 'Missing jwt object'],
   ];
 
   for (const [key, errorMessage] of validations) {

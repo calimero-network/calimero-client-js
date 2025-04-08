@@ -64,7 +64,8 @@ const validateApplicationId = (value: string): string => {
     return 'Application ID must be between 32 and 44 characters long.';
   }
 
-  const validChars = /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
+  const validChars =
+    /^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/;
   if (!validChars.test(value)) {
     return 'Application ID must contain only base58 characters.';
   }
@@ -86,26 +87,26 @@ export const SetupModal: React.FC<SetupModalProps> = ({
   const { url, applicationId, errors, isLoading } = state;
 
   const updateState = (newState: Partial<SetupState>) => {
-    setState(prev => ({ ...prev, ...newState }));
+    setState((prev) => ({ ...prev, ...newState }));
   };
 
   const updateError = (field: keyof SetupState['errors'], message: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       errors: {
         ...prev.errors,
-        [field]: message
-      }
+        [field]: message,
+      },
     }));
   };
 
   const handleUrlChange = (value: string) => {
-    updateState({ 
+    updateState({
       url: value,
       errors: {
         ...state.errors,
-        url: ''
-      }
+        url: '',
+      },
     });
   };
 
@@ -115,8 +116,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({
       applicationId: value,
       errors: {
         ...state.errors,
-        applicationId: error
-      }
+        applicationId: error,
+      },
     });
   };
 
@@ -124,7 +125,10 @@ export const SetupModal: React.FC<SetupModalProps> = ({
     if (!url) return;
 
     if (!validateUrl(url)) {
-      updateError('url', 'Connection failed. Please check if node url is correct.');
+      updateError(
+        'url',
+        'Connection failed. Please check if node url is correct.',
+      );
       return;
     }
 
@@ -132,8 +136,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({
 
     try {
       const [, response] = await Promise.all([
-        new Promise(resolve => setTimeout(resolve, MINIMUM_LOADING_TIME_MS)),
-        apiClient.node().health({ url })
+        new Promise((resolve) => setTimeout(resolve, MINIMUM_LOADING_TIME_MS)),
+        apiClient.node().health({ url }),
       ]);
 
       if (response.data) {
@@ -142,7 +146,10 @@ export const SetupModal: React.FC<SetupModalProps> = ({
         setNodeServerUrl(url);
         setAppId(applicationId);
       } else {
-        updateError('url', 'Connection failed. Please check if node url is correct.');
+        updateError(
+          'url',
+          'Connection failed. Please check if node url is correct.',
+        );
       }
     } catch (error) {
       updateError('url', 'Connection failed. Please try again.');
@@ -151,7 +158,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({
     }
   }, [url, applicationId, setNodeServerUrl, setAppId]);
 
-  const isSubmitDisabled = !url || !applicationId || Boolean(errors.url || errors.applicationId);
+  const isSubmitDisabled =
+    !url || !applicationId || Boolean(errors.url || errors.applicationId);
 
   return (
     <SetupModalOverlay>

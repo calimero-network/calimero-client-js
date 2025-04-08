@@ -17,7 +17,11 @@ import {
   LoginHeader,
   LoginHeaderSpan,
 } from './Components';
-import { Context, FetchContextIdentitiesResponse, GetContextsResponse } from '../api/nodeApi';
+import {
+  Context,
+  FetchContextIdentitiesResponse,
+  GetContextsResponse,
+} from '../api/nodeApi';
 import { ResponseData } from '../types';
 import apiClient from '../api';
 import SelectContextStep from './noAuth/SelectContext';
@@ -50,7 +54,7 @@ const initialState: LoginState = {
 
 export const ClientLogin: React.FC<ClientLoginProps> = ({
   sucessRedirect,
-  authMode = true
+  authMode = true,
 }) => {
   const [state, setState] = useState<LoginState>({
     ...initialState,
@@ -58,17 +62,17 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
     applicationId: getApplicationId() ?? '',
   });
 
-  const { 
-    nodeServerUrl, 
-    applicationId, 
-    selectedContextId, 
-    contexts, 
-    contextIdentities, 
-    errorMessage 
+  const {
+    nodeServerUrl,
+    applicationId,
+    selectedContextId,
+    contexts,
+    contextIdentities,
+    errorMessage,
   } = state;
 
   const updateState = (newState: Partial<LoginState>) => {
-    setState(prev => ({ ...prev, ...newState }));
+    setState((prev) => ({ ...prev, ...newState }));
   };
 
   const resetSetup = () => {
@@ -90,16 +94,19 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
     if (errorMessage) return;
 
     try {
-      const response: ResponseData<GetContextsResponse> = await apiClient.node().getContexts();
+      const response: ResponseData<GetContextsResponse> = await apiClient
+        .node()
+        .getContexts();
 
       if (response.error) {
         updateState({ errorMessage: response.error.message });
         return;
       }
 
-      const filteredContexts = response.data?.contexts.filter(
-        (context) => context.applicationId === applicationId,
-      ) ?? [];
+      const filteredContexts =
+        response.data?.contexts.filter(
+          (context) => context.applicationId === applicationId,
+        ) ?? [];
 
       updateState({ contexts: filteredContexts });
     } catch (error) {
@@ -186,7 +193,9 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
             <SelectContextStep
               applicationId={applicationId}
               contextList={contexts}
-              setSelectedContextId={(id) => updateState({ selectedContextId: id })}
+              setSelectedContextId={(id) =>
+                updateState({ selectedContextId: id })
+              }
               updateLoginStep={() => {}}
             />
           ) : (
@@ -201,7 +210,9 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         </>
       )}
       {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-      <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>Back to Setup</Button>
+      <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
+        Back to Setup
+      </Button>
     </LoginContainer>
   );
 };

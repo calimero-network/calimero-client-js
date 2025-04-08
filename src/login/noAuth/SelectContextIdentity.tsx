@@ -65,7 +65,9 @@ export default function SelectIdentityStep({
                 item={identity}
                 id={i}
                 count={contextIdentities.length}
-                onRowItemClick={() => updateLoginStep(selectedContextId, identity)}
+                onRowItemClick={() =>
+                  updateLoginStep(selectedContextId, identity)
+                }
               />
             ))}
           </ContextListContainer>
@@ -76,7 +78,15 @@ export default function SelectIdentityStep({
         )}
       </ContextWrapper>
       <ContextWrapper>
-        <div onClick={backStep} style={{ cursor: 'pointer', color: '#6b7280', fontSize: '0.875rem', margin: '0 auto' }}>
+        <div
+          onClick={backStep}
+          style={{
+            cursor: 'pointer',
+            color: '#6b7280',
+            fontSize: '0.875rem',
+            margin: '0 auto',
+          }}
+        >
           Back to context selection
         </div>
       </ContextWrapper>

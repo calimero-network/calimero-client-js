@@ -75,14 +75,19 @@ export const ContextWrapper = styled.div`
   width: 100%;
 `;
 
-export const ContextSubtitle = styled.div<{ separator?: boolean; color?: string }>`
-  color: ${props => props.color || '#6b7280'};
+export const ContextSubtitle = styled.div<{
+  separator?: boolean;
+  color?: string;
+}>`
+  color: ${(props) => props.color || '#6b7280'};
   font-weight: 500;
   font-size: 0.875rem;
   word-break: break-all;
   display: flex;
   gap: 0.5rem;
-  ${({ separator }) => separator && `
+  ${({ separator }) =>
+    separator &&
+    `
     border-bottom: 1px solid #23262d;
   `}
 `;

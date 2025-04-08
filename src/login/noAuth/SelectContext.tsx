@@ -25,7 +25,6 @@ export default function SelectContextStep({
   setSelectedContextId,
   updateLoginStep,
 }: SelectContextStepProps) {
-
   const handleContextSelection = (selectedContextId: string) => {
     setSelectedContextId(selectedContextId);
     updateLoginStep();
