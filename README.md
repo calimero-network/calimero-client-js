@@ -233,6 +233,113 @@ const response = await rpcClient.query(params, config);
 - Make sure your token has the necessary permissions for the operations you're trying to perform
 - The `contextId` and `executorPublicKey` are required for queries and are extracted from your JWT token
 
+## Using SetupModal for Authorization
+
+The Calimero SDK includes a `SetupModal` component that streamlines the authorization process by allowing users to configure the required node URL and application ID. This component is demonstrated in the [demo-blockchain-integrations](https://github.com/calimero-network/demo-blockchain-integrations) repository, where it's used as the **first step** in the authentication flow.
+
+### Basic Integration
+
+To use the `SetupModal` in your application:
+
+```typescript
+import { SetupModal } from '@calimero-network/calimero-client';
+
+function App() {
+  const handleSetupComplete = () => {
+    // Handle successful setup completion
+    // Navigate to your app's authenticated section or perform other actions
+    window.location.href = '/dashboard';
+  };
+  
+  return (
+    <div>
+      <SetupModal successRoute={handleSetupComplete} />
+    </div>
+  );
+}
+```
+
+### Setup Process with SetupModal
+
+The `SetupModal` component provides a user interface for:
+
+1. **Entering Application ID**: Input field for the Calimero application ID
+2. **Entering Node URL**: Input field for the Calimero node URL
+3. **Validation**: Automatic validation of both fields
+4. **Connection Check**: Testing the connection to ensure the provided details are correct
+5. **Configuration Storage**: Storing the valid configuration in local storage
+
+### Complete Authorization Flow: SetupModal, ClientLogin, and AccessTokenWrapper
+
+For a complete authorization flow, combine `SetupModal` for configuration, `ClientLogin` for authentication, and `AccessTokenWrapper` for automatic token management. This follows the pattern used in the [demo application](https://github.com/calimero-network/demo-blockchain-integrations/blob/master/app/src/App.tsx):
+
+```typescript
+import React from 'react';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { 
+  AccessTokenWrapper,
+  SetupModal, 
+  ClientLogin
+} from '@calimero-network/calimero-client';
+import HomePage from './pages/Home';
+
+// Utility to get the node URL for the AccessTokenWrapper
+const getNodeUrl = () => {
+  return localStorage.getItem('node_url') || '';
+};
+
+export default function App() {
+  return (
+    <AccessTokenWrapper getNodeUrl={getNodeUrl}>
+      <BrowserRouter>
+        <Routes>
+          {/* Step 1: Setup - Configure node URL and application ID */}
+          <Route path="/" element={<SetupPage />} />
+          
+          {/* Step 2: Authentication - Handle user login */}
+          <Route path="/auth" element={<AuthPage />} />
+          
+          {/* Step 3: Home - Show authenticated content */}
+          <Route path="/home" element={<HomePage />} />
+        </Routes>
+      </BrowserRouter>
+    </AccessTokenWrapper>
+  );
+}
+
+// Setup page component - first step in the flow
+function SetupPage() {
+  const navigate = useNavigate();
+  
+  const handleSetupComplete = () => {
+    navigate('/auth');
+  };
+  
+  return <SetupModal successRoute={handleSetupComplete} />;
+}
+
+// Auth page component - second step in the flow
+function AuthPage() {
+  const navigate = useNavigate();
+  
+  const handleLoginSuccess = () => {
+    navigate('/home');
+  };
+  
+  return <ClientLogin sucessRedirect={handleLoginSuccess} />;
+}
+```
+
+#### Understanding the AccessTokenWrapper
+
+The `AccessTokenWrapper` component simplifies token management by:
+
+1. **Automatic Token Refresh**: Handling JWT token refresh when tokens expire
+2. **Authorization Headers**: Adding authorization headers to API requests
+3. **Consistent Authorization State**: Maintaining authentication state across the application
+
+This wrapper should be placed at a high level in your component tree to ensure all child components have access to the authentication context.
+
 ## Working with Multiple Blockchain Protocols
 
 The Calimero SDK supports multiple blockchain protocols including NEAR, Ethereum, Starknet, Stellar, and ICP. To work with these different protocols, you'll need to understand contexts and how the authentication flow works.
