@@ -253,7 +253,7 @@ export const setExecutorPublicKey = (publicKey: string) => {
  * @description Retrieves the executor public key from localStorage.
  * @returns {string | null} The executor public key or null if not found.
  */
-export const getExecutorPublicKey = (): String | null => {
+export const getExecutorPublicKey = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       let contextIdentity = localStorage.getItem(CONTEXT_IDENTITY);
@@ -311,4 +311,52 @@ export const clientLogout = (): void => {
   clearAppEndpoint();
   clearAccessToken();
   clearApplicationId();
+  clearContextId();
+  clearExecutorPublicKey();
+};
+
+interface AuthConfig {
+  appEndpointKey: string | null;
+  contextId: string | null;
+  executorPublicKey: string | null;
+  error: string | null;
+  jwtObject: JsonWebToken | null;
+}
+
+const createErrorResponse = (error: string): AuthConfig => ({
+  appEndpointKey: null,
+  contextId: null,
+  executorPublicKey: null,
+  jwtObject: null,
+  error,
+});
+
+/**
+ * @function getAuthConfig
+ * @description Retrieves the authentication configuration from localStorage.
+ * @returns {AuthConfig} The authentication configuration object
+ */
+export const getAuthConfig = (): AuthConfig => {
+  const config = {
+    appEndpointKey: getAppEndpointKey(),
+    contextId: getContextId(),
+    executorPublicKey: getExecutorPublicKey(),
+    jwtObject: getJWTObject(),
+    error: null as string | null,
+  };
+
+  const validations: Array<[keyof AuthConfig, string]> = [
+    ['appEndpointKey', 'Missing app endpoint key'],
+    ['contextId', 'Missing context id'],
+    ['executorPublicKey', 'Missing executor public key'],
+    ['jwtObject', 'Missing jwt object'],
+  ];
+
+  for (const [key, errorMessage] of validations) {
+    if (!config[key]) {
+      return createErrorResponse(errorMessage);
+    }
+  }
+
+  return config;
 };
