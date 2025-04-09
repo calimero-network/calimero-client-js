@@ -30,7 +30,7 @@ import SelectIdentityStep from './noAuth/SelectContextIdentity';
 import { Button } from '../context/Components';
 
 interface ClientLoginProps {
-  sucessRedirect: () => void;
+  successRedirect: () => void;
   authMode?: boolean;
 }
 
@@ -53,7 +53,7 @@ const initialState: LoginState = {
 };
 
 export const ClientLogin: React.FC<ClientLoginProps> = ({
-  sucessRedirect,
+  successRedirect,
   authMode = true,
 }) => {
   const [state, setState] = useState<LoginState>({
@@ -135,7 +135,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
   const handleIdentitySelection = (contextId: string, identity: string) => {
     setContextId(contextId);
     setExecutorPublicKey(identity);
-    sucessRedirect();
+    successRedirect();
   };
 
   useEffect(() => {
@@ -160,9 +160,9 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
-      sucessRedirect();
+      successRedirect();
     }
-  }, [sucessRedirect]);
+  }, [successRedirect]);
 
   if (!nodeServerUrl || !applicationId) {
     return (
