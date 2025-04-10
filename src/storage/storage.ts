@@ -320,14 +320,14 @@ interface AuthConfig {
   contextId: string | null;
   executorPublicKey: string | null;
   error: string | null;
-  jwtObject: JsonWebToken | null;
+  jwtToken: string | null;
 }
 
 const createErrorResponse = (error: string): AuthConfig => ({
   appEndpointKey: null,
   contextId: null,
   executorPublicKey: null,
-  jwtObject: null,
+  jwtToken: null,
   error,
 });
 
@@ -341,7 +341,7 @@ export const getAuthConfig = (): AuthConfig => {
     appEndpointKey: getAppEndpointKey(),
     contextId: getContextId(),
     executorPublicKey: getExecutorPublicKey(),
-    jwtObject: getJWTObject(),
+    jwtToken: getAccessToken(),
     error: null as string | null,
   };
 
@@ -351,13 +351,13 @@ export const getAuthConfig = (): AuthConfig => {
   }
 
   // Either jwtObject OR both contextId and executorPublicKey must be present
-  const hasJwtObject = !!config.jwtObject;
+  const hasJwtToken = !!config.jwtToken;
   const hasContextId = !!config.contextId;
   const hasExecutorPublicKey = !!config.executorPublicKey;
 
-  if (!hasJwtObject && !(hasContextId && hasExecutorPublicKey)) {
+  if (!hasJwtToken && !(hasContextId && hasExecutorPublicKey)) {
     return createErrorResponse(
-      'Missing authentication information. Either JWT object or both context ID and executor public key must be present.',
+      'Missing authentication information. Either JWT token or both context ID and executor public key must be present.',
     );
   }
 
