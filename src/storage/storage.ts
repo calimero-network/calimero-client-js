@@ -345,17 +345,20 @@ export const getAuthConfig = (): AuthConfig => {
     error: null as string | null,
   };
 
-  const validations: Array<[keyof AuthConfig, string]> = [
-    ['appEndpointKey', 'Missing app endpoint key'],
-    ['contextId', 'Missing context id'],
-    ['executorPublicKey', 'Missing executor public key'],
-    ['jwtObject', 'Missing jwt object'],
-  ];
+  // appEndpointKey must always be present
+  if (!config.appEndpointKey) {
+    return createErrorResponse('Missing app endpoint key');
+  }
 
-  for (const [key, errorMessage] of validations) {
-    if (!config[key]) {
-      return createErrorResponse(errorMessage);
-    }
+  // Either jwtObject OR both contextId and executorPublicKey must be present
+  const hasJwtObject = !!config.jwtObject;
+  const hasContextId = !!config.contextId;
+  const hasExecutorPublicKey = !!config.executorPublicKey;
+
+  if (!hasJwtObject && !(hasContextId && hasExecutorPublicKey)) {
+    return createErrorResponse(
+      'Missing authentication information. Either JWT object or both context ID and executor public key must be present.',
+    );
   }
 
   return config;
