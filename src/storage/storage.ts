@@ -354,9 +354,11 @@ export const getAuthConfig = (): AuthConfig => {
   const hasJwtObject = !!config.jwtObject;
   const hasContextId = !!config.contextId;
   const hasExecutorPublicKey = !!config.executorPublicKey;
-  
+
   if (!hasJwtObject && !(hasContextId && hasExecutorPublicKey)) {
-    return createErrorResponse('Missing authentication information. Either JWT object or both context ID and executor public key must be present.');
+    return createErrorResponse(
+      'Missing authentication information. Either JWT object or both context ID and executor public key must be present.',
+    );
   }
 
   return config;
