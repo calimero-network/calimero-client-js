@@ -15,6 +15,7 @@
 The **Calimero TypeScript Client SDK** helps developers interact with decentralized apps by handling server communication. It simplifies the process, letting you focus on building your app while the SDK manages the technical details. Built with TypeScript, it ensures a smoother development experience with reliable tools.
 
 The SDK has two main components:
+
 - `RpcClient`: For sending queries and updates to the server
 - `SubscriptionsClient`: For subscribing to real-time updates
 
@@ -34,6 +35,7 @@ pnpm add @calimero-network/calimero-client
 ### Dependencies
 
 The SDK has the following peer dependencies:
+
 - `@near-wallet-selector/modal-ui`: ^8.9.7
 
 ## Setting Up Node URL and Application ID
@@ -43,7 +45,10 @@ Before using the ClientLogin component or making any API calls, you must configu
 ### Basic Configuration
 
 ```typescript
-import { setAppEndpointKey, setApplicationId } from '@calimero-network/calimero-client';
+import {
+  setAppEndpointKey,
+  setApplicationId,
+} from '@calimero-network/calimero-client';
 
 // Set the Node URL (your Calimero endpoint)
 setAppEndpointKey('https://your-calimero-node-url.com');
@@ -78,7 +83,10 @@ REACT_APP_CALIMERO_APP_ID=your-calimero-application-id
 2. Use these environment variables in your code:
 
 ```typescript
-import { setAppEndpointKey, setApplicationId } from '@calimero-network/calimero-client';
+import {
+  setAppEndpointKey,
+  setApplicationId,
+} from '@calimero-network/calimero-client';
 
 // For Next.js
 setAppEndpointKey(process.env.NEXT_PUBLIC_CALIMERO_NODE_URL);
@@ -95,10 +103,10 @@ These values should be set early in your application's lifecycle, before renderi
 
 ```typescript
 import React, { useEffect } from 'react';
-import { 
-  ClientLogin, 
-  setAppEndpointKey, 
-  setApplicationId 
+import {
+  ClientLogin,
+  setAppEndpointKey,
+  setApplicationId
 } from '@calimero-network/calimero-client';
 
 function App() {
@@ -126,18 +134,18 @@ function App() {
 You can check if these values are properly set using the getter functions:
 
 ```typescript
-import { 
-  getAppEndpointKey, 
-  getApplicationId 
+import {
+  getAppEndpointKey,
+  getApplicationId,
 } from '@calimero-network/calimero-client';
 
 function checkConfiguration() {
   const nodeUrl = getAppEndpointKey();
   const appId = getApplicationId();
-  
+
   console.log('Node URL:', nodeUrl);
   console.log('Application ID:', appId);
-  
+
   return nodeUrl && appId;
 }
 ```
@@ -147,6 +155,7 @@ function checkConfiguration() {
 The SDK uses JWT (JSON Web Token) for authentication. Here's how the authorization flow works:
 
 1. **Initial Login**: Use the `ClientLogin` component to handle user authentication:
+
 ```typescript
 import { ClientLogin } from '@calimero-network/calimero-client';
 
@@ -160,17 +169,19 @@ const App = () => {
 ```
 
 2. **Token Management**: The SDK automatically handles:
+
    - Token storage in localStorage
    - Token refresh when expired
    - Authorization headers for API requests
 
 3. **Manual Token Handling**: You can also manage tokens manually:
+
 ```typescript
-import { 
-  setAccessToken, 
-  setRefreshToken, 
-  getAccessToken, 
-  getRefreshToken 
+import {
+  setAccessToken,
+  setRefreshToken,
+  getAccessToken,
+  getRefreshToken,
 } from '@calimero-network/calimero-client';
 
 // Set tokens
@@ -187,10 +198,10 @@ const currentRefreshToken = getRefreshToken();
 If you already have a JWT token (for example, obtained from another source), you can bypass the login flow and use it directly:
 
 ```typescript
-import { 
-  setAccessToken, 
+import {
+  setAccessToken,
   getJWTObject,
-  JsonRpcClient 
+  JsonRpcClient,
 } from '@calimero-network/calimero-client';
 
 // 1. Set your token
@@ -202,10 +213,7 @@ const contextId = jwt?.context_id;
 const executorPublicKey = jwt?.executor_public_key;
 
 // 3. Initialize the client
-const rpcClient = new JsonRpcClient(
-  'your-api-url',
-  '/jsonrpc'
-);
+const rpcClient = new JsonRpcClient('your-api-url', '/jsonrpc');
 
 // 4. Make queries - Two options:
 
@@ -213,21 +221,24 @@ const rpcClient = new JsonRpcClient(
 const params = {
   contextId,
   method: 'your-method',
-  argsJson: { /* your args */ },
-  executorPublicKey
+  argsJson: {
+    /* your args */
+  },
+  executorPublicKey,
 };
 const response = await rpcClient.query(params);
 
 // Option 2: Manually provide authorization header
 const config = {
   headers: {
-    authorization: `Bearer your-jwt-token-here`
-  }
+    authorization: `Bearer your-jwt-token-here`,
+  },
 };
 const response = await rpcClient.query(params, config);
 ```
 
 **Important Notes:**
+
 - The token must be valid and not expired
 - Without a refresh token, the SDK won't be able to automatically refresh expired tokens
 - Make sure your token has the necessary permissions for the operations you're trying to perform
@@ -250,7 +261,7 @@ function App() {
     // Navigate to your app's authenticated section or perform other actions
     window.location.href = '/dashboard';
   };
-  
+
   return (
     <div>
       <SetupModal successRoute={handleSetupComplete} />
@@ -276,9 +287,9 @@ For a complete authorization flow, combine `SetupModal` for configuration, `Clie
 ```typescript
 import React from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { 
+import {
   AccessTokenWrapper,
-  SetupModal, 
+  SetupModal,
   ClientLogin
 } from '@calimero-network/calimero-client';
 import HomePage from './pages/Home';
@@ -295,10 +306,10 @@ export default function App() {
         <Routes>
           {/* Step 1: Setup - Configure node URL and application ID */}
           <Route path="/" element={<SetupPage />} />
-          
+
           {/* Step 2: Authentication - Handle user login */}
           <Route path="/auth" element={<AuthPage />} />
-          
+
           {/* Step 3: Home - Show authenticated content */}
           <Route path="/home" element={<HomePage />} />
         </Routes>
@@ -310,22 +321,22 @@ export default function App() {
 // Setup page component - first step in the flow
 function SetupPage() {
   const navigate = useNavigate();
-  
+
   const handleSetupComplete = () => {
     navigate('/auth');
   };
-  
+
   return <SetupModal successRoute={handleSetupComplete} />;
 }
 
 // Auth page component - second step in the flow
 function AuthPage() {
   const navigate = useNavigate();
-  
+
   const handleLoginSuccess = () => {
     navigate('/home');
   };
-  
+
   return <ClientLogin sucessRedirect={handleLoginSuccess} />;
 }
 ```
@@ -357,14 +368,16 @@ import { apiClient } from '@calimero-network/calimero-client';
 async function createNearContext() {
   const applicationId = getApplicationId();
   const protocol = 'near'; // Options: 'near', 'ethereum', 'starknet', 'stellar', 'icp'
-  
-  const response = await apiClient.node().createContext(applicationId, protocol);
-  
+
+  const response = await apiClient
+    .node()
+    .createContext(applicationId, protocol);
+
   if (response.error) {
     console.error('Failed to create context:', response.error.message);
     return null;
   }
-  
+
   return response.data;
 }
 
@@ -381,21 +394,21 @@ import { apiClient, getApplicationId } from '@calimero-network/calimero-client';
 async function listContexts() {
   const applicationId = getApplicationId();
   const response = await apiClient.node().getContexts();
-  
+
   if (response.error) {
     console.error('Failed to fetch contexts:', response.error.message);
     return [];
   }
-  
+
   // Filter contexts for your application
   return response.data.contexts.filter(
-    context => context.applicationId === applicationId
+    (context) => context.applicationId === applicationId,
   );
 }
 
 // Example usage
 const contexts = await listContexts();
-contexts.forEach(context => {
+contexts.forEach((context) => {
   console.log(`Context ID: ${context.id}, Protocol: ${context.protocol}`);
 });
 ```
@@ -407,12 +420,12 @@ import { apiClient } from '@calimero-network/calimero-client';
 
 async function deleteContext(contextId) {
   const response = await apiClient.node().deleteContext(contextId);
-  
+
   if (response.error) {
     console.error('Failed to delete context:', response.error.message);
     return false;
   }
-  
+
   return true;
 }
 ```
@@ -431,7 +444,7 @@ function LoginPage() {
     // Navigate to your app's authenticated section
     window.location.href = '/dashboard';
   };
-  
+
   return <ClientLogin sucessRedirect={handleLoginSuccess} />;
 }
 ```
@@ -443,22 +456,24 @@ function LoginPage() {
 const redirectToDashboardLogin = () => {
   const nodeUrl = getAppEndpointKey();
   const applicationId = getApplicationId();
-  
+
   // URL parameters for the Admin Dashboard
   const callbackUrl = encodeURIComponent(window.location.href);
   const redirectUrl = `${nodeUrl}/admin-dashboard/?application_id=${applicationId}&callback_url=${callbackUrl}`;
-  
+
   // Redirect the user
   window.location.href = redirectUrl;
 };
 ```
 
 3. **Admin Dashboard Authentication**: In the Admin Dashboard, the user:
+
    - Selects the blockchain protocol they want to use
    - Authenticates with their credentials for that protocol
    - Grants necessary permissions
 
 4. **Return to Your Application**: After successful authentication, the Admin Dashboard redirects back to your application with tokens:
+
    - The URL includes `access_token` and `refresh_token` parameters
    - The `ClientLogin` component automatically extracts these tokens
    - Tokens are stored in localStorage using `setAccessToken` and `setRefreshToken`
@@ -475,8 +490,8 @@ Here's a complete example showing how to integrate multiple protocols:
 
 ```typescript
 import React, { useState, useEffect } from 'react';
-import { 
-  ClientLogin, 
+import {
+  ClientLogin,
   apiClient,
   getApplicationId,
   getAccessToken,
@@ -489,19 +504,19 @@ function MultiProtocolApp() {
   const [contexts, setContexts] = useState([]);
   const [selectedProtocol, setSelectedProtocol] = useState('near');
   const [loading, setLoading] = useState(false);
-  
+
   // Set up required configuration
   useEffect(() => {
     setAppEndpointKey('https://your-calimero-node-url.com');
     setApplicationId('your-application-id');
-    
+
     // Check if already authenticated
     if (getAccessToken()) {
       setIsAuthenticated(true);
       fetchContexts();
     }
   }, []);
-  
+
   // Fetch available contexts
   const fetchContexts = async () => {
     setLoading(true);
@@ -519,17 +534,17 @@ function MultiProtocolApp() {
     }
     setLoading(false);
   };
-  
+
   // Create a new context with selected protocol
   const createContext = async () => {
     setLoading(true);
     try {
       const applicationId = getApplicationId();
       const response = await apiClient.node().createContext(
-        applicationId, 
+        applicationId,
         selectedProtocol
       );
-      
+
       if (!response.error && response.data) {
         // Refresh the contexts list
         fetchContexts();
@@ -539,13 +554,13 @@ function MultiProtocolApp() {
     }
     setLoading(false);
   };
-  
+
   // Handle successful login
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     fetchContexts();
   };
-  
+
   if (!isAuthenticated) {
     return (
       <div className="login-container">
@@ -554,14 +569,14 @@ function MultiProtocolApp() {
       </div>
     );
   }
-  
+
   return (
     <div className="app-container">
       <h1>Your Multi-Protocol Application</h1>
-      
+
       <div className="context-creator">
         <h2>Create New Context</h2>
-        <select 
+        <select
           value={selectedProtocol}
           onChange={(e) => setSelectedProtocol(e.target.value)}
         >
@@ -571,14 +586,14 @@ function MultiProtocolApp() {
           <option value="stellar">Stellar</option>
           <option value="icp">ICP</option>
         </select>
-        <button 
+        <button
           onClick={createContext}
           disabled={loading}
         >
           {loading ? 'Creating...' : 'Create Context'}
         </button>
       </div>
-      
+
       <div className="contexts-list">
         <h2>Your Contexts</h2>
         {contexts.length === 0 ? (
@@ -614,14 +629,14 @@ import { JsonRpcClient } from '@calimero-network/calimero-client';
 const rpcClient = new JsonRpcClient(
   process.env['NEXT_PUBLIC_API_URL'],
   '/jsonrpc',
-  5000 // optional timeout in ms
+  5000, // optional timeout in ms
 );
 
 // Make a query
 const queryParams = {
   applicationId: process.env['NEXT_PUBLIC_APPLICATION_ID'],
   method: 'get_posts',
-  argsJson: { limit: 10 }
+  argsJson: { limit: 10 },
 };
 const queryResponse = await rpcClient.query(queryParams);
 
@@ -629,10 +644,10 @@ const queryResponse = await rpcClient.query(queryParams);
 const mutateParams = {
   applicationId: process.env['NEXT_PUBLIC_APPLICATION_ID'],
   method: 'create_post',
-  argsJson: { 
-    title: 'My First Post', 
-    text: 'This is my first post' 
-  }
+  argsJson: {
+    title: 'My First Post',
+    text: 'This is my first post',
+  },
 };
 const mutateResponse = await rpcClient.mutate(mutateParams);
 ```
@@ -647,7 +662,7 @@ import { WsSubscriptionsClient } from '@calimero-network/calimero-client';
 // Initialize the client
 const subscriptionsClient = new WsSubscriptionsClient(
   process.env['NEXT_PUBLIC_API_URL'],
-  '/ws'
+  '/ws',
 );
 
 // Connect and subscribe
@@ -713,11 +728,13 @@ try {
 ## Best Practices
 
 1. **Token Management**
+
    - Use the `AccessTokenWrapper` component to automatically handle token refresh
    - Store sensitive information in environment variables
    - Never expose tokens in client-side code
 
 2. **Connection Management**
+
    - Always clean up WebSocket connections when they're no longer needed
    - Use unique connection IDs for multiple WebSocket connections
    - Implement reconnection logic for production applications
