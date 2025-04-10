@@ -2,7 +2,6 @@ import styled from 'styled-components';
 
 export const SetupModalOverlay = styled.div`
   display: flex;
-  height: 100vh;
   justify-content: center;
   background-color: #111111;
 `;
