@@ -77,9 +77,7 @@ const validateApplicationId = (value: string): string => {
  * @param {SetupModalProps} props - The props for the SetupModal component.
  * @returns {React.ReactNode} The SetupModal component.
  */
-export const SetupModal: React.FC<SetupModalProps> = ({
-  redirectCallback,
-}) => {
+export const SetupModal: React.FC<SetupModalProps> = ({ redirectCallback }) => {
   const [state, setState] = useState<SetupState>(initialState);
   const { url, applicationId, errors, isLoading } = state;
 
