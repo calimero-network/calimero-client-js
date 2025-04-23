@@ -20,13 +20,9 @@ import { setApplicationId, setAppEndpointKey } from '../storage';
 
 /**
  * @interface SetupModalProps
- * @property {() => void} setAppId - The function to set the application id.
- * @property {() => void} setNodeServerUrl - The function to set the app endpoint key.
  * @property {() => void} redirectCallback - The function to call after the setup is successful.
  */
 export interface SetupModalProps {
-  setAppId: (appId: string) => void;
-  setNodeServerUrl: (nodeServerUrl: string) => void;
   redirectCallback: () => void;
 }
 
@@ -82,9 +78,7 @@ const validateApplicationId = (value: string): string => {
  * @returns {React.ReactNode} The SetupModal component.
  */
 export const SetupModal: React.FC<SetupModalProps> = ({
-  setAppId,
-  setNodeServerUrl,
-  redirectCallback
+  redirectCallback,
 }) => {
   const [state, setState] = useState<SetupState>(initialState);
   const { url, applicationId, errors, isLoading } = state;
@@ -146,8 +140,6 @@ export const SetupModal: React.FC<SetupModalProps> = ({
       if (response.data) {
         setAppEndpointKey(url);
         setApplicationId(applicationId);
-        setNodeServerUrl(url);
-        setAppId(applicationId);
         redirectCallback();
       } else {
         updateError(
@@ -160,7 +152,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({
     } finally {
       updateState({ isLoading: false });
     }
-  }, [url, applicationId, setNodeServerUrl, setAppId]);
+  }, [url, applicationId, setAppEndpointKey]);
 
   const isSubmitDisabled =
     !url || !applicationId || Boolean(errors.url || errors.applicationId);
