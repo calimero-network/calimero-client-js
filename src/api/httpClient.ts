@@ -117,19 +117,28 @@ export class AxiosHttpClient implements HttpClient {
           };
         }
 
-        const error: ErrorResponse = e.response?.data.error;
-        //TODO make code mandatory
-        if (!error || !error.message) {
+        const error: ErrorResponse | string =
+          e.response?.data.error ?? e.response?.data;
+        if (!error) {
           return {
             error: GENERIC_ERROR,
           };
         }
-        return {
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        };
+        if (typeof error === 'string') {
+          return {
+            error: {
+              code: e.status ?? 500,
+              message: error,
+            },
+          };
+        } else {
+          return {
+            error: {
+              code: error.code,
+              message: error.message,
+            },
+          };
+        }
       }
       return {
         error: GENERIC_ERROR,

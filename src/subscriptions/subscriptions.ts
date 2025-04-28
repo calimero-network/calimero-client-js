@@ -21,15 +21,19 @@ export type ContextEvent = ContextEventPayload & {
   contextId: ContextId;
 };
 
-type ContextEventPayload =
-  | {
-      type: 'StateMutation';
-      data: StateMutation;
-    }
-  | {
-      type: 'ExecutionEvent';
-      data: ExecutionEvent;
-    };
+type ContextEventPayload = StateMutationPayload | ExecutionEventPayload;
+
+export type StateMutationPayload = {
+  type: 'StateMutation';
+  data: StateMutation;
+};
+
+export type ExecutionEventPayload = {
+  type: 'ExecutionEvent';
+  data: {
+    events: ExecutionEvent[];
+  };
+};
 
 export interface StateMutation {
   newRoot: string;
