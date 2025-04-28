@@ -3,14 +3,6 @@ import { ContextId } from './context';
 export type RpcRequestId = string | number;
 
 export interface RpcClient {
-  query<Args, Out>(
-    params: RpcQueryParams<Args>,
-    config?: RequestConfig,
-  ): Promise<RpcResult<RpcQueryResponse<Out>>>;
-  mutate<Args, Out>(
-    params: RpcMutateParams<Args>,
-    config?: RequestConfig,
-  ): Promise<RpcResult<RpcMutateResponse<Out>>>;
   execute<Args, Out>(
     params: RpcQueryParams<Args>,
     config?: RequestConfig,
@@ -61,16 +53,5 @@ export interface RpcQueryParams<Args> {
 }
 
 export interface RpcQueryResponse<Output> {
-  output?: Output;
-}
-
-export interface RpcMutateParams<Args> {
-  contextId: ContextId;
-  method: string;
-  argsJson: Args;
-  executorPublicKey: string;
-}
-
-export interface RpcMutateResponse<Output> {
   output?: Output;
 }

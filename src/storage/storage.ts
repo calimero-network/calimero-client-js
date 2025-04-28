@@ -253,7 +253,7 @@ export const setExecutorPublicKey = (publicKey: string) => {
  * @description Retrieves the executor public key from localStorage.
  * @returns {string | null} The executor public key or null if not found.
  */
-export const getExecutorPublicKey = (): String | null => {
+export const getExecutorPublicKey = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       let contextIdentity = localStorage.getItem(CONTEXT_IDENTITY);
@@ -311,4 +311,55 @@ export const clientLogout = (): void => {
   clearAppEndpoint();
   clearAccessToken();
   clearApplicationId();
+  clearContextId();
+  clearExecutorPublicKey();
+};
+
+interface AuthConfig {
+  appEndpointKey: string | null;
+  contextId: string | null;
+  executorPublicKey: string | null;
+  error: string | null;
+  jwtToken: string | null;
+}
+
+const createErrorResponse = (error: string): AuthConfig => ({
+  appEndpointKey: null,
+  contextId: null,
+  executorPublicKey: null,
+  jwtToken: null,
+  error,
+});
+
+/**
+ * @function getAuthConfig
+ * @description Retrieves the authentication configuration from localStorage.
+ * @returns {AuthConfig} The authentication configuration object
+ */
+export const getAuthConfig = (): AuthConfig => {
+  const config = {
+    appEndpointKey: getAppEndpointKey(),
+    contextId: getContextId(),
+    executorPublicKey: getExecutorPublicKey(),
+    jwtToken: getAccessToken(),
+    error: null as string | null,
+  };
+
+  // appEndpointKey must always be present
+  if (!config.appEndpointKey) {
+    return createErrorResponse('Missing app endpoint key');
+  }
+
+  // Either jwtObject OR both contextId and executorPublicKey must be present
+  const hasJwtToken = !!config.jwtToken;
+  const hasContextId = !!config.contextId;
+  const hasExecutorPublicKey = !!config.executorPublicKey;
+
+  if (!hasJwtToken && !(hasContextId && hasExecutorPublicKey)) {
+    return createErrorResponse(
+      'Missing authentication information. Either JWT token or both context ID and executor public key must be present.',
+    );
+  }
+
+  return config;
 };
