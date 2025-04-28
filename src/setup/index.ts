@@ -1,1 +1,1 @@
-export * from './SetupModal';
+export { SetupModal } from './SetupModal';
