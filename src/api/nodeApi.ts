@@ -115,13 +115,17 @@ export interface NodeApi {
 
   // Application Management
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
-  getInstalledApplicationDetails(appId: string): ApiResponse<InstalledApplication | null>;
+  getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication | null>;
   installApplication(
     url: string,
     metadata: Uint8Array,
     hash?: string,
   ): ApiResponse<InstallApplicationResponse>;
-  uninstallApplication(applicationId: string): ApiResponse<UninstallApplicationResponse>;
+  uninstallApplication(
+    applicationId: string,
+  ): ApiResponse<UninstallApplicationResponse>;
 
   // Context Management Extended
   getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;

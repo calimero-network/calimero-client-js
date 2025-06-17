@@ -1,6 +1,13 @@
 import { Axios, AxiosError, AxiosResponse } from 'axios';
 import { ErrorResponse, ResponseData } from '../types/api-response';
-import { getAccessToken, getRefreshToken, clearAccessToken, setAccessToken, setRefreshToken, clientLogout } from '../storage';
+import {
+  getAccessToken,
+  getRefreshToken,
+  clearAccessToken,
+  setAccessToken,
+  setRefreshToken,
+  clientLogout,
+} from '../storage';
 import { RefreshTokenResponse } from '../api/authApi';
 import { getAppEndpointKey } from '../storage';
 import { authClient } from './index';
@@ -10,25 +17,33 @@ export interface Header {
 }
 
 export interface HttpClient {
-  get<T>(url: string, headers?: Header[], isJsonRpc?: boolean): Promise<ResponseData<T>>;
+  get<T>(
+    url: string,
+    headers?: Header[],
+    isJsonRpc?: boolean,
+  ): Promise<ResponseData<T>>;
   post<T>(
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc?: boolean
+    isJsonRpc?: boolean,
   ): Promise<ResponseData<T>>;
   put<T>(
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc?: boolean
+    isJsonRpc?: boolean,
   ): Promise<ResponseData<T>>;
-  delete<T>(url: string, headers?: Header[], isJsonRpc?: boolean): Promise<ResponseData<T>>;
+  delete<T>(
+    url: string,
+    headers?: Header[],
+    isJsonRpc?: boolean,
+  ): Promise<ResponseData<T>>;
   patch<T>(
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc?: boolean
+    isJsonRpc?: boolean,
   ): Promise<ResponseData<T>>;
   head(url: string, headers?: Header[]): Promise<ResponseData<void>>;
 }
@@ -53,9 +68,11 @@ export class AxiosHttpClient implements HttpClient {
 
   private processQueue(error: Error | null, token: string | null = null) {
     // Filter out duplicate refresh requests from the queue
-    const uniqueRequests = this.failedQueue.filter(promise => !this.isRefreshRequest(promise.config));
-    
-    uniqueRequests.forEach(promise => {
+    const uniqueRequests = this.failedQueue.filter(
+      (promise) => !this.isRefreshRequest(promise.config),
+    );
+
+    uniqueRequests.forEach((promise) => {
       if (error) {
         promise.reject(error);
       } else {
@@ -66,27 +83,29 @@ export class AxiosHttpClient implements HttpClient {
         promise.resolve(this.request(this.axios.request(promise.config)));
       }
     });
-    
+
     this.failedQueue = [];
   }
 
   private async handleTokenRefresh(originalRequest: any): Promise<any> {
     console.log('handleTokenRefresh called, isRefreshing:', this.isRefreshing);
-    
+
     // If refresh is already in progress, queue this request
     if (this.isRefreshing) {
       // If this is another refresh request while one is in progress, just reject it
       if (this.isRefreshRequest(originalRequest)) {
-        console.log('Rejecting duplicate refresh request while refresh is in progress');
+        console.log(
+          'Rejecting duplicate refresh request while refresh is in progress',
+        );
         return Promise.reject(new Error('Token refresh already in progress'));
       }
-      
+
       console.log('Refresh in progress, queueing request');
       return new Promise((resolve, reject) => {
         this.failedQueue.push({
           resolve,
           reject,
-          config: originalRequest
+          config: originalRequest,
         });
       });
     }
@@ -96,14 +115,14 @@ export class AxiosHttpClient implements HttpClient {
       this.isRefreshing = true;
       const refreshToken = getRefreshToken();
       const accessToken = getAccessToken();
-      
+
       if (!refreshToken || !accessToken) {
         throw new Error('Missing tokens for refresh');
       }
 
       const response = await authClient.refreshToken({
         access_token: accessToken,
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
       });
 
       if (response.error || !response.data) {
@@ -111,21 +130,21 @@ export class AxiosHttpClient implements HttpClient {
       }
 
       console.log('Refresh successful, updating tokens');
-      
+
       // Update stored tokens
       setAccessToken(response.data.access_token);
       setRefreshToken(response.data.refresh_token);
-      
+
       // Update the original request with new token
       originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
-      
+
       // Process queue with new token
       this.processQueue(null, response.data.access_token);
-      
+
       // Reset refreshing state
       this.isRefreshing = false;
       console.log('Refresh complete, isRefreshing reset to false');
-      
+
       // Retry original request
       return this.request(this.axios.request(originalRequest));
     } catch (error) {
@@ -139,7 +158,7 @@ export class AxiosHttpClient implements HttpClient {
 
   private async request<T>(
     promise: Promise<AxiosResponse<T>>,
-    isJsonRpc = false
+    isJsonRpc = false,
   ): Promise<ResponseData<T>> {
     try {
       const response = await promise;
@@ -147,17 +166,19 @@ export class AxiosHttpClient implements HttpClient {
       if (response?.config?.method?.toUpperCase() === 'HEAD') {
         return {
           data: null as T,
-          error: null
+          error: null,
         };
       }
-      
+
       // For JSON-RPC requests, treat the entire response as the data
       // For regular API requests, expect and unwrap the data field
-      const responseData = isJsonRpc ? response.data : (response.data as { data: T }).data;
-      
+      const responseData = isJsonRpc
+        ? response.data
+        : (response.data as { data: T }).data;
+
       return {
         data: responseData,
-        error: null
+        error: null,
       };
     } catch (e: unknown) {
       if (e instanceof AxiosError) {
@@ -175,7 +196,7 @@ export class AxiosHttpClient implements HttpClient {
                 error: {
                   code: 401,
                   message: 'No access token found.',
-                }
+                },
               };
             case 'token_expired':
               try {
@@ -188,7 +209,7 @@ export class AxiosHttpClient implements HttpClient {
                   error: {
                     code: 401,
                     message: 'Session expired. Please log in again.',
-                  }
+                  },
                 };
               }
             case 'token_revoked':
@@ -198,7 +219,7 @@ export class AxiosHttpClient implements HttpClient {
                 error: {
                   code: 401,
                   message: 'Session was revoked. Please log in again.',
-                }
+                },
               };
             case 'invalid_token':
               clientLogout();
@@ -207,7 +228,7 @@ export class AxiosHttpClient implements HttpClient {
                 error: {
                   code: 401,
                   message: 'Invalid authentication. Please log in again.',
-                }
+                },
               };
             default:
               return {
@@ -215,7 +236,7 @@ export class AxiosHttpClient implements HttpClient {
                 error: {
                   code: 401,
                   message: body.error,
-                }
+                },
               };
           }
         }
@@ -227,11 +248,12 @@ export class AxiosHttpClient implements HttpClient {
             error: {
               code: e.request.status,
               message: e.message,
-            }
+            },
           };
         }
 
-        const error: ErrorResponse | string = e.response?.data.error ?? e.response?.data;
+        const error: ErrorResponse | string =
+          e.response?.data.error ?? e.response?.data;
 
         if (!error) {
           return {
@@ -239,7 +261,7 @@ export class AxiosHttpClient implements HttpClient {
             error: {
               code: status ?? 500,
               message: e.message || 'Something went wrong',
-            }
+            },
           };
         }
         if (typeof error === 'string') {
@@ -248,7 +270,7 @@ export class AxiosHttpClient implements HttpClient {
             error: {
               code: status ?? 500,
               message: error,
-            }
+            },
           };
         }
         return {
@@ -256,12 +278,12 @@ export class AxiosHttpClient implements HttpClient {
           error: {
             code: status ?? error.code ?? 500,
             message: error.message,
-          }
+          },
         };
       }
       return {
         data: null,
-        error: GENERIC_ERROR
+        error: GENERIC_ERROR,
       };
     }
   }
@@ -271,28 +293,41 @@ export class AxiosHttpClient implements HttpClient {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  async get<T>(url: string, headers?: Header[], isJsonRpc = false): Promise<ResponseData<T>> {
+  async get<T>(
+    url: string,
+    headers?: Header[],
+    isJsonRpc = false,
+  ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     console.log('test', { ...authHeaders, ...mergedHeaders });
-    return this.request(this.axios.get<T>(url, { 
-      headers: { ...authHeaders, ...mergedHeaders } 
-    }), isJsonRpc);
+    return this.request(
+      this.axios.get<T>(url, {
+        headers: { ...authHeaders, ...mergedHeaders },
+      }),
+      isJsonRpc,
+    );
   }
 
   async post<T>(
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc = false
+    isJsonRpc = false,
   ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     return this.request(
-      this.axios.post<T>(url, body, { 
-        headers: { ...authHeaders, ...mergedHeaders } 
+      this.axios.post<T>(url, body, {
+        headers: { ...authHeaders, ...mergedHeaders },
       }),
-      isJsonRpc
+      isJsonRpc,
     );
   }
 
@@ -300,26 +335,36 @@ export class AxiosHttpClient implements HttpClient {
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc = false
+    isJsonRpc = false,
   ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     return this.request(
       this.axios.put<T>(url, body, {
         headers: { ...authHeaders, ...mergedHeaders },
       }),
-      isJsonRpc
+      isJsonRpc,
     );
   }
 
-  async delete<T>(url: string, headers?: Header[], isJsonRpc = false): Promise<ResponseData<T>> {
+  async delete<T>(
+    url: string,
+    headers?: Header[],
+    isJsonRpc = false,
+  ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     return this.request(
       this.axios.delete<T>(url, {
         headers: { ...authHeaders, ...mergedHeaders },
       }),
-      isJsonRpc
+      isJsonRpc,
     );
   }
 
@@ -327,21 +372,27 @@ export class AxiosHttpClient implements HttpClient {
     url: string,
     body?: unknown,
     headers?: Header[],
-    isJsonRpc = false
+    isJsonRpc = false,
   ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     return this.request(
       this.axios.patch<T>(url, body, {
         headers: { ...authHeaders, ...mergedHeaders },
       }),
-      isJsonRpc
+      isJsonRpc,
     );
   }
 
   async head(url: string, headers?: Header[]): Promise<ResponseData<void>> {
     const authHeaders = this.getAuthHeaders();
-    const mergedHeaders = headers?.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    const mergedHeaders = headers?.reduce(
+      (acc, curr) => ({ ...acc, ...curr }),
+      {},
+    );
     return this.request(
       this.axios.head(url, {
         headers: { ...authHeaders, ...mergedHeaders },
@@ -353,14 +404,14 @@ export class AxiosHttpClient implements HttpClient {
   public async refreshTokens(): Promise<ResponseData<RefreshTokenResponse>> {
     const refreshToken = getRefreshToken();
     const accessToken = getAccessToken();
-    
+
     if (!refreshToken || !accessToken) {
       return { error: { code: 401, message: 'Missing tokens for refresh' } };
     }
 
     const response = await authClient.refreshToken({
       access_token: accessToken,
-      refresh_token: refreshToken
+      refresh_token: refreshToken,
     });
 
     if (response.data) {
@@ -376,4 +427,3 @@ const GENERIC_ERROR: ErrorResponse = {
   code: 500,
   message: 'Something went wrong',
 };
-

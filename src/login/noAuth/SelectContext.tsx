@@ -34,15 +34,15 @@ export const SelectContext: React.FC<SelectContextProps> = ({
         </ContextSubtitle>
         {contextList.length > 0 ? (
           <>
-          <ContextListContainer>
-            {contextList.map((context, i) => (
-              <ListItem
-                key={context.id}
-                item={context.id}
-                id={i}
-                count={contextList.length}
-                onRowItemClick={handleContextSelection}
-              />
+            <ContextListContainer>
+              {contextList.map((context, i) => (
+                <ListItem
+                  key={context.id}
+                  item={context.id}
+                  id={i}
+                  count={contextList.length}
+                  onRowItemClick={handleContextSelection}
+                />
               ))}
             </ContextListContainer>
             {backStep && <Button onClick={backStep}>Back</Button>}
@@ -55,4 +55,4 @@ export const SelectContext: React.FC<SelectContextProps> = ({
       </ContextWrapper>
     </ContextModal>
   );
-}
+};

@@ -71,8 +71,10 @@ export const SelectContextIdentity: React.FC<SelectContextIdentityProps> = ({
         )}
       </ContextWrapper>
       <ContextWrapper>
-        {backStep && <Button onClick={backStep}>Back to context selection</Button>}
+        {backStep && (
+          <Button onClick={backStep}>Back to context selection</Button>
+        )}
       </ContextWrapper>
     </ContextModal>
   );
-}
+};

@@ -36,7 +36,7 @@ class ApiClient {
 
   contract(): ContractApi {
     return this.contractApi;
-  } 
+  }
 
   admin(): AdminApi {
     return this.adminApi;

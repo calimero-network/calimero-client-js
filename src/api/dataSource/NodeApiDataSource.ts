@@ -42,7 +42,10 @@ export class NodeApiDataSource implements NodeApi {
       );
     } catch (error) {
       console.error('Error fetching context:', error);
-      return { data: null, error: { code: 500, message: 'Failed to fetch context data.' } };
+      return {
+        data: null,
+        error: { code: 500, message: 'Failed to fetch context data.' },
+      };
     }
   }
 
@@ -167,11 +170,18 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error fetching installed applications:', error);
-      return { error: { code: 500, message: 'Failed to fetch installed applications.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch installed applications.',
+        },
+      };
     }
   }
 
-  async getInstalledApplicationDetails(appId: string): ApiResponse<InstalledApplication> {
+  async getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication> {
     try {
       const response = await this.client.get<InstalledApplication>(
         `${this.baseUrl}/admin-api/applications/${appId}`,
@@ -179,7 +189,9 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error fetching application details:', error);
-      return { error: { code: 500, message: 'Failed to fetch application details.' } };
+      return {
+        error: { code: 500, message: 'Failed to fetch application details.' },
+      };
     }
   }
 
@@ -192,21 +204,25 @@ export class NodeApiDataSource implements NodeApi {
       const requestBody = {
         url,
         metadata: Array.from(metadata),
-        ...(hash ? { hash } : {})
+        ...(hash ? { hash } : {}),
       };
 
       const response = await this.client.post<InstallApplicationResponse>(
         `${this.baseUrl}/admin-api/install-application`,
-        requestBody
+        requestBody,
       );
       return response;
     } catch (error) {
       console.error('Error installing application:', error);
-      return { error: { code: 500, message: 'Failed to install application.' } };
+      return {
+        error: { code: 500, message: 'Failed to install application.' },
+      };
     }
   }
 
-  async uninstallApplication(applicationId: string): ApiResponse<UninstallApplicationResponse> {
+  async uninstallApplication(
+    applicationId: string,
+  ): ApiResponse<UninstallApplicationResponse> {
     try {
       const response = await this.client.delete<UninstallApplicationResponse>(
         `${this.baseUrl}/admin-api/applications/${applicationId}`,
@@ -214,12 +230,16 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error uninstalling application:', error);
-      return { error: { code: 500, message: 'Failed to uninstall application.' } };
+      return {
+        error: { code: 500, message: 'Failed to uninstall application.' },
+      };
     }
   }
 
   // Context Management Extended
-  async getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList> {
+  async getContextClientKeys(
+    contextId: string,
+  ): ApiResponse<ContextClientKeysList> {
     try {
       const response = await this.client.get<ContextClientKeysList>(
         `${this.baseUrl}/admin-api/contexts/${contextId}/client-keys`,
@@ -227,7 +247,9 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error fetching context client keys:', error);
-      return { error: { code: 500, message: 'Failed to fetch context client keys.' } };
+      return {
+        error: { code: 500, message: 'Failed to fetch context client keys.' },
+      };
     }
   }
 
@@ -239,7 +261,9 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error fetching context users:', error);
-      return { error: { code: 500, message: 'Failed to fetch context users.' } };
+      return {
+        error: { code: 500, message: 'Failed to fetch context users.' },
+      };
     }
   }
 
@@ -251,7 +275,9 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error fetching context storage usage:', error);
-      return { error: { code: 500, message: 'Failed to fetch context storage usage.' } };
+      return {
+        error: { code: 500, message: 'Failed to fetch context storage usage.' },
+      };
     }
   }
 
@@ -283,7 +309,9 @@ export class NodeApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error revoking capabilities:', error);
-      return { error: { code: 500, message: 'Failed to revoke capabilities.' } };
+      return {
+        error: { code: 500, message: 'Failed to revoke capabilities.' },
+      };
     }
   }
 }

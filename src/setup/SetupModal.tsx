@@ -58,9 +58,7 @@ const validateUrl = (url: string): boolean => {
  * @param {SetupModalProps} props - The props for the SetupModal component.
  * @returns {React.ReactNode} The SetupModal component.
  */
-export const SetupModal: React.FC<SetupModalProps> = ({
-  setNodeServerUrl,
-}) => {
+export const SetupModal: React.FC<SetupModalProps> = ({ setNodeServerUrl }) => {
   const [state, setState] = useState<SetupState>(initialState);
   const { url, errors, isLoading } = state;
 
@@ -136,10 +134,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({
                   />
                   <SetupErrorText>{errors.url}</SetupErrorText>
 
-                  <SetupSubmitButton
-                    type="submit"
-                    disabled={isSubmitDisabled}
-                  >
+                  <SetupSubmitButton type="submit" disabled={isSubmitDisabled}>
                     <span>Set values</span>
                   </SetupSubmitButton>
                 </SetupInputGroup>

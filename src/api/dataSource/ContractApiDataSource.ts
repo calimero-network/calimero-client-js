@@ -20,7 +20,9 @@ export class ContractApiDataSource implements ContractApi {
   private get contextId(): string {
     const id = getContextId();
     if (!id) {
-      throw new Error('Context ID not available. Make sure you are properly authenticated.');
+      throw new Error(
+        'Context ID not available. Make sure you are properly authenticated.',
+      );
     }
     return id;
   }
@@ -52,11 +54,13 @@ export class ContractApiDataSource implements ContractApi {
     }
   }
 
-  async getProposalApprovalCount(proposalId: string): ApiResponse<ProposalApprovalCount> {
+  async getProposalApprovalCount(
+    proposalId: string,
+  ): ApiResponse<ProposalApprovalCount> {
     try {
       return await this.client.get<ProposalApprovalCount>(
         `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
-      );      
+      );
     } catch (error) {
       return {
         data: null,
@@ -107,7 +111,10 @@ export class ContractApiDataSource implements ContractApi {
     }
   }
 
-  async getContextStorageEntries(offset: number, limit: number): ApiResponse<ContextStorageEntry[]> {
+  async getContextStorageEntries(
+    offset: number,
+    limit: number,
+  ): ApiResponse<ContextStorageEntry[]> {
     try {
       return await this.client.post<ContextStorageEntry[]>(
         `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,

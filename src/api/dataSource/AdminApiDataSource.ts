@@ -1,5 +1,13 @@
 import { ApiResponse } from '../../types/api-response';
-import { AdminApi, RootKey, RootKeyRequest, RootKeyResponse, ClientKey, PermissionResponse, UpdateKeyPermissionsRequest } from '../adminApi';
+import {
+  AdminApi,
+  RootKey,
+  RootKeyRequest,
+  RootKeyResponse,
+  ClientKey,
+  PermissionResponse,
+  UpdateKeyPermissionsRequest,
+} from '../adminApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
 
@@ -34,7 +42,9 @@ export class AdminApiDataSource implements AdminApi {
     }
   }
 
-  async addRootKey(rootKeyRequest: RootKeyRequest): ApiResponse<RootKeyResponse> {
+  async addRootKey(
+    rootKeyRequest: RootKeyRequest,
+  ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.post<RootKeyResponse>(
         `${this.baseUrl}/private/keys`,
@@ -59,7 +69,10 @@ export class AdminApiDataSource implements AdminApi {
     }
   }
 
-  async revokeClientKey(rootKeyId: string, clientId: string): ApiResponse<RootKeyResponse> {
+  async revokeClientKey(
+    rootKeyId: string,
+    clientId: string,
+  ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
         `${this.baseUrl}/private/keys/${rootKeyId}/clients/${clientId}`,
@@ -71,16 +84,21 @@ export class AdminApiDataSource implements AdminApi {
     }
   }
 
-  async setKeyPermissions(keyId: string, request: UpdateKeyPermissionsRequest): ApiResponse<PermissionResponse> {
+  async setKeyPermissions(
+    keyId: string,
+    request: UpdateKeyPermissionsRequest,
+  ): ApiResponse<PermissionResponse> {
     try {
       const response = await this.client.put<PermissionResponse>(
         `${this.baseUrl}/private/keys/${keyId}/permissions`,
-        request
+        request,
       );
       return response;
     } catch (error) {
       console.error('Error updating key permissions:', error);
-      return { error: { code: 500, message: 'Failed to update key permissions.' } };
+      return {
+        error: { code: 500, message: 'Failed to update key permissions.' },
+      };
     }
   }
-} 
+}

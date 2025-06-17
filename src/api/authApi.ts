@@ -59,7 +59,7 @@ export interface ChallengeRequest {
 
 export interface ChallengeResponse {
   challenge: string;
-  nonce: string;  // Base64 encoded nonce from server
+  nonce: string; // Base64 encoded nonce from server
 }
 
 export interface SignedMessage {
@@ -80,5 +80,7 @@ export interface AuthApi {
   getProviders(): ApiResponse<ProvidersResponse>;
   requestToken(requestBody: BaseTokenRequest): ApiResponse<TokenResponse>;
   getChallenge(): ApiResponse<ChallengeResponse>;
-  generateClientKey(request: GenerateClientKeyRequest): ApiResponse<TokenResponse>;
+  generateClientKey(
+    request: GenerateClientKeyRequest,
+  ): ApiResponse<TokenResponse>;
 }

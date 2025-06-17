@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { getAccessToken, getJWTObject, getAppEndpointKey, setAppEndpointKey, setAccessToken, setRefreshToken, setApplicationId, getContextId, setContextAndIdentityFromJWT } from '../storage';
+import {
+  getAccessToken,
+  getJWTObject,
+  getAppEndpointKey,
+  setAppEndpointKey,
+  setAccessToken,
+  setRefreshToken,
+  setApplicationId,
+  getContextId,
+  setContextAndIdentityFromJWT,
+} from '../storage';
 import { ClientLogin } from './ClientLogin';
 import { apiClient } from '../api';
 import Spinner from '../components/loader/Spinner';
@@ -34,7 +44,11 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     checkAuth();
   };
 
-  const initializeApplication = async (accessToken: string, refreshToken: string, appId?: string) => {
+  const initializeApplication = async (
+    accessToken: string,
+    refreshToken: string,
+    appId?: string,
+  ) => {
     try {
       setIsLoading(true);
       // Store tokens
@@ -53,7 +67,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
         // Otherwise fetch from context
         const contextId = getContextId();
         const response = await apiClient.node().getContext(contextId);
-        
+
         if (response.error) {
           setError(response.error.message);
           return;
@@ -83,7 +97,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
       setApplicationId(response.data.applicationId);
       setAuthMode(false);
-      if(getAccessToken()) {
+      if (getAccessToken()) {
         setAuthMode(true);
       }
       setIsInitialized(true);
@@ -112,7 +126,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
     try {
       const response = await apiClient.node().health({ url: nodeUrl });
-      if(response.error?.code === 401) {
+      if (response.error?.code === 401) {
         setAuthMode(true);
       } else if (response.error) {
         setError(response.error.message);
@@ -127,11 +141,11 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
   const checkAuth = async () => {
     setIsLoading(true);
-    
+
     // Check if we have a valid token
     const token = getAccessToken();
     const jwt = getJWTObject();
-    
+
     if (token && jwt) {
       // Token exists, let checkAuthMode verify if it's valid
       // The httpClient will handle token refresh if needed
@@ -143,7 +157,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       // No token, check if we need auth
       await checkAuthMode();
     }
-    
+
     setIsLoading(false);
   };
 
@@ -157,12 +171,18 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       // Initialize application with tokens and optional applicationId
       const accessToken = decodeURIComponent(encodedAccessToken);
       const refreshToken = decodeURIComponent(encodedRefreshToken);
-      initializeApplication(accessToken, refreshToken, applicationId || undefined);
+      initializeApplication(
+        accessToken,
+        refreshToken,
+        applicationId || undefined,
+      );
 
       // Clean up URL by removing the tokens
       urlParams.delete('access_token');
       urlParams.delete('refresh_token');
-      const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : '');
+      const newUrl =
+        window.location.pathname +
+        (urlParams.toString() ? `?${urlParams.toString()}` : '');
       window.history.replaceState({}, '', newUrl);
     } else {
       checkAuth();
@@ -214,7 +234,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   // If not authenticated or not initialized, show login with current authMode state
   if (authMode !== null && (!isAuthenticated || !isInitialized)) {
     return (
-      <ClientLogin 
+      <ClientLogin
         permissions={permissions}
         authMode={authMode}
         setIsAuthenticated={setIsAuthenticated}
@@ -228,4 +248,4 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
   // Only render children when both authenticated and initialized
   return isAuthenticated && isInitialized ? <>{children}</> : null;
-}; 
+};

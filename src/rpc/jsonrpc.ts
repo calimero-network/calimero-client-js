@@ -66,9 +66,7 @@ export class JsonRpcClient implements RpcClient {
   private readonly path = '/jsonrpc';
   private httpClient: HttpClient;
 
-  public constructor(
-    httpClient: HttpClient
-  ) {
+  public constructor(httpClient: HttpClient) {
     this.httpClient = httpClient;
   }
 
@@ -77,7 +75,7 @@ export class JsonRpcClient implements RpcClient {
     if (error.code === 401) {
       // Get the auth error from the header
       const authError = error.headers?.['x-auth-error'];
-      
+
       switch (authError) {
         case 'token_expired':
           // This should never happen as the HttpClient should handle token refresh
@@ -192,10 +190,10 @@ export class JsonRpcClient implements RpcClient {
         `${baseUrl}${this.path}`,
         data,
         config?.headers ? [config.headers] : undefined,
-        true  // Set isJsonRpc flag to true
+        true, // Set isJsonRpc flag to true
       );
       console.log('response', response);
-      
+
       if (!response.error) {
         const jsonRpcResponse = response.data;
         if (jsonRpcResponse.id !== requestId) {
@@ -244,7 +242,7 @@ export class JsonRpcClient implements RpcClient {
           };
           return { error: this.handleRpcError(error) };
         }
-        
+
         return {
           result: jsonRpcResponse.result,
         };
@@ -259,7 +257,9 @@ export class JsonRpcClient implements RpcClient {
             cause: {
               name: 'UnknownServerError',
               info: {
-                message: response.error.message ?? 'Server Error: Something went wrong. Please try again.',
+                message:
+                  response.error.message ??
+                  'Server Error: Something went wrong. Please try again.',
               },
             },
           },
@@ -272,7 +272,10 @@ export class JsonRpcClient implements RpcClient {
         jsonrpc: '2.0',
         code: error?.response?.status ?? 500,
         headers: Object.fromEntries(
-          Object.entries(error?.response?.headers || {}).map(([key, value]) => [key, String(value)])
+          Object.entries(error?.response?.headers || {}).map(([key, value]) => [
+            key,
+            String(value),
+          ]),
         ),
         error: {
           name: 'UnknownServerError',

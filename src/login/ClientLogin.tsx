@@ -72,7 +72,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
   clientApplicationId,
   clientApplicationPath,
   fetchContextApplication,
-  onReset
+  onReset,
 }) => {
   const [state, setState] = useState<LoginState>({
     ...initialState,
@@ -118,7 +118,10 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
 
       updateState({ contexts: response.data?.contexts, isLoading: false });
     } catch (error) {
-      updateState({ errorMessage: 'Failed to fetch contexts', isLoading: false });
+      updateState({
+        errorMessage: 'Failed to fetch contexts',
+        isLoading: false,
+      });
     }
   }, [applicationId, errorMessage]);
 
@@ -148,11 +151,11 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
 
   const login = useCallback(async () => {
     apiClient.auth().login({
-      url: nodeServerUrl, 
-      callbackUrl: window.location.href, 
-      permissions: permissions, 
+      url: nodeServerUrl,
+      callbackUrl: window.location.href,
+      permissions: permissions,
       applicationId: clientApplicationId,
-      applicationPath: clientApplicationPath
+      applicationPath: clientApplicationPath,
     });
   }, [nodeServerUrl, permissions, clientApplicationId, clientApplicationPath]);
 
@@ -166,10 +169,10 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
-      if(clientApplicationId) {
+      if (clientApplicationId) {
         setApplicationId(clientApplicationId);
         setIsAuthenticated(true);
-      }else{
+      } else {
         fetchContextApplication();
       }
     }
@@ -200,9 +203,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
     if (authMode === true) {
       return (
         <>
-          <LoginButton onClick={login} >
-            Login
-          </LoginButton>
+          <LoginButton onClick={login}>Login</LoginButton>
           <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
             Back to Setup
           </Button>

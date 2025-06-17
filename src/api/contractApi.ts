@@ -40,7 +40,7 @@ export interface DeleteProposalParams {
 
 export interface ProposalAction {
   scope: ActionScope;
-  params: 
+  params:
     | ExternalFunctionCallParams
     | TransferParams
     | SetNumApprovalsParams
@@ -89,7 +89,10 @@ export function createExternalFunctionCall(
   };
 }
 
-export function createTransfer(receiver_id: string, amount: string): ProposalAction {
+export function createTransfer(
+  receiver_id: string,
+  amount: string,
+): ProposalAction {
   return {
     scope: ActionScope.Transfer,
     params: {
@@ -153,8 +156,13 @@ export interface StorageEntry {
 export interface ContractApi {
   getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]>;
   getProposalApprovers(proposalId: String): ApiResponse<string[]>;
-  getProposalApprovalCount(proposalId: String): ApiResponse<ProposalApprovalCount>;
+  getProposalApprovalCount(
+    proposalId: String,
+  ): ApiResponse<ProposalApprovalCount>;
   getNumOfProposals(): ApiResponse<number>;
   getContextValue(key: string): ApiResponse<StorageEntry>;
-  getContextStorageEntries(offset: number, limit: number): ApiResponse<ContextStorageEntry[]>;
+  getContextStorageEntries(
+    offset: number,
+    limit: number,
+  ): ApiResponse<ContextStorageEntry[]>;
 }

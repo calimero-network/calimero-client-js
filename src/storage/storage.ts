@@ -121,15 +121,16 @@ export const setContextAndIdentityFromJWT = (accessToken: string) => {
 
     if (jwt.permissions) {
       // Find the context permission which is in format: context[context_id,context_identity]
-      const contextPermission = jwt.permissions.find(permission => 
-        permission.startsWith('context[') && permission.endsWith(']')
+      const contextPermission = jwt.permissions.find(
+        (permission) =>
+          permission.startsWith('context[') && permission.endsWith(']'),
       );
 
       if (contextPermission) {
         // Extract the content between brackets: context[content] -> content
         const content = contextPermission.substring(
           contextPermission.indexOf('[') + 1,
-          contextPermission.lastIndexOf(']')
+          contextPermission.lastIndexOf(']'),
         );
 
         // Split the content by comma to get [context_id, context_identity]
@@ -139,7 +140,9 @@ export const setContextAndIdentityFromJWT = (accessToken: string) => {
           setContextId(contextId);
           setExecutorPublicKey(contextIdentity);
         } else {
-          console.warn('Failed to extract context_id or context_identity from permissions');
+          console.warn(
+            'Failed to extract context_id or context_identity from permissions',
+          );
         }
       } else {
         console.warn('No context permission found in JWT token');
@@ -159,7 +162,7 @@ export const setContextAndIdentityFromJWT = (accessToken: string) => {
  * @param {string} accessToken - The access token to store.
  */
 export const setAccessToken = (accessToken: string) => {
-    localStorage.setItem(ACCESS_TOKEN, JSON.stringify(accessToken));
+  localStorage.setItem(ACCESS_TOKEN, JSON.stringify(accessToken));
 };
 
 /**
@@ -332,7 +335,7 @@ export const clientLogout = (): void => {
   clearApplicationId();
   clearContextId();
   clearExecutorPublicKey();
-  
+
   // Refresh the page to reset all application state
   window.location.reload();
 };

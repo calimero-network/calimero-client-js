@@ -12,7 +12,11 @@ import {
   ChallengeResponse,
   GenerateClientKeyRequest,
 } from '../authApi';
-import { getAppEndpointKey, APP_URL, APPLICATION_ID } from '../../storage/storage';
+import {
+  getAppEndpointKey,
+  APP_URL,
+  APPLICATION_ID,
+} from '../../storage/storage';
 
 export class AuthApiDataSource implements AuthApi {
   constructor(private client: HttpClient) {}
@@ -27,27 +31,41 @@ export class AuthApiDataSource implements AuthApi {
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
       console.error('Error during login redirect:', error);
-      return { error: { code: 500, message: 'Login redirect failed. Please try again.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Login redirect failed. Please try again.',
+        },
+      };
     }
   }
 
-  async refreshToken(request: RefreshTokenRequest): ApiResponse<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): ApiResponse<RefreshTokenResponse> {
     try {
       const response = await this.client.post<RefreshTokenResponse>(
         `${this.baseUrl}/public/refresh`,
-        request
+        request,
       );
       return response;
     } catch (error) {
       console.error('Error refreshing token:', error);
-      return { error: { code: 500, message: 'Token refresh failed. Please try again.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Token refresh failed. Please try again.',
+        },
+      };
     }
   }
 
   async getProviders(): ApiResponse<ProvidersResponse> {
     console.log('baseUrl', this.baseUrl);
     try {
-      const response = await this.client.get<ProvidersResponse>(`${this.baseUrl}/public/providers`);
+      const response = await this.client.get<ProvidersResponse>(
+        `${this.baseUrl}/public/providers`,
+      );
       return response;
     } catch (error) {
       console.error('Error getting providers:', error);
@@ -55,22 +73,31 @@ export class AuthApiDataSource implements AuthApi {
     }
   }
 
-  async requestToken(requestBody: BaseTokenRequest): ApiResponse<TokenResponse> {
+  async requestToken(
+    requestBody: BaseTokenRequest,
+  ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
         `${this.baseUrl}/public/token`,
-        requestBody
+        requestBody,
       );
       return response;
     } catch (error) {
       console.error('Error requesting token:', error);
-      return { error: { code: 500, message: 'Token request failed. Please try again.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Token request failed. Please try again.',
+        },
+      };
     }
   }
 
   async getChallenge(): ApiResponse<ChallengeResponse> {
     try {
-      const response = await this.client.get<ChallengeResponse>(`${this.baseUrl}/public/challenge`);
+      const response = await this.client.get<ChallengeResponse>(
+        `${this.baseUrl}/public/challenge`,
+      );
       return response;
     } catch (error) {
       console.error('Error getting challenge:', error);
@@ -78,7 +105,9 @@ export class AuthApiDataSource implements AuthApi {
     }
   }
 
-  async generateClientKey(request: GenerateClientKeyRequest): ApiResponse<TokenResponse> {
+  async generateClientKey(
+    request: GenerateClientKeyRequest,
+  ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
         `${this.baseUrl}/private/client-key`,
@@ -87,7 +116,9 @@ export class AuthApiDataSource implements AuthApi {
       return response;
     } catch (error) {
       console.error('Error generating client key:', error);
-      return { error: { code: 500, message: 'Failed to generate client key.' } };
+      return {
+        error: { code: 500, message: 'Failed to generate client key.' },
+      };
     }
   }
-} 
+}

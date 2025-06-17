@@ -43,6 +43,12 @@ export interface AdminApi {
   getClientKeys(): ApiResponse<ClientKey[]>;
   addRootKey(rootKeyRequest: RootKeyRequest): ApiResponse<RootKeyResponse>;
   revokeRootKey(keyId: string): ApiResponse<RootKeyResponse>;
-  revokeClientKey(rootKeyId: string, clientId: string): ApiResponse<RootKeyResponse>;
-  setKeyPermissions(keyId: string, request: UpdateKeyPermissionsRequest): ApiResponse<PermissionResponse>;
-} 
+  revokeClientKey(
+    rootKeyId: string,
+    clientId: string,
+  ): ApiResponse<RootKeyResponse>;
+  setKeyPermissions(
+    keyId: string,
+    request: UpdateKeyPermissionsRequest,
+  ): ApiResponse<PermissionResponse>;
+}
