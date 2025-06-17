@@ -5,10 +5,31 @@ import {
   RpcQueryParams,
   RequestConfig,
   RpcResult,
+  RpcError,
 } from '../types/rpc';
-import axios, { AxiosInstance } from 'axios';
+import { HttpClient } from '../api/httpClient';
+import { getAppEndpointKey } from '../storage';
 
 type JsonRpcVersion = '2.0';
+
+type JsonRpcErrorType =
+  | 'UnknownServerError'
+  | 'RpcExecutionError'
+  | 'FunctionCallError'
+  | 'CallError'
+  | 'MissmatchedRequestIdError'
+  | 'InvalidRequestError'
+  | 'ParseError';
+
+const errorTypes: JsonRpcErrorType[] = [
+  'UnknownServerError',
+  'RpcExecutionError',
+  'FunctionCallError',
+  'CallError',
+  'MissmatchedRequestIdError',
+  'InvalidRequestError',
+  'ParseError',
+];
 
 interface JsonRpcRequest<Params> {
   jsonrpc: JsonRpcVersion;
@@ -42,19 +63,97 @@ interface JsonRpcResponse<Result> {
  * @description A client for the JSON RPC.
  */
 export class JsonRpcClient implements RpcClient {
-  readonly path: string;
-  readonly axiosInstance: AxiosInstance;
+  private readonly path = '/jsonrpc';
+  private httpClient: HttpClient;
 
   public constructor(
-    baseUrl: string,
-    path: string,
-    defaultTimeout: number = 1000,
+    httpClient: HttpClient
   ) {
-    this.path = path;
-    this.axiosInstance = axios.create({
-      baseURL: baseUrl,
-      timeout: defaultTimeout,
-    });
+    this.httpClient = httpClient;
+  }
+
+  private handleRpcError(error: RpcError): RpcError {
+    // For 401 errors, check the specific error type from header
+    if (error.code === 401) {
+      // Get the auth error from the header
+      const authError = error.headers?.['x-auth-error'];
+      
+      switch (authError) {
+        case 'token_expired':
+          // This should never happen as the HttpClient should handle token refresh
+          return {
+            ...error,
+            error: {
+              name: 'AuthenticationError',
+              cause: {
+                name: 'AuthenticationError',
+                info: {
+                  message: 'Token expired. Please try again.',
+                },
+              },
+            },
+          };
+        case 'token_revoked':
+          return {
+            ...error,
+            error: {
+              name: 'AuthenticationError',
+              cause: {
+                name: 'AuthenticationError',
+                info: {
+                  message: 'Your session was revoked. Please log in again.',
+                },
+              },
+            },
+          };
+        case 'invalid_token':
+          return {
+            ...error,
+            error: {
+              name: 'AuthenticationError',
+              cause: {
+                name: 'AuthenticationError',
+                info: {
+                  message: 'Invalid authentication. Please log in again.',
+                },
+              },
+            },
+          };
+        default:
+          return {
+            ...error,
+            error: {
+              name: 'AuthenticationError',
+              cause: {
+                name: 'AuthenticationError',
+                info: {
+                  message: 'Authentication required. Please log in.',
+                },
+              },
+            },
+          };
+      }
+    }
+
+    // Handle other known error types
+    const errorType = error?.error?.name;
+    if (errorTypes.includes(errorType as JsonRpcErrorType)) {
+      return error;
+    }
+
+    // Handle unknown errors
+    return {
+      ...error,
+      error: {
+        name: 'UnknownServerError',
+        cause: {
+          name: 'UnknownServerError',
+          info: {
+            message: 'Server Error: Something went wrong. Please try again.',
+          },
+        },
+      },
+    };
   }
 
   /**
@@ -87,105 +186,105 @@ export class JsonRpcClient implements RpcClient {
       method,
       params,
     };
-
+    const baseUrl = getAppEndpointKey();
     try {
-      const response = await this.axiosInstance.post<JsonRpcResponse<Result>>(
-        this.path,
+      const response = await this.httpClient.post<JsonRpcResponse<Result>>(
+        `${baseUrl}${this.path}`,
         data,
-        config,
+        config?.headers ? [config.headers] : undefined,
+        true  // Set isJsonRpc flag to true
       );
-      if (response?.status === 200) {
-        if (response?.data?.id !== requestId) {
-          return {
+      console.log('response', response);
+      
+      if (!response.error) {
+        const jsonRpcResponse = response.data;
+        if (jsonRpcResponse.id !== requestId) {
+          const error = {
+            code: 400,
+            id: jsonRpcResponse.id,
+            jsonrpc: jsonRpcResponse.jsonrpc,
+            headers: {},
             error: {
-              code: 400,
-              id: response?.data?.id,
-              jsonrpc: response?.data?.jsonrpc,
-              error: {
+              name: 'MissmatchedRequestIdError',
+              cause: {
                 name: 'MissmatchedRequestIdError',
-                cause: {
-                  name: 'MissmatchedRequestIdError',
-                  info: {
-                    message: `Missmatched RequestId expected ${requestId}, got ${response?.data?.id}`,
-                  },
+                info: {
+                  message: `Missmatched RequestId expected ${requestId}, got ${jsonRpcResponse.id}`,
                 },
               },
             },
           };
+          return { error: this.handleRpcError(error) };
         }
 
-        if (response?.data?.error) {
-          let messageData = response?.data?.error?.data;
+        if (jsonRpcResponse.error) {
+          let messageData = jsonRpcResponse.error.data;
           let errorMessage = '';
           if (typeof messageData === 'string') {
             errorMessage = messageData;
           } else {
             errorMessage = messageData.type;
           }
-          return {
+          const error = {
+            code: 400,
+            id: jsonRpcResponse.id,
+            jsonrpc: jsonRpcResponse.jsonrpc,
+            headers: {},
             error: {
-              code: 400,
-              id: response?.data?.id,
-              jsonrpc: response?.data?.jsonrpc,
-              error: {
-                name: response?.data?.error?.type,
-                cause: {
-                  name:
-                    response?.data?.error?.data?.type ??
-                    response?.data?.error?.type,
-                  info: {
-                    message: errorMessage,
-                  },
-                },
-              },
-            },
-          };
-        }
-        return {
-          result: response?.data?.result,
-        };
-      } else {
-        let messageData = response?.data?.error?.data?.data;
-        let errorMessage = '';
-        if (typeof messageData === 'string') {
-          errorMessage = messageData;
-        } else {
-          errorMessage = messageData.type;
-        }
-        return {
-          error: {
-            id: response?.data?.id,
-            jsonrpc: response?.data?.jsonrpc,
-            code: response?.status ?? null,
-            error: {
-              name: 'InvalidRequestError',
+              name: jsonRpcResponse.error.type,
               cause: {
-                name: 'InvalidRequestError',
+                name:
+                  jsonRpcResponse.error.data?.type ??
+                  jsonRpcResponse.error.type,
                 info: {
                   message: errorMessage,
                 },
               },
             },
-          },
+          };
+          return { error: this.handleRpcError(error) };
+        }
+        
+        return {
+          result: jsonRpcResponse.result,
         };
-      }
-    } catch (error: any) {
-      return {
-        error: {
+      } else {
+        const rpcError = {
           id: requestId,
           jsonrpc: '2.0',
-          code: 500,
+          code: response.error.code ?? 500,
+          headers: {},
           error: {
             name: 'UnknownServerError',
             cause: {
               name: 'UnknownServerError',
               info: {
-                message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.`,
+                message: response.error.message ?? 'Server Error: Something went wrong. Please try again.',
               },
+            },
+          },
+        };
+        return { error: this.handleRpcError(rpcError) };
+      }
+    } catch (error: any) {
+      const rpcError = {
+        id: requestId,
+        jsonrpc: '2.0',
+        code: error?.response?.status ?? 500,
+        headers: Object.fromEntries(
+          Object.entries(error?.response?.headers || {}).map(([key, value]) => [key, String(value)])
+        ),
+        error: {
+          name: 'UnknownServerError',
+          cause: {
+            name: 'UnknownServerError',
+            info: {
+              message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.`,
             },
           },
         },
       };
+      return { error: this.handleRpcError(rpcError) };
     }
   }
 

@@ -7,7 +7,7 @@ import {
   GetContextsResponse,
   NodeIdentity,
 } from '../api/nodeApi';
-import apiClient from '../api';
+import { apiClient } from '../api';
 import Spinner from '../components/loader/Spinner';
 import {
   Button,

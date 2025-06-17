@@ -33,9 +33,10 @@ export const SetupFormContainer = styled.div`
 `;
 
 export const SetupTitle = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 500;
   margin-bottom: 1rem;
+  color: white;
 `;
 
 export const SetupInputGroup = styled.div`

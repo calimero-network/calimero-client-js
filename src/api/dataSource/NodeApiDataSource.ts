@@ -1,5 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
 import {
+  Context,
   CreateContextResponse,
   DeleteContextResponse,
   FetchContextIdentitiesResponse,
@@ -7,30 +8,25 @@ import {
   HealthRequest,
   HealthStatus,
   JoinContextResponse,
-  JwtTokenResponse,
   NodeApi,
   NodeIdentity,
+  GetInstalledApplicationsResponse,
+  InstalledApplication,
+  InstallApplicationResponse,
+  UninstallApplicationResponse,
+  ContextClientKeysList,
+  ContextUsersList,
+  ContextStorage,
+  CapabilitiesRequest,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
 
 export class NodeApiDataSource implements NodeApi {
-  private client: HttpClient;
+  constructor(private client: HttpClient) {}
 
-  constructor(client: HttpClient) {
-    this.client = client;
-  }
-
-  async refreshToken(
-    refreshToken: string,
-    rpcBaseUrl: string,
-  ): ApiResponse<JwtTokenResponse> {
-    return await this.client.post<JwtTokenResponse>(
-      `${rpcBaseUrl}/admin-api/refresh-jwt-token`,
-      {
-        refreshToken,
-      },
-    );
+  private get baseUrl(): string {
+    return getAppEndpointKey();
   }
 
   async health(request: HealthRequest): ApiResponse<HealthStatus> {
@@ -39,10 +35,21 @@ export class NodeApiDataSource implements NodeApi {
     );
   }
 
+  async getContext(contextId: string): ApiResponse<Context> {
+    try {
+      return this.client.get<Context>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}`,
+      );
+    } catch (error) {
+      console.error('Error fetching context:', error);
+      return { data: null, error: { code: 500, message: 'Failed to fetch context data.' } };
+    }
+  }
+
   async getContexts(): ApiResponse<GetContextsResponse> {
     try {
       const response = await this.client.get<GetContextsResponse>(
-        `${getAppEndpointKey()}/admin-api/contexts`,
+        `${this.baseUrl}/admin-api/contexts`,
       );
       return response;
     } catch (error) {
@@ -57,7 +64,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<CreateContextResponse> {
     try {
       const response = await this.client.post<CreateContextResponse>(
-        `${getAppEndpointKey()}/admin-api/contexts`,
+        `${this.baseUrl}/admin-api/contexts`,
         {
           applicationId,
           initializationParams: [],
@@ -74,7 +81,7 @@ export class NodeApiDataSource implements NodeApi {
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
       const response = await this.client.delete<DeleteContextResponse>(
-        `${getAppEndpointKey()}/admin-api/contexts/${contextId}`,
+        `${this.baseUrl}/admin-api/contexts/${contextId}`,
       );
       return response;
     } catch (error) {
@@ -88,7 +95,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<FetchContextIdentitiesResponse> {
     try {
       const response = await this.client.get<FetchContextIdentitiesResponse>(
-        `${getAppEndpointKey()}/admin-api/contexts/${contextId}/identities-owned`,
+        `${this.baseUrl}/admin-api/contexts/${contextId}/identities-owned`,
       );
       return response;
     } catch (error) {
@@ -100,7 +107,7 @@ export class NodeApiDataSource implements NodeApi {
   async createNewIdentity(): ApiResponse<NodeIdentity> {
     try {
       const response = await this.client.post<NodeIdentity>(
-        `${getAppEndpointKey()}/admin-api/identity/context`,
+        `${this.baseUrl}/admin-api/identity/context`,
       );
       return response;
     } catch (error) {
@@ -118,7 +125,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<string> {
     try {
       const response = await this.client.post<string>(
-        `${getAppEndpointKey()}/admin-api/contexts/invite`,
+        `${this.baseUrl}/admin-api/contexts/invite`,
         {
           contextId: contextId,
           inviterId: inviterPublicKey,
@@ -138,7 +145,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
-        `${getAppEndpointKey()}/admin-api/contexts/join`,
+        `${this.baseUrl}/admin-api/contexts/join`,
         {
           privateKey,
           invitationPayload,
@@ -148,6 +155,135 @@ export class NodeApiDataSource implements NodeApi {
     } catch (error) {
       console.error('Error joining context:', error);
       return { error: { code: 500, message: 'Failed to join context.' } };
+    }
+  }
+
+  // Application Management
+  async getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse> {
+    try {
+      const response = await this.client.get<GetInstalledApplicationsResponse>(
+        `${this.baseUrl}/admin-api/applications`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching installed applications:', error);
+      return { error: { code: 500, message: 'Failed to fetch installed applications.' } };
+    }
+  }
+
+  async getInstalledApplicationDetails(appId: string): ApiResponse<InstalledApplication> {
+    try {
+      const response = await this.client.get<InstalledApplication>(
+        `${this.baseUrl}/admin-api/applications/${appId}`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching application details:', error);
+      return { error: { code: 500, message: 'Failed to fetch application details.' } };
+    }
+  }
+
+  async installApplication(
+    url: string,
+    metadata: Uint8Array,
+    hash?: string,
+  ): ApiResponse<InstallApplicationResponse> {
+    try {
+      const requestBody = {
+        url,
+        metadata: Array.from(metadata),
+        ...(hash ? { hash } : {})
+      };
+
+      const response = await this.client.post<InstallApplicationResponse>(
+        `${this.baseUrl}/admin-api/install-application`,
+        requestBody
+      );
+      return response;
+    } catch (error) {
+      console.error('Error installing application:', error);
+      return { error: { code: 500, message: 'Failed to install application.' } };
+    }
+  }
+
+  async uninstallApplication(applicationId: string): ApiResponse<UninstallApplicationResponse> {
+    try {
+      const response = await this.client.delete<UninstallApplicationResponse>(
+        `${this.baseUrl}/admin-api/applications/${applicationId}`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error uninstalling application:', error);
+      return { error: { code: 500, message: 'Failed to uninstall application.' } };
+    }
+  }
+
+  // Context Management Extended
+  async getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList> {
+    try {
+      const response = await this.client.get<ContextClientKeysList>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}/client-keys`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context client keys:', error);
+      return { error: { code: 500, message: 'Failed to fetch context client keys.' } };
+    }
+  }
+
+  async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
+    try {
+      const response = await this.client.get<ContextUsersList>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}/identities`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context users:', error);
+      return { error: { code: 500, message: 'Failed to fetch context users.' } };
+    }
+  }
+
+  async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
+    try {
+      const response = await this.client.get<ContextStorage>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}/storage`,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching context storage usage:', error);
+      return { error: { code: 500, message: 'Failed to fetch context storage usage.' } };
+    }
+  }
+
+  async grantCapabilities(
+    contextId: string,
+    request: CapabilitiesRequest,
+  ): ApiResponse<void> {
+    try {
+      const response = await this.client.post<void>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}/capabilities/grant`,
+        request,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error granting capabilities:', error);
+      return { error: { code: 500, message: 'Failed to grant capabilities.' } };
+    }
+  }
+
+  async revokeCapabilities(
+    contextId: string,
+    request: CapabilitiesRequest,
+  ): ApiResponse<void> {
+    try {
+      const response = await this.client.post<void>(
+        `${this.baseUrl}/admin-api/contexts/${contextId}/capabilities/revoke`,
+        request,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error revoking capabilities:', error);
+      return { error: { code: 500, message: 'Failed to revoke capabilities.' } };
     }
   }
 }

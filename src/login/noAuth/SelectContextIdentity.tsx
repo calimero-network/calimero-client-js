@@ -9,23 +9,22 @@ import {
   ContextListContainer,
   NoContextWrapper,
   NoContextMessage,
+  Button,
 } from '../Components';
 
-interface SelectIdentityStepProps {
-  applicationId: string;
+interface SelectContextIdentityProps {
   contextIdentities: string[];
   selectedContextId: string;
-  updateLoginStep: (contextId: string, identity: string) => void;
+  onSelectIdentity: (contextId: string, identity: string) => void;
   backStep: () => void;
 }
 
-export default function SelectIdentityStep({
-  applicationId,
+export const SelectContextIdentity: React.FC<SelectContextIdentityProps> = ({
   contextIdentities,
   selectedContextId,
-  updateLoginStep,
+  onSelectIdentity,
   backStep,
-}: SelectIdentityStepProps) {
+}) => {
   const truncateText = (text: string): string => {
     return `${text.substring(0, 4)}...${text.substring(
       text.length - 4,
@@ -37,14 +36,8 @@ export default function SelectIdentityStep({
     <ContextModal>
       <ContextTitle>Select Context Identity</ContextTitle>
       <ContextWrapper>
-        <ContextSubtitle separator color="#fff">
+        <ContextSubtitle separator={true} color="#fff">
           <span>Currently selected:</span>
-        </ContextSubtitle>
-        <ContextSubtitle>
-          <span>Application ID</span>
-          <AppIdContainer>
-            <span>{truncateText(applicationId)}</span>
-          </AppIdContainer>
         </ContextSubtitle>
         <ContextSubtitle>
           <span>Context ID</span>
@@ -66,7 +59,7 @@ export default function SelectIdentityStep({
                 id={i}
                 count={contextIdentities.length}
                 onRowItemClick={() =>
-                  updateLoginStep(selectedContextId, identity)
+                  onSelectIdentity(selectedContextId, identity)
                 }
               />
             ))}
@@ -78,17 +71,7 @@ export default function SelectIdentityStep({
         )}
       </ContextWrapper>
       <ContextWrapper>
-        <div
-          onClick={backStep}
-          style={{
-            cursor: 'pointer',
-            color: '#6b7280',
-            fontSize: '0.875rem',
-            margin: '0 auto',
-          }}
-        >
-          Back to context selection
-        </div>
+        {backStep && <Button onClick={backStep}>Back to context selection</Button>}
       </ContextWrapper>
     </ContextModal>
   );

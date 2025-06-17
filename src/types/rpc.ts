@@ -43,6 +43,9 @@ export interface RpcError {
   jsonrpc: string;
   code?: number;
   error: RpcErrorInfo;
+  headers?: {
+    [key: string]: string;
+  };
 }
 
 export interface RpcQueryParams<Args> {

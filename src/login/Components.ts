@@ -37,12 +37,20 @@ export const LoginButton = styled.button`
   outline: none;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+
+  &:hover {
+    background-color: #ff7a00;
+  }
+
+  &:disabled {
+    background-color: #6b7280;
+  }
 `;
 
 export const ErrorMessage = styled.div`
   color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  font-size: 1.25rem;
+  text-align: center;
 `;
 
 // Context Selection Modal Components
@@ -116,4 +124,50 @@ export const NoContextMessage = styled.div`
   text-align: center;
   font-size: 0.875rem;
   color: #6b7280;
+`;
+
+export const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+export const ModalContent = styled.div`
+  background-color: #17191b;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+`;
+
+export const Button = styled.button`
+  color: white;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  height: 46px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: none;
+  outline: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  background-color: #6b7280;
+  transition: background-color 0.2s ease;
+
+  &:disabled {
+    background-color: #6b7280;
+    cursor: not-allowed;
+  }
 `;
