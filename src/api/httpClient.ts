@@ -88,7 +88,6 @@ export class AxiosHttpClient implements HttpClient {
   }
 
   private async handleTokenRefresh(originalRequest: any): Promise<any> {
-
     // If refresh is already in progress, queue this request
     if (this.isRefreshing) {
       // If this is another refresh request while one is in progress, just reject it

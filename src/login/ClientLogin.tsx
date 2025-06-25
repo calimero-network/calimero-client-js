@@ -123,7 +123,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         isLoading: false,
       });
     }
-  }, [applicationId, errorMessage]);
+  }, [errorMessage]);
 
   const fetchContextIdentities = useCallback(async () => {
     if (!selectedContextId) return;
