@@ -82,7 +82,6 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
 
   const {
     nodeServerUrl,
-    applicationId,
     selectedContextId,
     contexts,
     contextIdentities,
