@@ -27,7 +27,7 @@ export class AuthApiDataSource implements AuthApi {
 
   async login(request: LoginRequest): ApiResponse<LoginResponse> {
     try {
-      window.location.href = `${request.url}/public/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(this.baseUrl)}`;
+      window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(this.baseUrl)}`;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
       console.error('Error during login redirect:', error);
@@ -45,7 +45,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<RefreshTokenResponse> {
     try {
       const response = await this.client.post<RefreshTokenResponse>(
-        `${this.baseUrl}/public/refresh`,
+        `${this.baseUrl}/auth/refresh`,
         request,
       );
       return response;
@@ -61,10 +61,9 @@ export class AuthApiDataSource implements AuthApi {
   }
 
   async getProviders(): ApiResponse<ProvidersResponse> {
-    console.log('baseUrl', this.baseUrl);
     try {
       const response = await this.client.get<ProvidersResponse>(
-        `${this.baseUrl}/public/providers`,
+        `${this.baseUrl}/auth/providers`,
       );
       return response;
     } catch (error) {
@@ -78,7 +77,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        `${this.baseUrl}/public/token`,
+        `${this.baseUrl}/auth/token`,
         requestBody,
       );
       return response;
@@ -96,7 +95,7 @@ export class AuthApiDataSource implements AuthApi {
   async getChallenge(): ApiResponse<ChallengeResponse> {
     try {
       const response = await this.client.get<ChallengeResponse>(
-        `${this.baseUrl}/public/challenge`,
+        `${this.baseUrl}/auth/challenge`,
       );
       return response;
     } catch (error) {
@@ -110,7 +109,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        `${this.baseUrl}/private/client-key`,
+        `${this.baseUrl}/admin/client-key`,
         request,
       );
       return response;

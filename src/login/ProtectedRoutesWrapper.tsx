@@ -57,13 +57,11 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       setContextAndIdentityFromJWT(accessToken);
 
       if (appId) {
-        console.log('appId', appId);
         // If applicationId is provided as prop, use it
         setApplicationId(appId);
         setIsInitialized(true);
         setIsAuthenticated(true);
       } else {
-        console.log('no appId');
         // Otherwise fetch from context
         const contextId = getContextId();
         const response = await apiClient.node().getContext(contextId);

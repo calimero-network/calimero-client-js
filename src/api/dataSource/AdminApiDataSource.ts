@@ -21,7 +21,7 @@ export class AdminApiDataSource implements AdminApi {
   async getRootKeys(): ApiResponse<RootKey[]> {
     try {
       const response = await this.client.get<RootKey[]>(
-        `${this.baseUrl}/private/keys`,
+        `${this.baseUrl}/admin/keys`,
       );
       return response;
     } catch (error) {
@@ -33,7 +33,7 @@ export class AdminApiDataSource implements AdminApi {
   async getClientKeys(): ApiResponse<ClientKey[]> {
     try {
       const response = await this.client.get<ClientKey[]>(
-        `${this.baseUrl}/private/keys/clients`,
+        `${this.baseUrl}/admin/keys/clients`,
       );
       return response;
     } catch (error) {
@@ -47,7 +47,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.post<RootKeyResponse>(
-        `${this.baseUrl}/private/keys`,
+        `${this.baseUrl}/admin/keys`,
         rootKeyRequest,
       );
       return response;
@@ -60,7 +60,7 @@ export class AdminApiDataSource implements AdminApi {
   async revokeRootKey(keyId: string): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        `${this.baseUrl}/private/keys/${keyId}`,
+        `${this.baseUrl}/admin/keys/${keyId}`,
       );
       return response;
     } catch (error) {
@@ -75,7 +75,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        `${this.baseUrl}/private/keys/${rootKeyId}/clients/${clientId}`,
+        `${this.baseUrl}/admin/keys/${rootKeyId}/clients/${clientId}`,
       );
       return response;
     } catch (error) {
@@ -90,7 +90,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<PermissionResponse> {
     try {
       const response = await this.client.put<PermissionResponse>(
-        `${this.baseUrl}/private/keys/${keyId}/permissions`,
+        `${this.baseUrl}/admin/keys/${keyId}/permissions`,
         request,
       );
       return response;

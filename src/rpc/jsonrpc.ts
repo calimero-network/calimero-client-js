@@ -192,7 +192,6 @@ export class JsonRpcClient implements RpcClient {
         config?.headers ? [config.headers] : undefined,
         true, // Set isJsonRpc flag to true
       );
-      console.log('response', response);
 
       if (!response.error) {
         const jsonRpcResponse = response.data;

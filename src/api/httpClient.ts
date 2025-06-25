@@ -88,19 +88,14 @@ export class AxiosHttpClient implements HttpClient {
   }
 
   private async handleTokenRefresh(originalRequest: any): Promise<any> {
-    console.log('handleTokenRefresh called, isRefreshing:', this.isRefreshing);
 
     // If refresh is already in progress, queue this request
     if (this.isRefreshing) {
       // If this is another refresh request while one is in progress, just reject it
       if (this.isRefreshRequest(originalRequest)) {
-        console.log(
-          'Rejecting duplicate refresh request while refresh is in progress',
-        );
         return Promise.reject(new Error('Token refresh already in progress'));
       }
 
-      console.log('Refresh in progress, queueing request');
       return new Promise((resolve, reject) => {
         this.failedQueue.push({
           resolve,
@@ -111,7 +106,6 @@ export class AxiosHttpClient implements HttpClient {
     }
 
     try {
-      console.log('Starting token refresh');
       this.isRefreshing = true;
       const refreshToken = getRefreshToken();
       const accessToken = getAccessToken();
@@ -129,8 +123,6 @@ export class AxiosHttpClient implements HttpClient {
         throw new Error('Failed to refresh token');
       }
 
-      console.log('Refresh successful, updating tokens');
-
       // Update stored tokens
       setAccessToken(response.data.access_token);
       setRefreshToken(response.data.refresh_token);
@@ -143,12 +135,10 @@ export class AxiosHttpClient implements HttpClient {
 
       // Reset refreshing state
       this.isRefreshing = false;
-      console.log('Refresh complete, isRefreshing reset to false');
 
       // Retry original request
       return this.request(this.axios.request(originalRequest));
     } catch (error) {
-      console.log('Refresh failed:', error);
       this.isRefreshing = false;
       this.processQueue(new Error('Failed to refresh token'));
       clearAccessToken();
@@ -303,7 +293,6 @@ export class AxiosHttpClient implements HttpClient {
       (acc, curr) => ({ ...acc, ...curr }),
       {},
     );
-    console.log('test', { ...authHeaders, ...mergedHeaders });
     return this.request(
       this.axios.get<T>(url, {
         headers: { ...authHeaders, ...mergedHeaders },
