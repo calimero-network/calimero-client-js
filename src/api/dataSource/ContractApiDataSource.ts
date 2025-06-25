@@ -1,70 +1,133 @@
 import { ApiResponse } from '../../types/api-response';
 import { HttpClient } from '../httpClient';
 import {
-  ContextDetails,
+  ContextStorageEntry,
   ContractApi,
+  GetProposalsRequest,
   Proposal,
-  Members,
-  ProposalApprovers,
+  ProposalApprovalCount,
+  StorageEntry,
 } from '../contractApi';
+import { getAppEndpointKey, getContextId } from '../../storage/storage';
 
 export class ContractApiDataSource implements ContractApi {
-  private client: HttpClient;
-  private endpoint: string;
-  private contextId: string;
+  constructor(private client: HttpClient) {}
 
-  constructor(client: HttpClient) {
-    this.client = client;
-    this.endpoint = 'http://localhost:2428'; //test
-    this.contextId = 'test';
-  }
-  async getNumberOfApprovals(proposalId: String): ApiResponse<number> {
-    return await this.client.get<number>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
-    );
-  }
-  async getProposalApprovers(
-    proposalId: String,
-  ): ApiResponse<ProposalApprovers> {
-    return await this.client.get<ProposalApprovers>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
-    );
+  private get baseUrl(): string {
+    return getAppEndpointKey();
   }
 
-  async getNumberOfActiveProposals(): ApiResponse<number> {
-    return await this.client.get<number>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/proposals/count}`,
-    );
+  private get contextId(): string {
+    const id = getContextId();
+    if (!id) {
+      throw new Error(
+        'Context ID not available. Make sure you are properly authenticated.',
+      );
+    }
+    return id;
   }
 
-  async getContractProposals(): ApiResponse<Proposal[]> {
-    return await this.client.get<Proposal[]>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/proposals`,
-    );
+  async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
+    try {
+      return await this.client.post<Proposal[]>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals`,
+        request,
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
   }
 
-  //Contract proposal details
-  async getProposalDetails(proposalId: String): ApiResponse<Proposal> {
-    return await this.client.get<Proposal>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
-    );
+  async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
+    try {
+      return await this.client.get<string[]>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
   }
 
-  async getContextDetails(): ApiResponse<ContextDetails> {
-    return await this.client.get<ContextDetails>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}`,
-    );
+  async getProposalApprovalCount(
+    proposalId: string,
+  ): ApiResponse<ProposalApprovalCount> {
+    try {
+      return await this.client.get<ProposalApprovalCount>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
   }
 
-  async getContextMembers(): ApiResponse<Members[]> {
-    return await this.client.get<Members[]>(
-      `${this.endpoint}/admin-api/contexts/${this.contextId}/members`,
-    );
+  async getNumOfProposals(): ApiResponse<number> {
+    try {
+      return await this.client.get<number>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/count`,
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
   }
 
-  async getContextMembersCount(): ApiResponse<number> {
-    return await this.client.get<number>(
-      `${this.endpoint}/admin-api/context/${this.contextId}/members/count`,
-    );
+  async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
+    try {
+      return await this.client.get<Proposal>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
+  }
+
+  async getContextValue(key: string): ApiResponse<StorageEntry> {
+    try {
+      return await this.client.post<StorageEntry>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}`,
+        {
+          key,
+        },
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
+  }
+
+  async getContextStorageEntries(
+    offset: number,
+    limit: number,
+  ): ApiResponse<ContextStorageEntry[]> {
+    try {
+      return await this.client.post<ContextStorageEntry[]>(
+        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
+        {
+          offset,
+          limit,
+        },
+      );
+    } catch (error) {
+      return {
+        data: null,
+        error: error as Error,
+      };
+    }
   }
 }

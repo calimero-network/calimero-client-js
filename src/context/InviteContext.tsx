@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Spinner from '../components/loader/Spinner';
-import apiClient from '../api';
+import { apiClient } from '../api';
 import { ResponseData } from '../types';
 import { Context, GetContextsResponse } from '../api/nodeApi';
 import { getApplicationId } from '../storage';

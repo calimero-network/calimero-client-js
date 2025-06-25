@@ -2,64 +2,51 @@ import React from 'react';
 import { Context } from '../../api/nodeApi';
 import {
   ContextModal,
-  ContextTitle,
   ContextWrapper,
   ContextSubtitle,
-  AppIdContainer,
   ContextListContainer,
   NoContextWrapper,
   NoContextMessage,
+  Button,
 } from '../Components';
 import ListItem from './ListItem';
 
-interface SelectContextStepProps {
-  applicationId: string;
+interface SelectContextProps {
   contextList: Context[];
   setSelectedContextId: (selectedContextId: string) => void;
-  updateLoginStep: () => void;
+  backStep?: () => void;
 }
 
-export default function SelectContextStep({
-  applicationId,
+export const SelectContext: React.FC<SelectContextProps> = ({
   contextList,
   setSelectedContextId,
-  updateLoginStep,
-}: SelectContextStepProps) {
+  backStep,
+}) => {
   const handleContextSelection = (selectedContextId: string) => {
     setSelectedContextId(selectedContextId);
-    updateLoginStep();
   };
 
   return (
     <ContextModal>
-      <ContextTitle>Select context</ContextTitle>
-      <ContextWrapper>
-        <ContextSubtitle separator color="#fff">
-          <span>Currently selected:</span>
-        </ContextSubtitle>
-        <ContextSubtitle>
-          App ID
-          <AppIdContainer>
-            <span>{applicationId}</span>
-          </AppIdContainer>
-        </ContextSubtitle>
-      </ContextWrapper>
       <ContextWrapper>
         <ContextSubtitle color="#fff">
-          <span>Select a context to join:</span>
+          <span>Select a context:</span>
         </ContextSubtitle>
         {contextList.length > 0 ? (
-          <ContextListContainer>
-            {contextList.map((context, i) => (
-              <ListItem
-                key={context.id}
-                item={context.id}
-                id={i}
-                count={contextList.length}
-                onRowItemClick={handleContextSelection}
-              />
-            ))}
-          </ContextListContainer>
+          <>
+            <ContextListContainer>
+              {contextList.map((context, i) => (
+                <ListItem
+                  key={context.id}
+                  item={context.id}
+                  id={i}
+                  count={contextList.length}
+                  onRowItemClick={handleContextSelection}
+                />
+              ))}
+            </ContextListContainer>
+            {backStep && <Button onClick={backStep}>Back</Button>}
+          </>
         ) : (
           <NoContextWrapper>
             <NoContextMessage>No contexts found</NoContextMessage>
@@ -68,4 +55,4 @@ export default function SelectContextStep({
       </ContextWrapper>
     </ContextModal>
   );
-}
+};

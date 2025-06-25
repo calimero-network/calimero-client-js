@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import {
+  clearAccessToken,
   clearAppEndpoint,
   clearApplicationId,
+  clearContextId,
+  clearExecutorPublicKey,
   getAppEndpointKey,
   getApplicationId,
   setAccessToken,
+  setApplicationId,
   setContextId,
   setExecutorPublicKey,
   setRefreshToken,
@@ -13,9 +17,11 @@ import {
 import {
   ErrorMessage,
   LoginButton,
-  LoginContainer,
   LoginHeader,
   LoginHeaderSpan,
+  Button,
+  ModalOverlay,
+  ModalContent,
 } from './Components';
 import {
   Context,
@@ -23,15 +29,20 @@ import {
   GetContextsResponse,
 } from '../api/nodeApi';
 import { ResponseData } from '../types';
-import apiClient from '../api';
-import SelectContextStep from './noAuth/SelectContext';
-import { SetupModal } from '../setup/SetupModal';
-import SelectIdentityStep from './noAuth/SelectContextIdentity';
-import { Button } from '../context/Components';
+import { apiClient } from '../api';
+import Spinner from '../components/loader/Spinner';
+import { SetupSpinnerContainer } from '../setup/Components';
+import { SelectContext } from './noAuth/SelectContext';
+import { SelectContextIdentity } from './noAuth/SelectContextIdentity';
 
 interface ClientLoginProps {
-  successRedirect: () => void;
-  authMode?: boolean;
+  permissions: string[];
+  authMode: boolean;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
+  clientApplicationId: string;
+  clientApplicationPath: string;
+  fetchContextApplication: () => void;
+  onReset: () => void;
 }
 
 interface LoginState {
@@ -41,6 +52,7 @@ interface LoginState {
   contexts: Context[];
   contextIdentities: string[];
   errorMessage: string;
+  isLoading: boolean;
 }
 
 const initialState: LoginState = {
@@ -50,11 +62,17 @@ const initialState: LoginState = {
   contexts: [],
   contextIdentities: [],
   errorMessage: '',
+  isLoading: false,
 };
 
 export const ClientLogin: React.FC<ClientLoginProps> = ({
-  successRedirect,
-  authMode = true,
+  permissions,
+  authMode,
+  setIsAuthenticated,
+  clientApplicationId,
+  clientApplicationPath,
+  fetchContextApplication,
+  onReset,
 }) => {
   const [state, setState] = useState<LoginState>({
     ...initialState,
@@ -69,6 +87,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
     contexts,
     contextIdentities,
     errorMessage,
+    isLoading,
   } = state;
 
   const updateState = (newState: Partial<LoginState>) => {
@@ -77,17 +96,11 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
 
   const resetSetup = () => {
     clearAppEndpoint();
+    clearAccessToken();
+    clearContextId();
+    clearExecutorPublicKey();
     clearApplicationId();
-    updateState({
-      nodeServerUrl: '',
-      applicationId: '',
-    });
-  };
-
-  const redirectToDashboardLogin = () => {
-    const callbackUrl = encodeURIComponent(window.location.href);
-    const redirectUrl = `${nodeServerUrl}/admin-dashboard/?application_id=${applicationId}&callback_url=${callbackUrl}`;
-    window.location.href = redirectUrl;
+    onReset();
   };
 
   const fetchAvailableContexts = useCallback(async () => {
@@ -99,20 +112,18 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         .getContexts();
 
       if (response.error) {
-        updateState({ errorMessage: response.error.message });
+        updateState({ errorMessage: response.error.message, isLoading: false });
         return;
       }
 
-      const filteredContexts =
-        response.data?.contexts.filter(
-          (context) => context.applicationId === applicationId,
-        ) ?? [];
-
-      updateState({ contexts: filteredContexts });
+      updateState({ contexts: response.data?.contexts, isLoading: false });
     } catch (error) {
-      updateState({ errorMessage: 'Failed to fetch contexts' });
+      updateState({
+        errorMessage: 'Failed to fetch contexts',
+        isLoading: false,
+      });
     }
-  }, [applicationId, errorMessage]);
+  }, [errorMessage]);
 
   const fetchContextIdentities = useCallback(async () => {
     if (!selectedContextId) return;
@@ -135,20 +146,18 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
   const handleIdentitySelection = (contextId: string, identity: string) => {
     setContextId(contextId);
     setExecutorPublicKey(identity);
-    successRedirect();
+    fetchContextApplication();
   };
 
-  useEffect(() => {
-    if (nodeServerUrl && applicationId && !authMode) {
-      fetchAvailableContexts();
-    }
-  }, [nodeServerUrl, applicationId, authMode, fetchAvailableContexts]);
-
-  useEffect(() => {
-    if (selectedContextId) {
-      fetchContextIdentities();
-    }
-  }, [selectedContextId, fetchContextIdentities]);
+  const login = useCallback(async () => {
+    apiClient.auth().login({
+      url: nodeServerUrl,
+      callbackUrl: window.location.href,
+      permissions: permissions,
+      applicationId: clientApplicationId,
+      applicationPath: clientApplicationPath,
+    });
+  }, [nodeServerUrl, permissions, clientApplicationId, clientApplicationPath]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -160,59 +169,88 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
-      successRedirect();
+      if (clientApplicationId) {
+        setApplicationId(clientApplicationId);
+        setIsAuthenticated(true);
+      } else {
+        fetchContextApplication();
+      }
     }
-  }, [successRedirect]);
+  }, [nodeServerUrl]);
 
-  if (!nodeServerUrl || !applicationId) {
+  useEffect(() => {
+    if (authMode === false) {
+      updateState({ isLoading: true });
+      fetchAvailableContexts();
+    }
+  }, [nodeServerUrl, fetchAvailableContexts, authMode]);
+
+  useEffect(() => {
+    if (selectedContextId) {
+      fetchContextIdentities();
+    }
+  }, [selectedContextId, fetchContextIdentities]);
+
+  const renderLoginContent = () => {
+    if (isLoading) {
+      return (
+        <SetupSpinnerContainer>
+          <Spinner />
+        </SetupSpinnerContainer>
+      );
+    }
+
+    if (authMode === true) {
+      return (
+        <>
+          <LoginButton onClick={login}>Login</LoginButton>
+          <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
+            Back to Setup
+          </Button>
+        </>
+      );
+    }
+
     return (
-      <LoginContainer>
-        <SetupModal
-          setAppId={(id) => updateState({ applicationId: id })}
-          setNodeServerUrl={(url) => updateState({ nodeServerUrl: url })}
-        />
-      </LoginContainer>
+      <>
+        <LoginHeader>
+          <LoginHeaderSpan>Select Context ID and Identity</LoginHeaderSpan>
+        </LoginHeader>
+        {!selectedContextId ? (
+          <SelectContext
+            contextList={contexts}
+            setSelectedContextId={(id) =>
+              updateState({ selectedContextId: id })
+            }
+          />
+        ) : (
+          <SelectContextIdentity
+            selectedContextId={selectedContextId}
+            contextIdentities={contextIdentities}
+            onSelectIdentity={handleIdentitySelection}
+            backStep={() => updateState({ selectedContextId: '' })}
+          />
+        )}
+        <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
+          Back to Setup
+        </Button>
+      </>
     );
-  }
+  };
 
   return (
-    <LoginContainer>
-      {authMode ? (
-        <>
-          <LoginHeader>
-            <LoginHeaderSpan>Login with Admin Dashboard</LoginHeaderSpan>
-          </LoginHeader>
-          <LoginButton onClick={redirectToDashboardLogin}>Login</LoginButton>
-        </>
-      ) : (
-        <>
-          <LoginHeader>
-            <LoginHeaderSpan>Select Context ID and Identity</LoginHeaderSpan>
-          </LoginHeader>
-          {!selectedContextId ? (
-            <SelectContextStep
-              applicationId={applicationId}
-              contextList={contexts}
-              setSelectedContextId={(id) =>
-                updateState({ selectedContextId: id })
-              }
-              updateLoginStep={() => {}}
-            />
-          ) : (
-            <SelectIdentityStep
-              applicationId={applicationId}
-              selectedContextId={selectedContextId}
-              contextIdentities={contextIdentities}
-              updateLoginStep={handleIdentitySelection}
-              backStep={() => updateState({ selectedContextId: '' })}
-            />
-          )}
-        </>
-      )}
-      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-      <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
-        Back to Setup
-      </Button>
-    </LoginContainer>
+    <ModalOverlay>
+      <ModalContent>
+        {errorMessage && (
+          <>
+            <ErrorMessage>{errorMessage}</ErrorMessage>
+            <Button onClick={resetSetup} style={{ marginTop: '1rem' }}>
+              Back to Setup
+            </Button>
+          </>
+        )}
+        {renderLoginContent()}
+      </ModalContent>
+    </ModalOverlay>
   );
 };

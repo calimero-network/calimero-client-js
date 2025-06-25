@@ -8,18 +8,9 @@ export interface HealthStatus {
   status: string;
 }
 
-export interface JwtTokenResponse {
-  access_token: string;
-  refresh_token: string;
-}
-
-export interface SigningKey {
-  signingKey: string;
-}
-
 export interface CreateContextResponse {
   contextId: string;
-  memberPublicKey: SigningKey;
+  memberPublicKey: string;
 }
 
 export interface DeleteContextResponse {
@@ -47,15 +38,61 @@ export interface NodeIdentity {
 
 export interface JoinContextResponse {
   contextId: string;
-  memberPublicKey: SigningKey;
+  memberPublicKey: string;
+}
+
+// Application Management Interfaces
+export interface InstalledApplication {
+  id: string;
+  blob: string;
+  version: string | null;
+  source: string;
+  metadata: number[];
+}
+
+export interface GetInstalledApplicationsResponse {
+  apps: InstalledApplication[];
+}
+
+export interface InstallApplicationResponse {
+  applicationId: string;
+}
+
+export interface UninstallApplicationResponse {
+  applicationId: string;
+}
+
+// Context Management Extended Interfaces
+export interface ContextClientKey {
+  client_id: string;
+  root_key_id: string;
+  name: string;
+  permissions: string[];
+  created_at: number;
+  revoked_at?: number;
+  is_valid: boolean;
+}
+
+export interface ContextClientKeysList {
+  clientKeys: ContextClientKey[];
+}
+
+export interface ContextUsersList {
+  identities: string[];
+}
+
+export interface ContextStorage {
+  sizeInBytes: number;
+}
+
+export interface CapabilitiesRequest {
+  capabilities: Array<[string, string]>; // [ContextIdentity, Capability]
+  signer_id: string;
 }
 
 export interface NodeApi {
-  refreshToken(
-    refreshToken: string,
-    rpcBaseUrl: string,
-  ): ApiResponse<JwtTokenResponse>;
   health(request: HealthRequest): ApiResponse<HealthStatus>;
+  getContext(contextId: string): ApiResponse<Context>;
   getContexts(): ApiResponse<GetContextsResponse>;
   deleteContext(contextId: string): ApiResponse<DeleteContextResponse>;
   createContext(
@@ -75,4 +112,33 @@ export interface NodeApi {
     privateKey: string,
     invitationPayload: string,
   ): ApiResponse<JoinContextResponse>;
+
+  // Application Management
+  getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;
+  getInstalledApplicationDetails(
+    appId: string,
+  ): ApiResponse<InstalledApplication | null>;
+  installApplication(
+    url: string,
+    metadata: Uint8Array,
+    hash?: string,
+  ): ApiResponse<InstallApplicationResponse>;
+  uninstallApplication(
+    applicationId: string,
+  ): ApiResponse<UninstallApplicationResponse>;
+
+  // Context Management Extended
+  getContextClientKeys(contextId: string): ApiResponse<ContextClientKeysList>;
+  getContextUsers(contextId: string): ApiResponse<ContextUsersList>;
+  getContextStorageUsage(contextId: string): ApiResponse<ContextStorage>;
+
+  // Capabilities Management
+  grantCapabilities(
+    contextId: string,
+    request: CapabilitiesRequest,
+  ): ApiResponse<void>;
+  revokeCapabilities(
+    contextId: string,
+    request: CapabilitiesRequest,
+  ): ApiResponse<void>;
 }

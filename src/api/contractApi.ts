@@ -1,135 +1,168 @@
 import { ApiResponse } from '../types';
 
-export enum ActionType {
-  ExternalFunctionCall,
-  Transfer,
-  SetNumApprovals,
-  SetActiveProposalsLimit,
-  SetContextValue,
+export enum ActionScope {
+  ExternalFunctionCall = 'ExternalFunctionCall',
+  Transfer = 'Transfer',
+  SetNumApprovals = 'SetNumApprovals',
+  SetActiveProposalsLimit = 'SetActiveProposalsLimit',
+  SetContextValue = 'SetContextValue',
+  DeleteProposal = 'DeleteProposal',
 }
 
-export interface Action {
-  type: ActionType;
+export interface ExternalFunctionCallParams {
+  receiver_id: string;
+  method_name: string;
+  args: string;
+  deposit: string;
 }
 
-export interface ExternalFunctionCall extends Action {
-  type: ActionType.ExternalFunctionCall;
-  receiver_id: User;
-  method_name: String;
-  args: String; //Base64VecU8,
-  deposit: String;
-  gas: String;
+export interface TransferParams {
+  receiver_id: string;
+  amount: string;
 }
 
-export interface Transfer extends Action {
-  type: ActionType.Transfer;
-  amount: String;
+export interface SetNumApprovalsParams {
+  num_approvals: number;
 }
 
-export interface SetNumApprovals extends Action {
-  type: ActionType.SetNumApprovals;
-  numOfApprovals: number;
+export interface SetActiveProposalsLimitParams {
+  active_proposals_limit: number;
 }
 
-export interface SetActiveProposalsLimit extends Action {
-  type: ActionType.SetActiveProposalsLimit;
-  activeProposalsLimit: number;
+export interface SetContextValueParams {
+  key: Uint8Array;
+  value: Uint8Array;
 }
 
-export interface SetContextValue {
-  type: ActionType.SetContextValue;
-  key: String;
-  value: any;
+export interface DeleteProposalParams {
+  proposal_id: string;
+}
+
+export interface ProposalAction {
+  scope: ActionScope;
+  params:
+    | ExternalFunctionCallParams
+    | TransferParams
+    | SetNumApprovalsParams
+    | SetActiveProposalsLimitParams
+    | SetContextValueParams
+    | DeleteProposalParams;
+}
+
+export interface Proposal {
+  id: string;
+  author_id: string;
+  actions: ProposalAction[];
 }
 
 export interface User {
   identityPublicKey: String;
 }
 
-export interface Proposal {
-  id: String;
-  author: User;
-  actions: Action[];
-  title: String;
-  description: String;
-  createdAt: String;
-}
-
-export interface ContextDetails {}
-
-export interface Members {
-  publicKey: String;
-}
-
 export interface Message {
   publicKey: String;
 }
 
+export interface ContextStorageEntry {
+  key: string;
+  value: string;
+}
+
+export interface ProposalApprovalCount {
+  num_approvals: number;
+}
+
 export function createExternalFunctionCall(
-  receiver_id: User,
+  receiver_id: string,
   method_name: string,
   args: string,
   deposit: string,
-  gas: string,
-): ExternalFunctionCall {
+): ProposalAction {
   return {
-    type: ActionType.ExternalFunctionCall,
-    receiver_id,
-    method_name,
-    args,
-    deposit,
-    gas,
+    scope: ActionScope.ExternalFunctionCall,
+    params: {
+      receiver_id,
+      method_name,
+      args,
+      deposit,
+    },
   };
 }
 
-export function createTransfer(amount: string): Transfer {
+export function createTransfer(
+  receiver_id: string,
+  amount: string,
+): ProposalAction {
   return {
-    type: ActionType.Transfer,
-    amount,
+    scope: ActionScope.Transfer,
+    params: {
+      receiver_id,
+      amount,
+    },
   };
 }
 
-export function createSetNumApprovals(numOfApprovals: number): SetNumApprovals {
+export function createSetNumApprovals(num_approvals: number): ProposalAction {
   return {
-    type: ActionType.SetNumApprovals,
-    numOfApprovals,
+    scope: ActionScope.SetNumApprovals,
+    params: {
+      num_approvals,
+    },
   };
 }
 
 export function createSetActiveProposalsLimit(
-  activeProposalsLimit: number,
-): SetActiveProposalsLimit {
+  active_proposals_limit: number,
+): ProposalAction {
   return {
-    type: ActionType.SetActiveProposalsLimit,
-    activeProposalsLimit,
+    scope: ActionScope.SetActiveProposalsLimit,
+    params: {
+      active_proposals_limit,
+    },
   };
 }
 
 export function createSetContextValue(
-  key: string,
-  value: string,
-): SetContextValue {
+  key: Uint8Array,
+  value: Uint8Array,
+): ProposalAction {
   return {
-    type: ActionType.SetContextValue,
-    key,
-    value,
+    scope: ActionScope.SetContextValue,
+    params: {
+      key,
+      value,
+    },
   };
 }
 
-export interface ProposalApprovers {
-  proposalId: String;
-  approvers: User[];
+export function createDeleteProposal(proposal_id: string): ProposalAction {
+  return {
+    scope: ActionScope.DeleteProposal,
+    params: {
+      proposal_id,
+    },
+  };
+}
+
+export interface GetProposalsRequest {
+  offset: number;
+  limit: number;
+}
+
+export interface StorageEntry {
+  value: string;
 }
 
 export interface ContractApi {
-  //Contract
-  getContractProposals(): ApiResponse<Proposal[]>;
-  getProposalDetails(proposalId: String): ApiResponse<Proposal>;
-  getNumberOfActiveProposals(): ApiResponse<number>;
-  getNumberOfApprovals(proposalId: String): ApiResponse<number>;
-  getProposalApprovers(proposalId: String): ApiResponse<ProposalApprovers>;
-  //From storage
-  getContextDetails(): ApiResponse<ContextDetails>;
-  getContextMembers(): ApiResponse<Members[]>;
-  getContextMembersCount(): ApiResponse<number>;
+  getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]>;
+  getProposalApprovers(proposalId: String): ApiResponse<string[]>;
+  getProposalApprovalCount(
+    proposalId: String,
+  ): ApiResponse<ProposalApprovalCount>;
+  getNumOfProposals(): ApiResponse<number>;
+  getContextValue(key: string): ApiResponse<StorageEntry>;
+  getContextStorageEntries(
+    offset: number,
+    limit: number,
+  ): ApiResponse<ContextStorageEntry[]>;
 }

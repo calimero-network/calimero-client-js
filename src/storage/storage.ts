@@ -108,16 +108,8 @@ export const clearApplicationId = (): void => {
   localStorage.removeItem(APPLICATION_ID);
 };
 
-/**
- * @function setAccessToken
- * @description Sets the access token in localStorage and updates the
- * context ID and executor public key.
- * @param {string} accessToken - The access token to store.
- */
-export const setAccessToken = (accessToken: string) => {
+export const setContextAndIdentityFromJWT = (accessToken: string) => {
   try {
-    localStorage.setItem(ACCESS_TOKEN, accessToken);
-
     const parts = accessToken.split('.');
     if (parts.length !== 3) {
       console.error('Invalid JWT token format received:', accessToken);
@@ -127,22 +119,50 @@ export const setAccessToken = (accessToken: string) => {
     const payloadString = atob(parts[1]);
     const jwt: JsonWebToken = JSON.parse(payloadString);
 
-    if (jwt.context_id) {
-      localStorage.setItem(CONTEXT_ID, JSON.stringify(jwt.context_id));
-    } else {
-      console.warn('JWT payload missing context_id');
-    }
-    if (jwt.executor_public_key) {
-      localStorage.setItem(
-        CONTEXT_IDENTITY,
-        JSON.stringify(jwt.executor_public_key),
+    if (jwt.permissions) {
+      // Find the context permission which is in format: context[context_id,context_identity]
+      const contextPermission = jwt.permissions.find(
+        (permission) =>
+          permission.startsWith('context[') && permission.endsWith(']'),
       );
+
+      if (contextPermission) {
+        // Extract the content between brackets: context[content] -> content
+        const content = contextPermission.substring(
+          contextPermission.indexOf('[') + 1,
+          contextPermission.lastIndexOf(']'),
+        );
+
+        // Split the content by comma to get [context_id, context_identity]
+        const [contextId, contextIdentity] = content.split(',');
+
+        if (contextId && contextIdentity) {
+          setContextId(contextId);
+          setExecutorPublicKey(contextIdentity);
+        } else {
+          console.warn(
+            'Failed to extract context_id or context_identity from permissions',
+          );
+        }
+      } else {
+        console.warn('No context permission found in JWT token');
+      }
     } else {
-      console.warn('JWT payload missing executor_public_key');
+      console.warn('JWT payload missing permissions field');
     }
   } catch (error) {
     console.error('Failed to set access token or extract JWT info:', error);
   }
+};
+
+/**
+ * @function setAccessToken
+ * @description Sets the access token in localStorage and updates the
+ * context ID and executor public key.
+ * @param {string} accessToken - The access token to store.
+ */
+export const setAccessToken = (accessToken: string) => {
+  localStorage.setItem(ACCESS_TOKEN, JSON.stringify(accessToken));
 };
 
 /**
@@ -154,7 +174,7 @@ export const getAccessToken = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const accessToken = localStorage.getItem(ACCESS_TOKEN);
-      return accessToken ? accessToken : null;
+      return accessToken ? JSON.parse(accessToken) : null;
     }
   } catch (e) {
     console.error(e);
@@ -232,10 +252,10 @@ export const getRefreshToken = (): string | null => {
 };
 
 /**
- * @function resetRefreshToken
+ * @function clearRefreshToken
  * @description Clears the refresh token from localStorage.
  */
-export const resetRefreshToken = (): void => {
+export const clearRefreshToken = (): void => {
   localStorage.removeItem(REFRESH_TOKEN);
 };
 
@@ -276,10 +296,12 @@ export const clearExecutorPublicKey = (): void => {
 
 export interface JsonWebToken {
   context_id: string;
+  context_identity: string;
   token_type: string;
   exp: number;
   sub: string;
   executor_public_key: string;
+  permissions: string[];
 }
 
 /**
@@ -305,14 +327,17 @@ export const getJWTObject = (): JsonWebToken | null => {
 
 /**
  * @function clientLogout
- * @description Clears the app endpoint, access token, and application ID from localStorage.
+ * @description Clears the app endpoint, access token, and application ID from localStorage and refreshes the page.
  */
 export const clientLogout = (): void => {
-  clearAppEndpoint();
+  // clearAppEndpoint();
   clearAccessToken();
   clearApplicationId();
   clearContextId();
   clearExecutorPublicKey();
+
+  // Refresh the page to reset all application state
+  window.location.reload();
 };
 
 interface AuthConfig {
