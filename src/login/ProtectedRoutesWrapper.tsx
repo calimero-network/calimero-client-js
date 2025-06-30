@@ -36,6 +36,16 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   const [authMode, setAuthMode] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if current URL is admin-dashboard
+  const isAdminDashboardUrl = () => {
+    const nodeUrl = getAppEndpointKey();
+    const currentUrl = window.location.href;
+    
+    if (!nodeUrl) return false;
+    
+    return currentUrl.includes('/admin-dashboard');
+  };
+
   const handleReset = () => {
     setAuthMode(null);
     setIsAuthenticated(false);
@@ -227,6 +237,11 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
         </ModalContent>
       </ModalOverlay>
     );
+  }
+
+  // If current URL is admin-dashboard and we're in no-auth mode, skip context selection
+  if (authMode === false && isAdminDashboardUrl()) {
+    return <>{children}</>;
   }
 
   // If not authenticated or not initialized, show login with current authMode state
