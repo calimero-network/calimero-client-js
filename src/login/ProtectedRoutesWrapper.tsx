@@ -40,9 +40,9 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   const isAdminDashboardUrl = () => {
     const nodeUrl = getAppEndpointKey();
     const currentUrl = window.location.href;
-    
+
     if (!nodeUrl) return false;
-    
+
     return currentUrl.includes('/admin-dashboard');
   };
 
