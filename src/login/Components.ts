@@ -51,6 +51,7 @@ export const ErrorMessage = styled.div`
   color: #ef4444;
   font-size: 1.25rem;
   text-align: center;
+  margin-bottom: 2rem;
 `;
 
 // Context Selection Modal Components
@@ -59,7 +60,6 @@ export const ContextModal = styled.div`
   position: relative;
   flex-direction: column;
   justify-content: center;
-  padding: 1.5rem;
   border-radius: 0.375rem;
   align-items: center;
   background-color: #17191b;

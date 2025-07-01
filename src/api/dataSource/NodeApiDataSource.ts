@@ -197,13 +197,13 @@ export class NodeApiDataSource implements NodeApi {
 
   async installApplication(
     url: string,
-    metadata: Uint8Array,
+    metadata?: Uint8Array,
     hash?: string,
   ): ApiResponse<InstallApplicationResponse> {
     try {
-      const requestBody = {
+      const requestBody: any = {
         url,
-        metadata: Array.from(metadata),
+        metadata: metadata ? Array.from(metadata) : [],
         ...(hash ? { hash } : {}),
       };
 

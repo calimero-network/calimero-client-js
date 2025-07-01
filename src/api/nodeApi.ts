@@ -120,7 +120,7 @@ export interface NodeApi {
   ): ApiResponse<InstalledApplication | null>;
   installApplication(
     url: string,
-    metadata: Uint8Array,
+    metadata?: Uint8Array,
     hash?: string,
   ): ApiResponse<InstallApplicationResponse>;
   uninstallApplication(

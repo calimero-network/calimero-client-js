@@ -7,8 +7,17 @@ import {
   setAccessToken,
   setRefreshToken,
   setApplicationId,
+  getApplicationId,
   getContextId,
+  getExecutorPublicKey,
+  getRefreshToken,
   setContextAndIdentityFromJWT,
+  clearAppEndpoint,
+  clearRefreshToken,
+  clearAccessToken,
+  clearApplicationId,
+  clearContextId,
+  clearExecutorPublicKey,
 } from '../storage';
 import { ClientLogin } from './ClientLogin';
 import { apiClient } from '../api';
@@ -36,11 +45,27 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   const [authMode, setAuthMode] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if current URL is admin-dashboard
+  const isAdminDashboardUrl = () => {
+    const nodeUrl = getAppEndpointKey();
+    const currentUrl = window.location.href;
+
+    if (!nodeUrl) return false;
+
+    return currentUrl.includes('/admin-dashboard');
+  };
+
   const handleReset = () => {
     setAuthMode(null);
     setIsAuthenticated(false);
     setIsInitialized(false);
     setError(null);
+    clearAppEndpoint();
+    clearAccessToken();
+    clearRefreshToken();
+    clearApplicationId();
+    clearContextId();
+    clearExecutorPublicKey();
     checkAuth();
   };
 
@@ -140,7 +165,43 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   const checkAuth = async () => {
     setIsLoading(true);
 
-    // Check if we have a valid token
+    // First, check if we already have all necessary data in localStorage
+    const storedApplicationId = getApplicationId();
+    const storedContextId = getContextId();
+    const storedExecutorPublicKey = getExecutorPublicKey();
+    const storedAccessToken = getAccessToken();
+    const storedRefreshToken = getRefreshToken();
+
+    // If we have all auth data (tokens + context info), skip API calls
+    if (
+      storedAccessToken &&
+      storedRefreshToken &&
+      storedApplicationId &&
+      storedContextId &&
+      storedExecutorPublicKey
+    ) {
+      setAuthMode(true);
+      setIsAuthenticated(true);
+      setIsInitialized(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // If we have all no-auth data (app-id + context-id + context-identity), skip API calls
+    if (
+      storedApplicationId &&
+      storedContextId &&
+      storedExecutorPublicKey &&
+      !storedAccessToken
+    ) {
+      setAuthMode(false);
+      setIsAuthenticated(true);
+      setIsInitialized(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Otherwise, proceed with the normal auth flow
     const token = getAccessToken();
     const jwt = getJWTObject();
 
@@ -154,6 +215,16 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     } else {
       // No token, check if we need auth
       await checkAuthMode();
+
+      // If auth is disabled and we have stored context data, initialize the application
+      if (authMode === false && !error) {
+        const contextId = getContextId();
+        const executorPublicKey = getExecutorPublicKey();
+
+        if (contextId && executorPublicKey) {
+          await fetchContextApplication();
+        }
+      }
     }
 
     setIsLoading(false);
@@ -227,6 +298,11 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
         </ModalContent>
       </ModalOverlay>
     );
+  }
+
+  // If current URL is admin-dashboard and we're in no-auth mode, skip context selection
+  if (authMode === false && isAdminDashboardUrl()) {
+    return <>{children}</>;
   }
 
   // If not authenticated or not initialized, show login with current authMode state
