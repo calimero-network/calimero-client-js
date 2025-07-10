@@ -78,7 +78,7 @@ export class BlobApiDataSource implements BlobApi {
         url += `?hash=${encodeURIComponent(expectedHash)}`;
       }
 
-      xhr.open('POST', url);
+      xhr.open('PUT', url);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
       xhr.send(fileArrayBuffer);
     });
