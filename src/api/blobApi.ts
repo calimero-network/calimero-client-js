@@ -15,7 +15,11 @@ export interface BlobMetadataResponse {
 // Main API interface - HTTP endpoints only
 export interface BlobApi {
   // REST API methods (direct HTTP upload/download)
-  uploadBlob(file: File, onProgress?: (progress: number) => void, expectedHash?: string): ApiResponse<BlobUploadResponse>;
+  uploadBlob(
+    file: File,
+    onProgress?: (progress: number) => void,
+    expectedHash?: string,
+  ): ApiResponse<BlobUploadResponse>;
   downloadBlob(blobId: string): Promise<Blob>;
   getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse>;
-} 
+}

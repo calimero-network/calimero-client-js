@@ -62,4 +62,11 @@ const adminClient = new AdminApiDataSource(new AxiosHttpClient(axios));
 const blobClient = new BlobApiDataSource(new AxiosHttpClient(axios));
 const rpcClient = new JsonRpcClient(new AxiosHttpClient(axios));
 
-export { apiClient, authClient, contractClient, adminClient, rpcClient, blobClient };
+export {
+  apiClient,
+  authClient,
+  contractClient,
+  adminClient,
+  rpcClient,
+  blobClient,
+};

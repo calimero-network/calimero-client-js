@@ -1,10 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
 import { HttpClient } from '../httpClient';
-import { 
-  BlobApi, 
-  BlobUploadResponse, 
-  BlobMetadataResponse
-} from '../blobApi';
+import { BlobApi, BlobUploadResponse, BlobMetadataResponse } from '../blobApi';
 import { getAppEndpointKey } from '../../storage';
 
 export class BlobApiDataSource implements BlobApi {
@@ -15,9 +11,9 @@ export class BlobApiDataSource implements BlobApi {
   }
 
   async uploadBlob(
-    file: File, 
-    onProgress?: (progress: number) => void, 
-    expectedHash?: string
+    file: File,
+    onProgress?: (progress: number) => void,
+    expectedHash?: string,
   ): ApiResponse<BlobUploadResponse> {
     // Read file as ArrayBuffer for raw binary upload
     const fileArrayBuffer = await file.arrayBuffer();
@@ -46,7 +42,9 @@ export class BlobApiDataSource implements BlobApi {
               data: null,
               error: {
                 code: xhr.status,
-                message: errorResponse.error || `HTTP ${xhr.status}: ${xhr.statusText}`,
+                message:
+                  errorResponse.error ||
+                  `HTTP ${xhr.status}: ${xhr.statusText}`,
               },
             });
           }
@@ -55,7 +53,10 @@ export class BlobApiDataSource implements BlobApi {
             data: null,
             error: {
               code: xhr.status || 500,
-              message: error instanceof Error ? error.message : 'Failed to parse response',
+              message:
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to parse response',
             },
           });
         }
@@ -85,18 +86,20 @@ export class BlobApiDataSource implements BlobApi {
 
   async downloadBlob(blobId: string): Promise<Blob> {
     const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`);
-    
+
     if (!response.ok) {
-      throw new Error(`Failed to download blob: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to download blob: ${response.status} ${response.statusText}`,
+      );
     }
-    
+
     return response.blob();
   }
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
     try {
       const response = await this.client.get<BlobMetadataResponse>(
-        `/admin-api/blobs/${blobId}/info`
+        `/admin-api/blobs/${blobId}/info`,
       );
       return response;
     } catch (error) {
@@ -105,9 +108,12 @@ export class BlobApiDataSource implements BlobApi {
         data: null,
         error: {
           code: 500,
-          message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred',
         },
       };
     }
   }
-} 
+}
