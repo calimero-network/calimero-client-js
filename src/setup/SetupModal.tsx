@@ -135,7 +135,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ setNodeServerUrl }) => {
                   <SetupErrorText>{errors.url}</SetupErrorText>
 
                   <SetupSubmitButton type="submit" disabled={isSubmitDisabled}>
-                    <span>Set values</span>
+                    <span>Continue</span>
                   </SetupSubmitButton>
                 </SetupInputGroup>
               </form>

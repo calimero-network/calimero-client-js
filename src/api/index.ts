@@ -10,12 +10,15 @@ import { JsonRpcClient } from '../rpc/jsonrpc';
 import { RpcClient } from '../types/rpc';
 import { AdminApi } from './adminApi';
 import { AdminApiDataSource } from './dataSource/AdminApiDataSource';
+import { BlobApi } from './blobApi';
+import { BlobApiDataSource } from './dataSource/BlobApiDataSource';
 
 class ApiClient {
   private nodeApi: NodeApi;
   private authApi: AuthApi;
   private contractApi: ContractApi;
   private adminApi: AdminApi;
+  private blobApi: BlobApi;
   private jsonRpcClient: RpcClient;
 
   constructor(httpClient: HttpClient) {
@@ -23,6 +26,7 @@ class ApiClient {
     this.authApi = new AuthApiDataSource(httpClient);
     this.contractApi = new ContractApiDataSource(httpClient);
     this.adminApi = new AdminApiDataSource(httpClient);
+    this.blobApi = new BlobApiDataSource(httpClient);
     this.jsonRpcClient = new JsonRpcClient(httpClient);
   }
 
@@ -42,6 +46,10 @@ class ApiClient {
     return this.adminApi;
   }
 
+  blob(): BlobApi {
+    return this.blobApi;
+  }
+
   rpc(): RpcClient {
     return this.jsonRpcClient;
   }
@@ -51,6 +59,14 @@ const apiClient = new ApiClient(new AxiosHttpClient(axios));
 const authClient = new AuthApiDataSource(new AxiosHttpClient(axios));
 const contractClient = new ContractApiDataSource(new AxiosHttpClient(axios));
 const adminClient = new AdminApiDataSource(new AxiosHttpClient(axios));
+const blobClient = new BlobApiDataSource(new AxiosHttpClient(axios));
 const rpcClient = new JsonRpcClient(new AxiosHttpClient(axios));
 
-export { apiClient, authClient, contractClient, adminClient, rpcClient };
+export {
+  apiClient,
+  authClient,
+  contractClient,
+  adminClient,
+  rpcClient,
+  blobClient,
+};
