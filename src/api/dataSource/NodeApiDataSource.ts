@@ -66,7 +66,8 @@ export class NodeApiDataSource implements NodeApi {
     jsonParams: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse> {
-    const initializationParams = jsonParams === '' ? [] : Array.from(new TextEncoder().encode(jsonParams));
+    const initializationParams =
+      jsonParams === '' ? [] : Array.from(new TextEncoder().encode(jsonParams));
 
     try {
       const response = await this.client.post<CreateContextResponse>(
