@@ -63,14 +63,17 @@ export class NodeApiDataSource implements NodeApi {
 
   async createContext(
     applicationId: string,
+    jsonParams: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse> {
+    const initializationParams = jsonParams === '' ? [] : Array.from(new TextEncoder().encode(jsonParams));
+
     try {
       const response = await this.client.post<CreateContextResponse>(
         `${this.baseUrl}/admin-api/contexts`,
         {
           applicationId,
-          initializationParams: [],
+          initializationParams,
           protocol,
         },
       );
