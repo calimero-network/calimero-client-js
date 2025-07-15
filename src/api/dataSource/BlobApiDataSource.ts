@@ -1,11 +1,15 @@
 import { ApiResponse } from '../../types/api-response';
 import { HttpClient } from '../httpClient';
-import { BlobApi, BlobUploadResponse, BlobMetadataResponse, BlobListResponseData } from '../blobApi';
+import {
+  BlobApi,
+  BlobUploadResponse,
+  BlobMetadataResponse,
+  BlobListResponseData,
+} from '../blobApi';
 import { getAppEndpointKey } from '../../storage';
 
 export class BlobApiDataSource implements BlobApi {
-  constructor(private client: HttpClient) {
-  }
+  constructor(private client: HttpClient) {}
 
   private get baseUrl(): string {
     return getAppEndpointKey();
@@ -97,17 +101,21 @@ export class BlobApiDataSource implements BlobApi {
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`, {
-        method: 'HEAD',
-      });
+      const response = await fetch(
+        `${this.baseUrl}/admin-api/blobs/${blobId}`,
+        {
+          method: 'HEAD',
+        },
+      );
 
       if (response.ok) {
         const contentLength = response.headers.get('content-length');
         const size = contentLength ? parseInt(contentLength, 10) : 0;
-        const fileType = response.headers.get('X-Blob-MIME-Type') || 
-                        response.headers.get('content-type') ||
-                        'unknown';
-        
+        const fileType =
+          response.headers.get('X-Blob-MIME-Type') ||
+          response.headers.get('content-type') ||
+          'unknown';
+
         return {
           data: {
             blob_id: blobId,
@@ -142,7 +150,9 @@ export class BlobApiDataSource implements BlobApi {
 
   async listBlobs(): ApiResponse<BlobListResponseData> {
     try {
-      const response = await this.client.get<BlobListResponseData>(`${this.baseUrl}/admin-api/blobs`);
+      const response = await this.client.get<BlobListResponseData>(
+        `${this.baseUrl}/admin-api/blobs`,
+      );
       return response;
     } catch (error) {
       console.error('listBlobs failed:', error);
@@ -161,7 +171,9 @@ export class BlobApiDataSource implements BlobApi {
 
   async deleteBlob(blobId: string): ApiResponse<void> {
     try {
-      const response = await this.client.delete<void>(`${this.baseUrl}/admin-api/blobs/${blobId}`);
+      const response = await this.client.delete<void>(
+        `${this.baseUrl}/admin-api/blobs/${blobId}`,
+      );
       return response;
     } catch (error) {
       console.error('deleteBlob failed:', error);
