@@ -9,7 +9,16 @@ export interface BlobUploadResponse {
 export interface BlobMetadataResponse {
   blob_id: string;
   size: number;
-  exists: boolean;
+  fileType: string;
+}
+
+export interface BlobInfo {
+  blob_id: string;
+  size: number;
+}
+
+export interface BlobListResponseData {
+  blobs: BlobInfo[];
 }
 
 // Main API interface - HTTP endpoints only
@@ -22,4 +31,6 @@ export interface BlobApi {
   ): ApiResponse<BlobUploadResponse>;
   downloadBlob(blobId: string): Promise<Blob>;
   getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse>;
+  listBlobs(): ApiResponse<BlobListResponseData>;
+  deleteBlob(blobId: string): ApiResponse<void>;
 }
