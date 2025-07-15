@@ -97,6 +97,7 @@ export interface NodeApi {
   deleteContext(contextId: string): ApiResponse<DeleteContextResponse>;
   createContext(
     applicationId: string,
+    jsonParams: string,
     protocol: string,
   ): ApiResponse<CreateContextResponse>;
   fetchContextIdentities(
