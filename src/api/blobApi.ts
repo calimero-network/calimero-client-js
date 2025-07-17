@@ -6,6 +6,11 @@ export interface BlobUploadResponse {
   size: number;
 }
 
+export interface RawBlobUploadResponse {
+  blob_id: string;
+  size: number;
+}
+
 export interface BlobMetadataResponse {
   blobId: string;
   size: number;
@@ -17,8 +22,17 @@ export interface BlobInfo {
   size: number;
 }
 
+export interface RawBlobInfo {
+  blob_id: string;
+  size: number;
+}
+
 export interface BlobListResponseData {
   blobs: BlobInfo[];
+}
+
+export interface RawBlobListResponseData {
+  blobs: RawBlobInfo[];
 }
 
 // Main API interface - HTTP endpoints only

@@ -3,8 +3,10 @@ import { HttpClient } from '../httpClient';
 import {
   BlobApi,
   BlobUploadResponse,
+  RawBlobUploadResponse,
   BlobMetadataResponse,
   BlobListResponseData,
+  RawBlobListResponseData,
 } from '../blobApi';
 import { getAppEndpointKey } from '../../storage';
 
@@ -35,9 +37,14 @@ export class BlobApiDataSource implements BlobApi {
       xhr.addEventListener('load', () => {
         try {
           if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
+            const rawResponse: RawBlobUploadResponse = JSON.parse(xhr.responseText);
+            // Transform snake_case to camelCase
+            const transformedResponse: BlobUploadResponse = {
+              blobId: rawResponse.blob_id,
+              size: rawResponse.size,
+            };
             resolve({
-              data: response,
+              data: transformedResponse,
               error: null,
             });
           } else {
@@ -115,6 +122,7 @@ export class BlobApiDataSource implements BlobApi {
           response.headers.get('X-Blob-MIME-Type') ||
           response.headers.get('content-type') ||
           'unknown';
+        const blobId = response.headers.get('X-Blob-ID');
 
         return {
           data: {
@@ -150,10 +158,29 @@ export class BlobApiDataSource implements BlobApi {
 
   async listBlobs(): ApiResponse<BlobListResponseData> {
     try {
-      const response = await this.client.get<BlobListResponseData>(
+      const response = await this.client.get<RawBlobListResponseData>(
         `${this.baseUrl}/admin-api/blobs`,
       );
-      return response;
+      
+      if (response.data) {
+        // Transform snake_case to camelCase
+        const transformedData: BlobListResponseData = {
+          blobs: response.data.blobs.map(blob => ({
+            blobId: blob.blob_id,
+            size: blob.size,
+          })),
+        };
+        
+        return {
+          data: transformedData,
+          error: null,
+        };
+      }
+      
+      return {
+        data: null,
+        error: response.error,
+      };
     } catch (error) {
       console.error('listBlobs failed:', error);
       return {
