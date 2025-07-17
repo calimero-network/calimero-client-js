@@ -118,8 +118,8 @@ export class BlobApiDataSource implements BlobApi {
 
         return {
           data: {
-            blob_id: blobId,
-            size: size,
+            blobId,
+            size,
             fileType,
           },
           error: null,

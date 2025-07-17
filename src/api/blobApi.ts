@@ -2,18 +2,18 @@ import { ApiResponse } from '../types/api-response';
 
 // REST API interfaces for direct blob upload/download
 export interface BlobUploadResponse {
-  blob_id: string;
+  blobId: string;
   size: number;
 }
 
 export interface BlobMetadataResponse {
-  blob_id: string;
+  blobId: string;
   size: number;
   fileType: string;
 }
 
 export interface BlobInfo {
-  blob_id: string;
+  blobId: string;
   size: number;
 }
 
