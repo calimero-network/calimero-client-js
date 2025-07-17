@@ -37,7 +37,9 @@ export class BlobApiDataSource implements BlobApi {
       xhr.addEventListener('load', () => {
         try {
           if (xhr.status === 200) {
-            const rawResponse: RawBlobUploadResponse = JSON.parse(xhr.responseText);
+            const rawResponse: RawBlobUploadResponse = JSON.parse(
+              xhr.responseText,
+            );
             // Transform snake_case to camelCase
             const transformedResponse: BlobUploadResponse = {
               blobId: rawResponse.blob_id,
@@ -161,22 +163,22 @@ export class BlobApiDataSource implements BlobApi {
       const response = await this.client.get<RawBlobListResponseData>(
         `${this.baseUrl}/admin-api/blobs`,
       );
-      
+
       if (response.data) {
         // Transform snake_case to camelCase
         const transformedData: BlobListResponseData = {
-          blobs: response.data.blobs.map(blob => ({
+          blobs: response.data.blobs.map((blob) => ({
             blobId: blob.blob_id,
             size: blob.size,
           })),
         };
-        
+
         return {
           data: transformedData,
           error: null,
         };
       }
-      
+
       return {
         data: null,
         error: response.error,
