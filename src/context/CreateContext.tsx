@@ -43,7 +43,7 @@ export const CreateContext: React.FC = () => {
     setIsLoading(true);
     const fetchData = await apiClient
       .node()
-      .createContext(applicationId, selectedProtocol);
+      .createContext(applicationId, '', selectedProtocol);
 
     if (fetchData.error) {
       setError(fetchData.error.message);

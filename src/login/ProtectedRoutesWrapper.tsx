@@ -89,14 +89,16 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       } else {
         // Otherwise fetch from context
         const contextId = getContextId();
-        const response = await apiClient.node().getContext(contextId);
+        if (contextId) {
+          const response = await apiClient.node().getContext(contextId);
 
-        if (response.error) {
-          setError(response.error.message);
-          return;
+          if (response.error) {
+            setError(response.error.message);
+            return;
+          }
+          setApplicationId(response.data.applicationId);
         }
 
-        setApplicationId(response.data.applicationId);
         setIsInitialized(true);
         setIsAuthenticated(true);
       }
@@ -210,7 +212,14 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       // The httpClient will handle token refresh if needed
       await checkAuthMode();
       if (!error) {
-        await fetchContextApplication(); // This will set both isAuthenticated and isInitialized
+        const contextId = getContextId();
+        const executorPublicKey = getExecutorPublicKey();
+
+        console.log('contextId', contextId);
+        console.log('executorPublicKey', executorPublicKey);
+        if (contextId && executorPublicKey) {
+          await fetchContextApplication(); // This will set both isAuthenticated and isInitialized
+        }
       }
     } else {
       // No token, check if we need auth
@@ -220,6 +229,9 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       if (authMode === false && !error) {
         const contextId = getContextId();
         const executorPublicKey = getExecutorPublicKey();
+
+        console.log('contextId', contextId);
+        console.log('executorPublicKey', executorPublicKey);
 
         if (contextId && executorPublicKey) {
           await fetchContextApplication();
@@ -240,6 +252,8 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       // Initialize application with tokens and optional applicationId
       const accessToken = decodeURIComponent(encodedAccessToken);
       const refreshToken = decodeURIComponent(encodedRefreshToken);
+      setContextAndIdentityFromJWT(accessToken);
+
       initializeApplication(
         accessToken,
         refreshToken,
