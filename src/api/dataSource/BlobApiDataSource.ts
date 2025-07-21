@@ -8,7 +8,7 @@ import {
   BlobListResponseData,
   RawBlobListResponseData,
 } from '../blobApi';
-import { getAppEndpointKey, getContextId } from '../../storage';
+import { getAppEndpointKey } from '../../storage';
 
 export class BlobApiDataSource implements BlobApi {
   constructor(private client: HttpClient) {}
@@ -100,11 +100,13 @@ export class BlobApiDataSource implements BlobApi {
     });
   }
 
-  async downloadBlob(blobId: string): Promise<Blob> {
-    const contextId = getContextId();
-    const response = await fetch(
-      `${this.baseUrl}/admin-api/blobs/${blobId}?context_id=${contextId}`,
-    );
+  async downloadBlob(blobId: string, contextId?: string): Promise<Blob> {
+    let url = `${this.baseUrl}/admin-api/blobs/${blobId}`;
+    if (contextId) {
+      url += `?context_id=${contextId}`;
+    }
+
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(

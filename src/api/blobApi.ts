@@ -44,7 +44,7 @@ export interface BlobApi {
     expectedHash?: string,
     contextId?: string,
   ): ApiResponse<BlobUploadResponse>;
-  downloadBlob(blobId: string): Promise<Blob>;
+  downloadBlob(blobId: string, contextId?: string): Promise<Blob>;
   getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse>;
   listBlobs(): ApiResponse<BlobListResponseData>;
   deleteBlob(blobId: string): ApiResponse<void>;
