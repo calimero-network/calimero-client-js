@@ -8,7 +8,7 @@ import {
   BlobListResponseData,
   RawBlobListResponseData,
 } from '../blobApi';
-import { getAppEndpointKey } from '../../storage';
+import { getAppEndpointKey, getContextId } from '../../storage';
 
 export class BlobApiDataSource implements BlobApi {
   constructor(private client: HttpClient) {}
@@ -21,6 +21,7 @@ export class BlobApiDataSource implements BlobApi {
     file: File,
     onProgress?: (progress: number) => void,
     expectedHash?: string,
+    contextId?: string,
   ): ApiResponse<BlobUploadResponse> {
     const fileArrayBuffer = await file.arrayBuffer();
 
@@ -89,6 +90,9 @@ export class BlobApiDataSource implements BlobApi {
       if (expectedHash) {
         url += `?hash=${encodeURIComponent(expectedHash)}`;
       }
+      if (contextId) {
+        url += `?context_id=${contextId}`;
+      }
 
       xhr.open('PUT', url);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
@@ -97,7 +101,10 @@ export class BlobApiDataSource implements BlobApi {
   }
 
   async downloadBlob(blobId: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`);
+    const contextId = getContextId();
+    const response = await fetch(
+      `${this.baseUrl}/admin-api/blobs/${blobId}?context_id=${contextId}`,
+    );
 
     if (!response.ok) {
       throw new Error(

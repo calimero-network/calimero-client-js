@@ -42,6 +42,7 @@ export interface BlobApi {
     file: File,
     onProgress?: (progress: number) => void,
     expectedHash?: string,
+    contextId?: string,
   ): ApiResponse<BlobUploadResponse>;
   downloadBlob(blobId: string): Promise<Blob>;
   getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse>;
