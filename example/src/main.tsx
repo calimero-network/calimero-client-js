@@ -1,40 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ClientLogin, SetupModal } from '@calimero-network/calimero-client';
+import { CalimeroConnect } from '../../src';
+import '../../src/styles/palette.css';
 
 function App() {
-  const [nodeUrl, setNodeUrl] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showSetup, setShowSetup] = useState(true);
+  const handleConnect = (url: string) => {
+    console.log('Successfully connected to:', url);
+  };
 
-  if (showSetup) {
-    return (
-      <SetupModal
-        setNodeServerUrl={(url) => {
-          setNodeUrl(url);
-          setShowSetup(false);
-        }}
-      />
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <ClientLogin
-        permissions={[]}
-        authMode={true}
-        setIsAuthenticated={setIsAuthenticated}
-        clientApplicationId="calimero-sdk-example"
-        clientApplicationPath="/"
-        fetchContextApplication={() => {}}
-        onReset={() => {
-          setShowSetup(true);
-        }}
-      />
-    );
-  }
-
-  return <h1>Logged In!</h1>;
+  return <CalimeroConnect onConnect={handleConnect} />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
