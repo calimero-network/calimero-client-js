@@ -1,14 +1,14 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { CalimeroConnect } from '../../src';
-import '../../src/styles/palette.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { CalimeroConnect } from "../../src";
+import "../../src/components/calimero-connect/palette.css";
 
 function App() {
   const handleConnect = (url: string) => {
-    console.log('Successfully connected to:', url);
+    console.log("Successfully connected to:", url);
   };
 
   return <CalimeroConnect onConnect={handleConnect} />;
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")!).render(<App />);

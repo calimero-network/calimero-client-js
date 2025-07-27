@@ -98,6 +98,11 @@
   color: var(--text-secondary-color);
 }
 
+.local-node-info {
+  color: var(--text-secondary-color);
+  margin: 12px 0;
+}
+
 .error-message {
   color: #ff4d4d;
   margin-bottom: 20px;

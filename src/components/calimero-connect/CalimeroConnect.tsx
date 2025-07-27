@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Spinner from './loader/Spinner';
-import calimeroLogo from '../assets/calimero-logo.png';
+import Spinner from '../loader/Spinner';
+import calimeroLogo from '../../assets/calimero-logo.png';
 import './CalimeroConnect.css';
 
 const URL_REGEX =
   /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|localhost|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i;
-
-const PORT_REGEX = /^\d{1,5}$/;
 
 interface OverlayProps {
   loading: boolean;
@@ -17,8 +15,6 @@ interface OverlayProps {
   setNodeType: (type: 'local' | 'remote') => void;
   nodeUrl: string;
   setNodeUrl: (url: string) => void;
-  port: string;
-  setPort: (port: string) => void;
   error: string | null;
 }
 
@@ -31,8 +27,6 @@ const Overlay: React.FC<OverlayProps> = ({
   setNodeType,
   nodeUrl,
   setNodeUrl,
-  port,
-  setPort,
   error,
 }) => (
   <div className="overlay-backdrop">
@@ -46,7 +40,7 @@ const Overlay: React.FC<OverlayProps> = ({
       ) : (
         <>
           <h1>Calimero Connect</h1>
-          <p>Enter your Calimero node URL to continue.</p>
+          <p>Select your Calimero node type to continue.</p>
           {error && <p className="error-message">{error}</p>}
           <div className="radio-group">
             <label>
@@ -77,12 +71,9 @@ const Overlay: React.FC<OverlayProps> = ({
                 placeholder="https://your-node-url.calimero.network"
               />
             ) : (
-              <input
-                type="text"
-                value={port}
-                onChange={(e) => setPort(e.target.value)}
-                placeholder="Enter port number (e.g., 3001)"
-              />
+              <p className="local-node-info">
+                Using default local node: http://localhost
+              </p>
             )}
           </div>
           <div className="button-group">
@@ -113,8 +104,7 @@ interface CalimeroConnectProps {
 const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
   const [nodeType, setNodeType] = useState<'local' | 'remote'>('local');
   const [nodeUrl, setNodeUrl] = useState<string>('');
-  const [port, setPort] = useState<string>('2428');
-  const [isValid, setIsValid] = useState<boolean>(false);
+  const [isValid, setIsValid] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
@@ -124,37 +114,44 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
     if (nodeType === 'remote') {
       setIsValid(URL_REGEX.test(nodeUrl));
     } else {
-      const isPortValid = PORT_REGEX.test(port);
-      const portAsNumber = parseInt(port, 10);
-      setIsValid(isPortValid && portAsNumber > 0 && portAsNumber <= 65535);
+      setIsValid(true);
     }
-  }, [nodeUrl, port, nodeType]);
+  }, [nodeUrl, nodeType]);
 
   const handleConnect = async () => {
     if (isValid) {
       setLoading(true);
       setError(null);
       const finalUrl =
-        nodeType === 'local' ? `http://localhost:${port}` : nodeUrl;
+        nodeType === 'local' ? `http://localhost` : nodeUrl;
 
       try {
         const response = await fetch(`${finalUrl}/admin-api/health`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const data = await response.json();
 
-        if (data?.data?.status === 'alive') {
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.data?.status === 'alive') {
+            setLoading(false);
+            setConnected(true);
+            setIsOverlayOpen(false);
+            onConnect(finalUrl);
+          } else {
+            throw new Error('Invalid health check response.');
+          }
+        } else if (response.status === 401) {
+          // A 401 response means the endpoint is protected, but alive.
           setLoading(false);
           setConnected(true);
           setIsOverlayOpen(false);
           onConnect(finalUrl);
         } else {
-          throw new Error('Invalid health check response.');
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
       } catch (err) {
         console.error('Connection failed:', err);
-        setError('Failed to connect. Please check the URL/port and try again.');
+        setError('Failed to connect. Please check the URL and try again.');
         setLoading(false);
       }
     }
@@ -188,8 +185,6 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
           setIsOverlayOpen={setIsOverlayOpen}
           nodeType={nodeType}
           setNodeType={setNodeType}
-          port={port}
-          setPort={setPort}
           error={error}
         />
       )}
