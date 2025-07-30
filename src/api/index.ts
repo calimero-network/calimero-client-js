@@ -69,5 +69,4 @@ export {
   adminClient,
   rpcClient,
   blobClient,
-  ApiClient,
 };

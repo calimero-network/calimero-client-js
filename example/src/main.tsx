@@ -3,21 +3,16 @@ import ReactDOM from 'react-dom/client';
 import {
   CalimeroProvider,
   useCalimero,
-} from '../../src/experimental/CalimeroProvider';
+} from '../../src/experimental';
 import CalimeroConnectButton from '../../src/experimental/CalimeroConnectButton';
 import '../../src/styles/palette.css';
 import '../../src/experimental/CalimeroLoginModal.css';
-import { Context, ExecutionResponse, AppMode } from '../../src/experimental/types';
+import {
+  Context,
+  ExecutionResponse,
+  AppMode,
+} from '../../src/experimental/types';
 import ExecutionModal from './ExecutionModal';
-
-const getPermissionsForMode = (mode: AppMode): string[] => {
-  switch (mode) {
-    case AppMode.MultiContext:
-      return ['context:execute', 'application'];
-    default:
-      throw new Error(`Unsupported application mode: ${mode}`);
-  }
-};
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();
@@ -127,13 +122,10 @@ const AppContent: React.FC = () => {
 };
 
 function App() {
-  const mode = AppMode.MultiContext;
-  const permissions = getPermissionsForMode(mode);
-
   return (
     <CalimeroProvider
       clientApplicationId="bk13KY5TSTjmp3cptTcmiv26upEPRnhs28pZMx2aByX"
-      permissions={permissions}
+      mode={AppMode.MultiContext}
       applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/b092670d7dacc612ec24701c9bbc8001.wasm"
     >
       <AppContent />

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { ApiClient, apiClient } from '../api';
+import { apiClient } from '../api';
 import {
   clearAccessToken,
   clearAppEndpoint,
@@ -18,7 +18,8 @@ import {
 } from '../storage/storage';
 import CalimeroLoginModal from './CalimeroLoginModal';
 import Toast from './Toast';
-import { CalimeroApp, CalimeroApplication } from './app';
+import { CalimeroApplication } from './app';
+import { AppMode, CalimeroApp } from './types';
 
 interface CalimeroContextValue {
   app: CalimeroApp | null;
@@ -39,14 +40,23 @@ export const useCalimero = () => useContext(CalimeroContext);
 interface CalimeroProviderProps {
   children: React.ReactNode;
   clientApplicationId: string;
-  permissions: string[];
+  mode: AppMode;
   applicationPath: string;
 }
+
+const getPermissionsForMode = (mode: AppMode): string[] => {
+  switch (mode) {
+    case AppMode.MultiContext:
+      return ['context:execute', 'application'];
+    default:
+      throw new Error(`Unsupported application mode: ${mode}`);
+  }
+};
 
 export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   children,
   clientApplicationId,
-  permissions,
+  mode,
   applicationPath,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -57,6 +67,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   const performLogin = useCallback(
     (url: string) => {
+      const permissions = getPermissionsForMode(mode);
       apiClient.auth().login({
         url,
         callbackUrl: window.location.href,
@@ -65,7 +76,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         applicationPath,
       });
     },
-    [clientApplicationId, permissions, applicationPath],
+    [clientApplicationId, mode, applicationPath],
   );
 
   const logout = () => {
