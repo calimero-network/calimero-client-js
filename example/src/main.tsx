@@ -5,9 +5,10 @@ import {
   useCalimero,
 } from '../../src/experimental/CalimeroProvider';
 import CalimeroConnectButton from '../../src/experimental/CalimeroConnectButton';
-import '../../src/experimental/CalimeroLoginModal.css';
 import '../../src/styles/palette.css';
-import { Context } from '../../src/experimental/app';
+import '../../src/experimental/CalimeroLoginModal.css';
+import { Context, ExecutionResponse } from '../../src/experimental/types';
+import ExecutionModal from './ExecutionModal';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();
@@ -15,6 +16,7 @@ const AppContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedContext, setSelectedContext] = useState<Context | null>(null);
 
   const fetchContexts = useCallback(async () => {
     if (app) {
@@ -47,6 +49,10 @@ const AppContent: React.FC = () => {
         setCreating(false);
       }
     }
+  };
+
+  const handleExecute = (response: ExecutionResponse) => {
+    console.log('Execution Result:', response);
   };
 
   return (
@@ -82,8 +88,12 @@ const AppContent: React.FC = () => {
             {contexts.length > 0 ? (
               <ul>
                 {contexts.map((ctx) => (
-                  <li key={ctx.contextId}>
-                    Context ID: {ctx.contextId}, Executor ID: {ctx.executorId}
+                  <li
+                    key={ctx.contextId}
+                    onClick={() => setSelectedContext(ctx)}
+                    style={{ cursor: 'pointer', marginBottom: '0.5rem' }}
+                  >
+                    Context ID: {ctx.contextId}
                   </li>
                 ))}
               </ul>
@@ -95,6 +105,14 @@ const AppContent: React.FC = () => {
           <p>Please connect to see your contexts.</p>
         )}
       </main>
+      {selectedContext && app && (
+        <ExecutionModal
+          app={app}
+          context={selectedContext}
+          onClose={() => setSelectedContext(null)}
+          onExecute={handleExecute}
+        />
+      )}
     </div>
   );
 };
@@ -102,9 +120,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <CalimeroProvider
-      clientApplicationId="2ZVJfjnXzB2bQjUz6hTejA4fE2YbxoEPGUPEG9o8DgMR"
+      clientApplicationId="bk13KY5TSTjmp3cptTcmiv26upEPRnhs28pZMx2aByX"
       permissions={['context:execute', 'application']}
-      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/053680f6954d2f6c3f5491a7aae5bc41.wasm"
+      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/b092670d7dacc612ec24701c9bbc8001.wasm"
     >
       <AppContent />
     </CalimeroProvider>

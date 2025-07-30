@@ -6,7 +6,7 @@ export enum Protocol {
   STARKNET = 'starknet',
   STELLAR = 'stellar',
 }
-export type Layer = Protocol | string;
+export type ProtocolID = Protocol | string;
 
 // Minimal representation of a context
 export interface Context {
@@ -38,19 +38,22 @@ export interface CalimeroApp {
   execute(
     context: Context,
     method: string,
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
   ): Promise<ExecutionResponse>;
 
   /**
    * Creates a new context for this application.
-   * @param layer - Optional execution layer (e.g., NEAR, ICP, ETH).
+   * @param protocol - Optional execution layer (e.g., NEAR, ICP, ETH).
    * @param initParams - Optional parameters for context initialization.
    */
-  createContext(layer?: Layer, initParams?: Record<string, unknown>): Promise<Context>;
+  createContext(
+    protocol?: ProtocolID,
+    initParams?: Record<string, unknown>,
+  ): Promise<Context>;
 
   /**
    * Deletes a specific context.
    * @param context - The context to delete.
    */
   deleteContext(context: Context): Promise<void>;
-} 
+}

@@ -136,6 +136,13 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           const response = await fetch(`${savedUrl}/admin-api/health`, {
             headers: { Authorization: `Bearer ${savedToken}` },
           });
+
+          if (response.status === 401) {
+            logout();
+            setToastMessage('Session expired. Please connect again.');
+            return;
+          }
+
           if (!response.ok && isOnline) {
             setToastMessage('Connection lost. Trying to reconnect...');
             setIsOnline(false);
