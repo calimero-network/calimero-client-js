@@ -1,2 +1,6 @@
-export { CalimeroProvider, useCalimero } from './CalimeroProvider';
+export {
+  CalimeroProvider,
+  useCalimero,
+} from './CalimeroProvider';
 export { default as CalimeroConnectButton } from './CalimeroConnectButton';
+export * from './types';

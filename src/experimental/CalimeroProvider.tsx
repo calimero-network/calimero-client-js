@@ -13,22 +13,22 @@ import {
   getAccessToken,
   getAppEndpointKey,
   setAccessToken,
-  setApplicationId,
   setAppEndpointKey,
   setRefreshToken,
 } from '../storage/storage';
 import CalimeroLoginModal from './CalimeroLoginModal';
 import Toast from './Toast';
+import { CalimeroApp, CalimeroApplication } from './app';
 
 interface CalimeroContextValue {
-  client: ApiClient | null;
+  app: CalimeroApp | null;
   isAuthenticated: boolean;
   login: () => void;
   logout: () => void;
 }
 
 const CalimeroContext = createContext<CalimeroContextValue>({
-  client: null,
+  app: null,
   isAuthenticated: false,
   login: () => {},
   logout: () => {},
@@ -161,12 +161,13 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   };
 
   const login = () => setIsLoginOpen(true);
-  const client = isAuthenticated && isOnline ? apiClient : null;
+  const app =
+    isAuthenticated && isOnline
+      ? new CalimeroApplication(apiClient, clientApplicationId)
+      : null;
 
   return (
-    <CalimeroContext.Provider
-      value={{ client, isAuthenticated, login, logout }}
-    >
+    <CalimeroContext.Provider value={{ app, isAuthenticated, login, logout }}>
       {isLoading ? (
         <div>Loading...</div>
       ) : (

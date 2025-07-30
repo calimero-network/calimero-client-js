@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import {
   CalimeroProvider,
@@ -7,34 +7,47 @@ import {
 import CalimeroConnectButton from '../../src/experimental/CalimeroConnectButton';
 import '../../src/experimental/CalimeroLoginModal.css';
 import '../../src/styles/palette.css';
-import { InstalledApplication } from '../../src/api/nodeApi';
+import { Context } from '../../src/experimental/app';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, client } = useCalimero();
-  const [applications, setApplications] = useState<InstalledApplication[]>([]);
+  const { isAuthenticated, app } = useCalimero();
+  const [contexts, setContexts] = useState<Context[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (client) {
-      const fetchApps = async () => {
-        try {
-          setLoading(true);
-          const response = await client.node().getInstalledApplications();
-          if (response.error) {
-            setError(response.error.message);
-          } else {
-            setApplications(response.data.apps);
-          }
-        } catch (err) {
-          setError('Failed to fetch applications.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchApps();
+  const fetchContexts = useCallback(async () => {
+    if (app) {
+      try {
+        setLoading(true);
+        const contexts = await app.fetchContexts();
+        setContexts(contexts);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch contexts.');
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [client]);
+  }, [app]);
+
+  useEffect(() => {
+    fetchContexts();
+  }, [fetchContexts]);
+
+  const handleCreateContext = async () => {
+    if (app) {
+      try {
+        setCreating(true);
+        setError(null);
+        const newContext = await app.createContext();
+        setContexts((prevContexts) => [...prevContexts, newContext]);
+      } catch (err: any) {
+        setError(err.message || 'Failed to create context.');
+      } finally {
+        setCreating(false);
+      }
+    }
+  };
 
   return (
     <div>
@@ -52,21 +65,34 @@ const AppContent: React.FC = () => {
       <main>
         {isAuthenticated ? (
           <div>
-            <h2>Installed Applications:</h2>
-            {loading && <p>Loading applications...</p>}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h2>Available Contexts:</h2>
+              <button onClick={handleCreateContext} disabled={creating}>
+                {creating ? 'Creating...' : 'Create New Context'}
+              </button>
+            </div>
+            {loading && <p>Loading contexts...</p>}
             {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-            {applications.length > 0 ? (
+            {contexts.length > 0 ? (
               <ul>
-                {applications.map((app) => (
-                  <li key={app.id}>{app.id}</li>
+                {contexts.map((ctx) => (
+                  <li key={ctx.contextId}>
+                    Context ID: {ctx.contextId}, Executor ID: {ctx.executorId}
+                  </li>
                 ))}
               </ul>
             ) : (
-              !loading && <p>No applications installed.</p>
+              !loading && <p>No contexts found.</p>
             )}
           </div>
         ) : (
-          <p>Please connect to see your applications.</p>
+          <p>Please connect to see your contexts.</p>
         )}
       </main>
     </div>
@@ -76,9 +102,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <CalimeroProvider
-      clientApplicationId="4E2WejHpXRY1EMhvfiaCthZrAfzszv7HmEQ8Sugrr3XH"
+      clientApplicationId="2ZVJfjnXzB2bQjUz6hTejA4fE2YbxoEPGUPEG9o8DgMR"
       permissions={['context:execute', 'application']}
-      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/a02e562d4e7916570ddf2244d43b284e.wasm"
+      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/053680f6954d2f6c3f5491a7aae5bc41.wasm"
     >
       <AppContent />
     </CalimeroProvider>
