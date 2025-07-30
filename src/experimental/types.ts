@@ -8,6 +8,10 @@ export enum Protocol {
 }
 export type ProtocolID = Protocol | string;
 
+export enum AppMode {
+  MultiContext = 'multi-context',
+}
+
 // Minimal representation of a context
 export interface Context {
   contextId: string;
