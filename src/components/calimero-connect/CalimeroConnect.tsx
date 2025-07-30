@@ -160,7 +160,9 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({
           setIsOverlayOpen(false);
           onConnect(finalUrl);
         } else {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`,
+          );
         }
       } catch (err) {
         console.error('Connection failed:', err);

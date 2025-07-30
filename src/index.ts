@@ -1,10 +1,11 @@
-export * from './rpc';
-export * from './subscriptions';
-export * from './setup';
-export * from './types';
-export { default as CalimeroConnect } from './components/calimero-connect/CalimeroConnect';
-export { CalimeroLogin } from './components/calimero-connect/CalimeroLogin';
+export * from './experimental';
+
+// Legacy exports for backwards compatibility
 export * from './login';
 export * from './storage';
 export * from './context';
-export * from './api';
+
+export { apiClient } from './api';
+export type { ApiClient } from './api';
+
+export * from './types';

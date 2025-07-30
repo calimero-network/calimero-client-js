@@ -41,7 +41,7 @@ export const CalimeroLogin: React.FC<CalimeroLoginProps> = ({
         applicationPath,
       });
     },
-    [clientApplicationId, permissions, applicationPath]
+    [clientApplicationId, permissions, applicationPath],
   );
 
   const handleLogout = () => {
@@ -206,4 +206,4 @@ export const CalimeroLogin: React.FC<CalimeroLoginProps> = ({
       )}
     </>
   );
-}; 
+};
