@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Spinner from '../loader/Spinner';
 import calimeroLogo from '../../assets/calimero-logo.png';
 import './CalimeroConnect.css';
+import {
+  clearAccessToken,
+  clearAppEndpoint,
+  clearApplicationId,
+  getAppEndpointKey,
+} from '../../storage/storage';
 
 const URL_REGEX =
   /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|localhost|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i;
@@ -99,16 +105,23 @@ const Overlay: React.FC<OverlayProps> = ({
 
 interface CalimeroConnectProps {
   onConnect: (url: string) => void;
+  isAuthenticated?: boolean;
+  onLogout: () => void;
 }
 
-const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
+const CalimeroConnect: React.FC<CalimeroConnectProps> = ({
+  onConnect,
+  isAuthenticated = false,
+  onLogout,
+}) => {
   const [nodeType, setNodeType] = useState<'local' | 'remote'>('local');
   const [nodeUrl, setNodeUrl] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
-  const [connected, setConnected] = useState<boolean>(false);
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (nodeType === 'remote') {
@@ -118,36 +131,36 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
     }
   }, [nodeUrl, nodeType]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
+
   const handleConnect = async () => {
     if (isValid) {
       setLoading(true);
       setError(null);
-      const finalUrl =
-        nodeType === 'local' ? `http://localhost` : nodeUrl;
+      const finalUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
 
       try {
         const response = await fetch(`${finalUrl}/admin-api/health`);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.data?.status === 'alive') {
-            setLoading(false);
-            setConnected(true);
-            setIsOverlayOpen(false);
-            onConnect(finalUrl);
-          } else {
-            throw new Error('Invalid health check response.');
-          }
-        } else if (response.status === 401) {
-          // A 401 response means the endpoint is protected, but alive.
+        if (response.ok || response.status === 401) {
           setLoading(false);
-          setConnected(true);
           setIsOverlayOpen(false);
           onConnect(finalUrl);
         } else {
-          throw new Error(
-            `Network response was not ok: ${response.statusText}`
-          );
+          throw new Error(`Network response was not ok: ${response.statusText}`);
         }
       } catch (err) {
         console.error('Connection failed:', err);
@@ -157,12 +170,45 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
     }
   };
 
-  if (connected) {
+  if (isAuthenticated) {
+    const appUrl = getAppEndpointKey();
+    let dashboardUrl;
+    if (appUrl === 'http://localhost') {
+      dashboardUrl = 'http://localhost:5174/admin-dashboard/';
+    } else if (appUrl) {
+      dashboardUrl = appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
+    } else {
+      dashboardUrl = '#';
+    }
     return (
-      <button className="calimero-connect-button connected" disabled>
-        <img src={calimeroLogo} alt="Calimero Logo" className="calimero-logo" />
-        Connected
-      </button>
+      <div className="connected-container" ref={dropdownRef}>
+        <button
+          className="calimero-connect-button connected"
+          onClick={() => setIsDropdownOpen((prev) => !prev)}
+        >
+          <img
+            src={calimeroLogo}
+            alt="Calimero Logo"
+            className="calimero-logo"
+          />
+          Connected
+        </button>
+        {isDropdownOpen && (
+          <div className="dropdown-menu">
+            <a
+              href={dashboardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="dropdown-item"
+            >
+              Dashboard
+            </a>
+            <button onClick={onLogout} className="dropdown-item">
+              Log out
+            </button>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -173,7 +219,7 @@ const CalimeroConnect: React.FC<CalimeroConnectProps> = ({ onConnect }) => {
         className="calimero-connect-button"
       >
         <img src={calimeroLogo} alt="Calimero Logo" className="calimero-logo" />
-        Connect Node
+        Connect
       </button>
       {isOverlayOpen && (
         <Overlay
