@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Spinner from '../components/loader/Spinner';
 import calimeroLogo from '../assets/calimero-logo.png';
 import './CalimeroLoginModal.css';
@@ -29,7 +29,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
     }
   }, [nodeUrl, nodeType]);
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     if (isValid) {
       setLoading(true);
       setError(null);
@@ -52,11 +52,11 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
         setLoading(false);
       }
     }
-  };
+  }, [isValid, nodeType, nodeUrl, onConnect]);
 
   return (
-    <div className="overlay-backdrop">
-      <div className="overlay-content">
+    <div className="overlay-backdrop" onClick={onClose}>
+      <div className="overlay-content" onClick={(e) => e.stopPropagation()}>
         <img src={calimeroLogo} alt="Calimero Logo" className="overlay-logo" />
         {loading ? (
           <>
