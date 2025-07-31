@@ -16,12 +16,10 @@ export interface SubscriptionsClient {
 }
 
 export type NodeEvent = ContextEvent;
-
-export type ContextEvent = ContextEventPayload & {
+export type ContextEvent = {
   contextId: ContextId;
+  payload: string;
 };
-
-type ContextEventPayload = StateMutationPayload | ExecutionEventPayload;
 
 export type StateMutationPayload = {
   type: 'StateMutation';

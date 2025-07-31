@@ -9,6 +9,7 @@ import {
   ExecutionResponse,
   AppMode,
   BlobInfo,
+  NodeEvent,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
 
@@ -21,6 +22,29 @@ const AppContent: React.FC = () => {
   const [selectedContext, setSelectedContext] = useState<Context | null>(null);
   const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [events, setEvents] = useState<NodeEvent[]>([]);
+
+  useEffect(() => {
+    if (app) {
+      const handleEvent = (event: NodeEvent) => {
+        setEvents((prevEvents) => [...prevEvents, event]);
+      };
+
+      app.addCallback(handleEvent);
+      app.connect();
+
+      return () => {
+        app.removeCallback(handleEvent);
+        app.disconnect();
+      };
+    }
+  }, [app]);
+
+  useEffect(() => {
+    if (app && contexts.length > 0) {
+      app.subscribe(contexts);
+    }
+  }, [app, contexts]);
 
   const fetchContexts = useCallback(async () => {
     if (app) {
@@ -168,6 +192,20 @@ const AppContent: React.FC = () => {
               </ul>
             ) : (
               <p>No blobs found.</p>
+            )}
+          </div>
+        )}
+        {isAuthenticated && (
+          <div>
+            <h2>Real-time Events</h2>
+            {events.length > 0 ? (
+              <ul>
+                {events.map((event, index) => (
+                  <li key={index}>{JSON.stringify(event)}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No events received yet.</p>
             )}
           </div>
         )}

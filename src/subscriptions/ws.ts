@@ -1,14 +1,14 @@
-import { SubscriptionsClient, NodeEvent } from '../subscriptions';
-
-const DEFAULT_CONNECTION_ID = 'DEFAULT';
+import { SubscriptionsClient, NodeEvent } from './subscriptions';
 
 export type WsRequestId = string | number;
 
-interface WsRequest<Params> {
-  id: WsRequestId | null;
+export interface WsRequest<T> {
+  id: WsRequestId;
   method: string;
-  params: Params;
+  params: T;
 }
+
+const DEFAULT_CONNECTION_ID = 'DEFAULT';
 
 interface WsResponse {
   id: WsRequestId | null;

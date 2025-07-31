@@ -5,15 +5,31 @@ import {
   ProtocolID,
   ExecutionResponse,
 } from './types';
+import { SubscriptionsClient } from '../subscriptions';
 import { ApiClient } from '../api';
+import { getAppEndpointKey } from '../storage';
+import { WsSubscriptionsClient } from '../subscriptions/ws';
+import { NodeEvent } from '../subscriptions/subscriptions';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
   private clientApplicationId: string;
+  private subscriptionsClient: SubscriptionsClient;
 
   constructor(apiClient: ApiClient, clientApplicationId: string) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
+    this.subscriptionsClient = this.createSubscriptionsClient();
+  }
+
+  private createSubscriptionsClient(): SubscriptionsClient {
+    const baseUrl = getAppEndpointKey();
+    if (!baseUrl) {
+      throw new Error('Application endpoint URL is not set.');
+    }
+    const wsUrl = new URL(baseUrl);
+    const protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    return new WsSubscriptionsClient(`${protocol}//${wsUrl.host}`, '/ws');
   }
 
   async fetchContexts(): Promise<Context[]> {
@@ -132,5 +148,38 @@ export class CalimeroApplication implements CalimeroApp {
     if (response.error) {
       throw new Error(`Error deleting blob: ${response.error.message}`);
     }
+  }
+
+  // Subscription methods
+  connect(connectionId?: string): Promise<void> {
+    return this.subscriptionsClient.connect(connectionId);
+  }
+
+  disconnect(connectionId?: string): void {
+    this.subscriptionsClient.disconnect(connectionId);
+  }
+
+  subscribe(contexts: Context[], connectionId?: string): void {
+    const contextIds = contexts.map((c) => c.contextId);
+    this.subscriptionsClient.subscribe(contextIds, connectionId);
+  }
+
+  unsubscribe(contexts: Context[], connectionId?: string): void {
+    const contextIds = contexts.map((c) => c.contextId);
+    this.subscriptionsClient.unsubscribe(contextIds, connectionId);
+  }
+
+  addCallback(
+    callback: (event: NodeEvent) => void,
+    connectionId?: string,
+  ): void {
+    this.subscriptionsClient.addCallback(callback, connectionId);
+  }
+
+  removeCallback(
+    callback: (event: NodeEvent) => void,
+    connectionId?: string,
+  ): void {
+    this.subscriptionsClient.removeCallback(callback, connectionId);
   }
 }
