@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   getAccessToken,
   getJWTObject,
@@ -164,7 +164,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     setIsLoading(false);
   };
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     setIsLoading(true);
 
     // First, check if we already have all necessary data in localStorage
@@ -240,7 +240,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     }
 
     setIsLoading(false);
-  };
+  }, [authMode, error]);
 
   useEffect(() => {
     // Check for tokens in URL
