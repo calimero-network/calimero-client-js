@@ -86,5 +86,5 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px; /* To prevent overly long URLs from breaking the layout */
+  max-width: 150px;
 }

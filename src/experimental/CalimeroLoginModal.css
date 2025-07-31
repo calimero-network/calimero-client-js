@@ -1,5 +1,3 @@
-/* CalimeroConnect.css */
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -35,7 +33,7 @@
 }
 
 .overlay-content {
-  position: relative; /* Needed for positioning the close button */
+  position: relative;
   background: var(--background-color);
   padding: 40px;
   border-radius: 12px;
@@ -58,14 +56,14 @@
 }
 
 .overlay-logo {
-  width: 40px; /* Adjusted size for inline */
+  width: 40px;
   height: 40px;
-  margin-bottom: 0; /* Removed bottom margin */
+  margin-bottom: 0;
   color: var(--text-color);
 }
 
 .overlay-content h1 {
-  margin: 0; /* Removed all margins */
+  margin: 0;
   font-size: 24px;
   color: var(--text-color);
 }
@@ -101,13 +99,13 @@
 }
 
 .input-container {
-  min-height: 60px; /* Fixed height to prevent jump */
+  min-height: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 15px;
   margin-bottom: 20px;
-  width: 100%; /* Ensure it takes full width */
+  width: 100%;
 }
 
 .input-container input {
@@ -134,7 +132,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px; /* Ensure it takes up space */
+  min-height: 200px;
 }
 
 .button-group {

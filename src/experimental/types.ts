@@ -1,4 +1,4 @@
-// Supported execution layers for context creation
+// Supported protocols for context creation
 export enum Protocol {
   ETHEREUM = 'ethereum',
   ICP = 'icp',

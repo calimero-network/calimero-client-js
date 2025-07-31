@@ -1,5 +1,3 @@
-/* src/styles/palette.css */
-
 :root {
   --background-color: #000000;
   --background-input: #ffffff;
@@ -11,6 +9,6 @@
   --accent-hover-color: #e85d04;
   --disabled-color: #444444;
   --success-color: #a8e640;
-  --success-hover-color: #97cf2c; /* Darker lime green for hover */
+  --success-hover-color: #97cf2c;
   --border-color: #a0a0a0;
 }
