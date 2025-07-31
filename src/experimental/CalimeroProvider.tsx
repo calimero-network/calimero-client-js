@@ -26,6 +26,7 @@ interface CalimeroContextValue {
   isAuthenticated: boolean;
   login: () => void;
   logout: () => void;
+  appUrl: string | null;
 }
 
 const CalimeroContext = createContext<CalimeroContextValue>({
@@ -33,6 +34,7 @@ const CalimeroContext = createContext<CalimeroContextValue>({
   isAuthenticated: false,
   login: () => {},
   logout: () => {},
+  appUrl: null,
 });
 
 export const useCalimero = () => useContext(CalimeroContext);
@@ -64,6 +66,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [appUrl, setAppUrl] = useState<string | null>(getAppEndpointKey());
 
   const performLogin = useCallback(
     (url: string) => {
@@ -85,6 +88,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     clearAppEndpoint();
     setIsAuthenticated(false);
     setIsOnline(true);
+    setAppUrl(null);
   }, []);
 
   useEffect(() => {
@@ -98,11 +102,12 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
-      const appUrl = getAppEndpointKey();
-      if (!appUrl) return;
+      const newAppUrl = getAppEndpointKey();
+      setAppUrl(newAppUrl);
+      if (!newAppUrl) return;
 
       const verify = async () => {
-        const response = await fetch(`${appUrl}/admin-api/health`, {
+        const response = await fetch(`${newAppUrl}/admin-api/health`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (response.ok) {
@@ -175,6 +180,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   const handleConnect = (url: string) => {
     setAppEndpointKey(url);
+    setAppUrl(url);
     performLogin(url);
   };
 
@@ -185,7 +191,9 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       : null;
 
   return (
-    <CalimeroContext.Provider value={{ app, isAuthenticated, login, logout }}>
+    <CalimeroContext.Provider
+      value={{ app, isAuthenticated, login, logout, appUrl }}
+    >
       {isLoading ? (
         <div>Loading...</div>
       ) : (

@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCalimero } from './CalimeroProvider';
 import calimeroLogo from '../assets/calimero-logo.png';
 import './CalimeroConnectButton.css';
-import { getAppEndpointKey } from '../storage/storage';
 
 const CalimeroConnectButton: React.FC = () => {
-  const { isAuthenticated, login, logout } = useCalimero();
+  const { isAuthenticated, login, logout, appUrl } = useCalimero();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -25,16 +24,11 @@ const CalimeroConnectButton: React.FC = () => {
   }, [dropdownRef]);
 
   const dashboardUrl = useMemo(() => {
-    if (!isAuthenticated) return '#';
-    const appUrl = getAppEndpointKey();
-    if (appUrl === 'http://localhost') {
-      return 'http://localhost:5174/admin-dashboard/';
-    }
-    if (appUrl) {
-      return appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
-    }
-    return '#';
-  }, [isAuthenticated]);
+    if (!isAuthenticated || !appUrl) return '#';
+
+    const baseUrl = appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
+    return `${baseUrl}admin-dashboard/`;
+  }, [isAuthenticated, appUrl]);
 
   if (isAuthenticated) {
     return (
