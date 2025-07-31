@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getApplicationId } from '../storage';
 import { apiClient } from '../api';
 import { ResponseData } from '../types';
@@ -24,7 +24,7 @@ export const CreateContext: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const fetchAvailableContexts = async () => {
+  const fetchAvailableContexts = useCallback(async () => {
     const fetchContextsResponse: ResponseData<GetContextsResponse> =
       await apiClient.node().getContexts();
     const contexts =
@@ -32,11 +32,11 @@ export const CreateContext: React.FC = () => {
         (context) => context.applicationId === applicationId,
       ) ?? [];
     setContexts(contexts);
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     fetchAvailableContexts();
-  }, [applicationId]);
+  }, [applicationId, fetchAvailableContexts]);
 
   const handleCreateContext = async () => {
     setError(null);
