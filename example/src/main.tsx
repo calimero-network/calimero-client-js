@@ -10,6 +10,7 @@ import {
   AppMode,
 } from '../../src/experimental/types';
 import ExecutionModal from './ExecutionModal';
+import CalimeroLogo from '../../src/experimental/CalimeroLogo';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();
@@ -66,7 +67,20 @@ const AppContent: React.FC = () => {
           padding: '1rem',
         }}
       >
-        <h1>My dApp</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '0.5rem',
+              borderRadius: '8px',
+            }}
+          >
+            <CalimeroLogo
+              style={{ color: 'black', width: '32px', height: '32px' }}
+            />
+          </div>
+          <h1>My dApp</h1>
+        </div>
         <CalimeroConnectButton />
       </header>
       <main>

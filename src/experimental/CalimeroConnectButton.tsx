@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCalimero } from './CalimeroProvider';
-import calimeroLogo from '../assets/calimero-logo.png';
+import CalimeroLogo from './CalimeroLogo';
 import './CalimeroConnectButton.css';
 
 const CalimeroConnectButton: React.FC = () => {
@@ -37,11 +37,7 @@ const CalimeroConnectButton: React.FC = () => {
           className="calimero-connect-button connected"
           onClick={() => setIsDropdownOpen((prev) => !prev)}
         >
-          <img
-            src={calimeroLogo}
-            alt="Calimero Logo"
-            className="calimero-logo"
-          />
+          <CalimeroLogo className="calimero-logo" />
           Connected
         </button>
         {isDropdownOpen && (
@@ -65,7 +61,7 @@ const CalimeroConnectButton: React.FC = () => {
 
   return (
     <button onClick={login} className="calimero-connect-button">
-      <img src={calimeroLogo} alt="Calimero Logo" className="calimero-logo" />
+      <CalimeroLogo className="calimero-logo" />
       Connect
     </button>
   );

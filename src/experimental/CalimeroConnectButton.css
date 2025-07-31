@@ -12,6 +12,10 @@
   transition: background-color 0.3s;
 }
 
+.calimero-connect-button .calimero-logo {
+  color: var(--text-color);
+}
+
 .calimero-connect-button:hover {
   background-color: var(--accent-hover-color);
   border-color: var(--accent-hover-color);
@@ -23,10 +27,13 @@
   border-color: var(--success-color);
 }
 
+.calimero-connect-button.connected .calimero-logo {
+  color: var(--background-color);
+}
+
 .calimero-logo {
   width: 24px;
   height: 24px;
-  filter: invert(1);
 }
 
 .connected-container {

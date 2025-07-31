@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Spinner from '../components/loader/Spinner';
-import calimeroLogo from '../assets/calimero-logo.png';
+import CalimeroLogo from './CalimeroLogo';
 import './CalimeroLoginModal.css';
 
 const URL_REGEX =
@@ -57,7 +57,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
   return (
     <div className="overlay-backdrop" onClick={onClose}>
       <div className="overlay-content" onClick={(e) => e.stopPropagation()}>
-        <img src={calimeroLogo} alt="Calimero Logo" className="overlay-logo" />
+        <CalimeroLogo className="overlay-logo" />
         {loading ? (
           <>
             <p>Connecting to node...</p>
