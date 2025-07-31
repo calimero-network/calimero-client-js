@@ -1,4 +1,4 @@
-import { SubscriptionsClient } from "../subscriptions";
+import { SubscriptionsClient } from '../subscriptions';
 
 // Supported protocols for context creation
 export enum Protocol {

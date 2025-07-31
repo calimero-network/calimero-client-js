@@ -48,8 +48,7 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (subscriptionsClient && contexts.length > 0) {
-      const contextIds = contexts.map((c) => c.contextId);
-      subscriptionsClient.subscribe(contextIds);
+      subscriptionsClient.subscribe(contexts);
     }
   }, [subscriptionsClient, contexts]);
 

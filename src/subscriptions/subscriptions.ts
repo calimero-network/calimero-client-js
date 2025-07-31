@@ -1,10 +1,11 @@
 import { ContextId } from '../types/context';
+import { Context } from '../experimental/types';
 
 export interface SubscriptionsClient {
   connect(connectionId?: string): Promise<void>;
   disconnect(connectionId?: string): void;
-  subscribe(contextIds: string[], connectionId?: string): void;
-  unsubscribe(contextIds: string[], connectionId?: string): void;
+  subscribe(contexts: Context[], connectionId?: string): void;
+  unsubscribe(contexts: Context[], connectionId?: string): void;
   addCallback(
     callback: (event: NodeEvent) => void,
     connectionId?: string,
