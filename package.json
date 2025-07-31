@@ -59,7 +59,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix src",
     "prefuzz": "pnpm build",
     "fuzz": "jsfuzz test/fuzz/borsh-roundtrip.js test/fuzz/corpus/",
-    "clean": "pnpm rimraf lib node_modules",
+    "clean": "pnpm rimraf lib",
     "bundlewatch": "bundlewatch",
     "prettier": "exec prettier . --write",
     "prettier:check": "exec prettier . --check",
