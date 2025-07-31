@@ -1,11 +1,10 @@
 import { ContextId } from '../types/context';
-import { Context } from '../experimental/types';
 
 export interface SubscriptionsClient {
   connect(connectionId?: string): Promise<void>;
   disconnect(connectionId?: string): void;
-  subscribe(contexts: Context[], connectionId?: string): void;
-  unsubscribe(contexts: Context[], connectionId?: string): void;
+  subscribe(contextIds: string[], connectionId?: string): void;
+  unsubscribe(contextIds: string[], connectionId?: string): void;
   addCallback(
     callback: (event: NodeEvent) => void,
     connectionId?: string,
@@ -17,12 +16,10 @@ export interface SubscriptionsClient {
 }
 
 export type NodeEvent = ContextEvent;
-
-export type ContextEvent = ContextEventPayload & {
+export type ContextEvent = {
   contextId: ContextId;
+  payload: string;
 };
-
-type ContextEventPayload = StateMutationPayload | ExecutionEventPayload;
 
 export type StateMutationPayload = {
   type: 'StateMutation';

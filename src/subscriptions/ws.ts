@@ -1,5 +1,4 @@
 import { SubscriptionsClient, NodeEvent } from './subscriptions';
-import { Context } from '../experimental/types';
 
 export type WsRequestId = string | number;
 
@@ -62,7 +61,7 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
   }
 
   public subscribe(
-    contexts: Context[],
+    contextIds: string[],
     connectionId: string = DEFAULT_CONNECTION_ID,
   ): void {
     const websocket = this.connections.get(connectionId);
@@ -72,7 +71,7 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
         id: requestId,
         method: 'subscribe',
         params: {
-          contextIds: contexts.map((c) => c.contextId),
+          contextIds: contextIds,
         },
       };
 
@@ -81,7 +80,7 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
   }
 
   public unsubscribe(
-    contexts: Context[],
+    contextIds: string[],
     connectionId: string = DEFAULT_CONNECTION_ID,
   ): void {
     const websocket = this.connections.get(connectionId);
@@ -91,7 +90,7 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
         id: requestId,
         method: 'unsubscribe',
         params: {
-          contextIds: contexts.map((c) => c.contextId),
+          contextIds: contextIds,
         },
       };
       websocket.send(JSON.stringify(request));

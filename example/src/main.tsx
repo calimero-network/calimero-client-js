@@ -9,7 +9,6 @@ import {
   ExecutionResponse,
   AppMode,
   BlobInfo,
-  SubscriptionsClient,
   NodeEvent,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
@@ -24,33 +23,28 @@ const AppContent: React.FC = () => {
   const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [uploading, setUploading] = useState(false);
   const [events, setEvents] = useState<NodeEvent[]>([]);
-  const [subscriptionsClient, setSubscriptionsClient] =
-    useState<SubscriptionsClient | null>(null);
 
   useEffect(() => {
     if (app) {
-      const client = app.getSubscriptionsClient();
-      setSubscriptionsClient(client);
-
       const handleEvent = (event: NodeEvent) => {
         setEvents((prevEvents) => [...prevEvents, event]);
       };
 
-      client.addCallback(handleEvent);
-      client.connect();
+      app.addCallback(handleEvent);
+      app.connect();
 
       return () => {
-        client.removeCallback(handleEvent);
-        client.disconnect();
+        app.removeCallback(handleEvent);
+        app.disconnect();
       };
     }
   }, [app]);
 
   useEffect(() => {
-    if (subscriptionsClient && contexts.length > 0) {
-      subscriptionsClient.subscribe(contexts);
+    if (app && contexts.length > 0) {
+      app.subscribe(contexts);
     }
-  }, [subscriptionsClient, contexts]);
+  }, [app, contexts]);
 
   const fetchContexts = useCallback(async () => {
     if (app) {

@@ -1,4 +1,4 @@
-import { SubscriptionsClient } from '../subscriptions';
+import { NodeEvent } from '../subscriptions/subscriptions';
 
 // Supported protocols for context creation
 export enum Protocol {
@@ -70,5 +70,18 @@ export interface CalimeroApp {
   downloadBlob(blobId: string): Promise<Blob>;
   listBlobs(): Promise<any>;
   deleteBlob(blobId: string): Promise<void>;
-  getSubscriptionsClient(): SubscriptionsClient;
+
+  // Subscription methods
+  connect(connectionId?: string): Promise<void>;
+  disconnect(connectionId?: string): void;
+  subscribe(contexts: Context[], connectionId?: string): void;
+  unsubscribe(contexts: Context[], connectionId?: string): void;
+  addCallback(
+    callback: (event: NodeEvent) => void,
+    connectionId?: string,
+  ): void;
+  removeCallback(
+    callback: (event: NodeEvent) => void,
+    connectionId?: string,
+  ): void;
 }
