@@ -21,12 +21,14 @@ const fadeOut = keyframes`
   }
 `;
 
-const ToastContainer = styled.div`
+const ToastContainer = styled.div<{ toastType: 'success' | 'error' }>`
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: #ff4d4d;
-  color: white;
+  background-color: ${({ toastType }) =>
+    toastType === 'success' ? 'var(--success-color)' : '#ff4d4d'};
+  color: ${({ toastType }) =>
+    toastType === 'success' ? 'var(--background-color)' : 'white'};
   padding: 15px 20px;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -46,7 +48,7 @@ const ToastMessage = styled.div`
 const ToastCloseButton = styled.button`
   background: none;
   border: none;
-  color: white;
+  color: inherit;
   font-size: 20px;
   cursor: pointer;
 `;
@@ -54,11 +56,12 @@ const ToastCloseButton = styled.button`
 interface ToastProps {
   message: string;
   onClose: () => void;
+  type?: 'success' | 'error';
 }
 
-const Toast: React.FC<ToastProps> = ({ message, onClose }) => {
+const Toast: React.FC<ToastProps> = ({ message, onClose, type = 'error' }) => {
   return (
-    <ToastContainer>
+    <ToastContainer toastType={type}>
       <ToastMessage>{message}</ToastMessage>
       <ToastCloseButton onClick={onClose}>&times;</ToastCloseButton>
     </ToastContainer>

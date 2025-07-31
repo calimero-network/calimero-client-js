@@ -15,8 +15,9 @@ const StyledButton = styled.button`
   font-size: 16px;
   color: var(--text-color);
   transition: background-color 0.3s;
-  min-width: 150px;
+  width: 180px;
   justify-content: center;
+  box-sizing: border-box;
 
   .calimero-logo {
     width: 24px;
@@ -37,6 +38,13 @@ const StyledButton = styled.button`
     .calimero-logo {
       color: var(--background-color);
     }
+  }
+
+  &.reconnecting {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border-color: var(--accent-color);
+    cursor: not-allowed;
   }
 `;
 
@@ -92,7 +100,7 @@ const DropdownInfoItem = styled.div`
 `;
 
 const CalimeroConnectButton: React.FC = () => {
-  const { isAuthenticated, login, logout, appUrl } = useCalimero();
+  const { isAuthenticated, login, logout, appUrl, isOnline } = useCalimero();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -118,6 +126,15 @@ const CalimeroConnectButton: React.FC = () => {
   }, [isAuthenticated, appUrl]);
 
   if (isAuthenticated) {
+    if (!isOnline) {
+      return (
+        <StyledButton className="reconnecting" disabled>
+          <CalimeroLogo className="calimero-logo" />
+          Reconnecting...
+        </StyledButton>
+      );
+    }
+
     return (
       <ConnectedContainer ref={dropdownRef}>
         <StyledButton

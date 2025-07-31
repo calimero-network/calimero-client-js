@@ -28,6 +28,7 @@ interface CalimeroContextValue {
   login: () => void;
   logout: () => void;
   appUrl: string | null;
+  isOnline: boolean;
 }
 
 const CalimeroContext = createContext<CalimeroContextValue>({
@@ -36,6 +37,7 @@ const CalimeroContext = createContext<CalimeroContextValue>({
   login: () => {},
   logout: () => {},
   appUrl: null,
+  isOnline: true,
 });
 
 export const useCalimero = () => useContext(CalimeroContext);
@@ -66,6 +68,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string>('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('error');
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [appUrl, setAppUrl] = useState<string | null>(getAppEndpointKey());
 
@@ -157,20 +160,24 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           if (response.status === 401) {
             logout();
             setToastMessage('Session expired. Please connect again.');
+            setToastType('error');
             return;
           }
 
           if (!response.ok && isOnline) {
             setToastMessage('Connection lost. Trying to reconnect...');
+            setToastType('error');
             setIsOnline(false);
           } else if (response.ok && !isOnline) {
             setToastMessage('Connection restored.');
+            setToastType('success');
             setIsOnline(true);
             setTimeout(() => setToastMessage(''), 5000);
           }
         } catch (error) {
           if (isOnline) {
             setToastMessage('Connection lost. Trying to reconnect...');
+            setToastType('error');
             setIsOnline(false);
           }
         }
@@ -193,7 +200,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   return (
     <CalimeroContext.Provider
-      value={{ app, isAuthenticated, login, logout, appUrl }}
+      value={{ app, isAuthenticated, login, logout, appUrl, isOnline }}
     >
       {isLoading ? (
         <div>Loading...</div>
@@ -208,7 +215,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
             />
           )}
           {toastMessage && (
-            <Toast message={toastMessage} onClose={() => setToastMessage('')} />
+            <Toast
+              message={toastMessage}
+              type={toastType}
+              onClose={() => setToastMessage('')}
+            />
           )}
         </>
       )}
