@@ -17,6 +17,17 @@ export class BlobApiDataSource implements BlobApi {
     return getAppEndpointKey();
   }
 
+  /**
+   * UPLOADING BLOBS
+   *
+   * We use a direct XMLHttpRequest here instead of the standard HttpClient because
+   * it provides a more reliable and straightforward way to handle raw file uploads
+   * as a stream of bytes (`application/octet-stream`). This approach also gives
+   * us access to the `onProgress` event, which is essential for tracking upload
+   * progress in the UI. The standard HttpClient, built on Axios, abstracts away
+   * some of this low-level control, making progress tracking more complex to
+   * implement reliably for this specific use case.
+   */
   async uploadBlob(
     file: File,
     onProgress?: (progress: number) => void,
@@ -99,6 +110,16 @@ export class BlobApiDataSource implements BlobApi {
     });
   }
 
+  /**
+   * DOWNLOADING AND METADATA
+   *
+   * For downloading blobs and fetching their metadata, a simple `fetch` call is
+   * sufficient and avoids the overhead of the full HttpClient. The primary reason
+   * for using `fetch` directly is its native support for handling Blob responses
+   * and for making `HEAD` requests to get headers, which is how we retrieve
+   * metadata. The authentication token is added manually to the headers to ensure
+   * these requests are authorized.
+   */
   async downloadBlob(blobId: string): Promise<Blob> {
     const token = getAccessToken();
     const headers: Record<string, string> = {};

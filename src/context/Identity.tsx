@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getApplicationId } from '../storage';
 import { ResponseData } from '../types';
 import {
@@ -36,7 +36,7 @@ export const Identity: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [newIdentity, setNewIdentity] = useState<NodeIdentity | null>(null);
 
-  const fetchAvailableContexts = async () => {
+  const fetchAvailableContexts = useCallback(async () => {
     setContextLoading(true);
     const fetchContextsResponse: ResponseData<GetContextsResponse> =
       await apiClient.node().getContexts();
@@ -47,13 +47,13 @@ export const Identity: React.FC = () => {
     setContexts(contexts);
     setSelectedContext(contexts[0]);
     setContextLoading(false);
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     fetchAvailableContexts();
-  }, [applicationId]);
+  }, [fetchAvailableContexts]);
 
-  const fetchContextIdentities = async () => {
+  const fetchContextIdentities = useCallback(async () => {
     if (!selectedContext?.id) return;
 
     setIdentityLoading(true);
@@ -65,13 +65,13 @@ export const Identity: React.FC = () => {
       setIdentities(fetchContextIdentitiesResponse.data.identities);
     }
     setIdentityLoading(false);
-  };
+  }, [selectedContext]);
 
   useEffect(() => {
     if (selectedContext) {
       fetchContextIdentities();
     }
-  }, [selectedContext]);
+  }, [selectedContext, fetchContextIdentities]);
 
   const handleCreateIdentity = async () => {
     setError(null);

@@ -8,6 +8,7 @@ import {
   Context,
   ExecutionResponse,
   AppMode,
+  BlobInfo,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
 
@@ -18,7 +19,7 @@ const AppContent: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<Context | null>(null);
-  const [blobs, setBlobs] = useState<any[]>([]);
+  const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const fetchContexts = useCallback(async () => {
@@ -66,7 +67,9 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file && app) {
       try {
@@ -151,7 +154,11 @@ const AppContent: React.FC = () => {
         {isAuthenticated && (
           <div>
             <h2>Blob Storage</h2>
-            <input type="file" onChange={handleFileUpload} disabled={uploading} />
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              disabled={uploading}
+            />
             {uploading && <p>Uploading...</p>}
             {blobs.length > 0 ? (
               <ul>

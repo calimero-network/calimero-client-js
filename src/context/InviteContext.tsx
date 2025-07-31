@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Spinner from '../components/loader/Spinner';
 import { apiClient } from '../api';
 import { ResponseData } from '../types';
@@ -27,7 +27,7 @@ export const InviteContext: React.FC = () => {
   const [contexts, setContexts] = useState<Context[]>([]);
   const [contextLoading, setContextLoading] = useState<boolean>(false);
 
-  const fetchAvailableContexts = async () => {
+  const fetchAvailableContexts = useCallback(async () => {
     setContextLoading(true);
     const fetchContextsResponse: ResponseData<GetContextsResponse> =
       await apiClient.node().getContexts();
@@ -38,11 +38,11 @@ export const InviteContext: React.FC = () => {
     setContexts(contexts);
     setContextId(contexts[0].id);
     setContextLoading(false);
-  };
+  }, [applicationId]);
 
   useEffect(() => {
     fetchAvailableContexts();
-  }, [applicationId]);
+  }, [fetchAvailableContexts]);
 
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

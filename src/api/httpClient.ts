@@ -91,10 +91,13 @@ export class AxiosHttpClient implements HttpClient {
     if (!headers) {
       return {};
     }
-    return Object.keys(headers).reduce((acc, key) => {
-      acc[key] = String(headers[key]);
-      return acc;
-    }, {} as Record<string, string>);
+    return Object.keys(headers).reduce(
+      (acc, key) => {
+        acc[key] = String(headers[key]);
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
   }
 
   private async handleTokenRefresh(originalRequest: any): Promise<any> {
