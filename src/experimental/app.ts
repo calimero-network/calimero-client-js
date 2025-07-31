@@ -16,10 +16,22 @@ export class CalimeroApplication implements CalimeroApp {
   private clientApplicationId: string;
   private subscriptionsClient: SubscriptionsClient;
 
-  constructor(apiClient: ApiClient, clientApplicationId: string) {
+  /**
+   * Constructs a new CalimeroApplication.
+   * @param apiClient The API client for making requests.
+   * @param clientApplicationId The ID of the client application.
+   * @param subscriptionsClient Optional. A custom subscriptions client.
+   * If not provided, a default one will be created. This is useful for testing.
+   */
+  constructor(
+    apiClient: ApiClient,
+    clientApplicationId: string,
+    subscriptionsClient?: SubscriptionsClient,
+  ) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
-    this.subscriptionsClient = this.createSubscriptionsClient();
+    this.subscriptionsClient =
+      subscriptionsClient || this.createSubscriptionsClient();
   }
 
   private createSubscriptionsClient(): SubscriptionsClient {
