@@ -6,7 +6,7 @@ import { Context } from '../src/experimental/types';
 // Polyfill for Browser APIs in Node.js test environment
 if (typeof global.Blob === 'undefined') {
   global.Blob = class Blob {
-    constructor(chunks: BlobPart[], options?: BlobPropertyBag) {}
+    // Empty constructor for polyfill
   } as any;
 }
 
