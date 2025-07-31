@@ -1,8 +1,5 @@
 import { ApiClient } from '../api';
-import {
-  Context as ApiContext,
-  FetchContextIdentitiesResponse,
-} from '../api/nodeApi';
+
 import {
   Context,
   CalimeroApp,
@@ -10,7 +7,6 @@ import {
   ProtocolID,
   ExecutionResponse,
 } from './types';
-import { RpcResult, RpcQueryResponse } from '../types';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
@@ -19,18 +15,6 @@ export class CalimeroApplication implements CalimeroApp {
   constructor(apiClient: ApiClient, clientApplicationId: string) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
-  }
-
-  private async getContext(context: Context): Promise<ApiContext | undefined> {
-    const contextsResponse = await this.apiClient.node().getContexts();
-    if (contextsResponse.error) {
-      throw new Error(
-        `Error fetching contexts: ${contextsResponse.error.message}`,
-      );
-    }
-    return contextsResponse.data?.contexts.find(
-      (c) => c.id === context.contextId,
-    );
   }
 
   async fetchContexts(): Promise<Context[]> {
