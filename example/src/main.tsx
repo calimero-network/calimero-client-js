@@ -1,9 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  CalimeroProvider,
-  useCalimero,
-} from '../../src/experimental';
+import { CalimeroProvider, useCalimero } from '../../src/experimental';
 import CalimeroConnectButton from '../../src/experimental/CalimeroConnectButton';
 import '../../src/styles/palette.css';
 import '../../src/experimental/CalimeroLoginModal.css';

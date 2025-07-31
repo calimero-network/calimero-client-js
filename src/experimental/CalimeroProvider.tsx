@@ -79,13 +79,13 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     [clientApplicationId, mode, applicationPath],
   );
 
-  const logout = () => {
+  const logout = useCallback(() => {
     clearAccessToken();
     clearApplicationId();
     clearAppEndpoint();
     setIsAuthenticated(false);
     setIsOnline(true);
-  };
+  }, []);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -135,11 +135,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       setIsLoading(false);
     };
     checkSession();
-  }, [performLogin]);
+  }, [performLogin, logout]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
     const intervalId = setInterval(async () => {
+      if (!isAuthenticated) return;
       const savedUrl = getAppEndpointKey();
       const savedToken = getAccessToken();
       if (savedUrl && savedToken) {
@@ -171,7 +171,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       }
     }, 5000);
     return () => clearInterval(intervalId);
-  }, [isAuthenticated, isOnline]);
+  }, [isAuthenticated, isOnline, logout]);
 
   const handleConnect = (url: string) => {
     setAppEndpointKey(url);
