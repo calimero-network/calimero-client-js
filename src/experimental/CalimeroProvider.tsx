@@ -7,9 +7,7 @@ import React, {
 } from 'react';
 import { apiClient } from '../api';
 import {
-  clearAccessToken,
-  clearAppEndpoint,
-  clearApplicationId,
+  clientLogout,
   getAccessToken,
   getAppEndpointKey,
   setAccessToken,
@@ -67,8 +65,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [toastMessage, setToastMessage] = useState<string>('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('error');
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [appUrl, setAppUrl] = useState<string | null>(getAppEndpointKey());
 
@@ -87,9 +87,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   );
 
   const logout = useCallback(() => {
-    clearAccessToken();
-    clearApplicationId();
-    clearAppEndpoint();
+    clientLogout();
     setIsAuthenticated(false);
     setIsOnline(true);
     setAppUrl(null);
@@ -111,10 +109,8 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       if (!newAppUrl) return;
 
       const verify = async () => {
-        const response = await fetch(`${newAppUrl}/admin-api/health`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (response.ok) {
+        const response = await apiClient.node().health({ url: newAppUrl });
+        if (!response.error) {
           setIsAuthenticated(true);
         }
       };
@@ -128,13 +124,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const savedToken = getAccessToken();
       if (savedUrl && savedToken) {
         try {
-          const response = await fetch(`${savedUrl}/admin-api/health`, {
-            headers: { Authorization: `Bearer ${savedToken}` },
-          });
-          if (response.ok) {
+          const response = await apiClient.node().health({ url: savedUrl });
+          if (!response.error) {
             setIsAuthenticated(true);
             setIsOnline(true);
-          } else if (response.status === 401) {
+          } else if (response.error.code === 401) {
             performLogin(savedUrl);
           }
         } catch (error) {
@@ -150,34 +144,36 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     const intervalId = setInterval(async () => {
       if (!isAuthenticated) return;
       const savedUrl = getAppEndpointKey();
-      const savedToken = getAccessToken();
-      if (savedUrl && savedToken) {
+      if (savedUrl) {
         try {
-          const response = await fetch(`${savedUrl}/admin-api/health`, {
-            headers: { Authorization: `Bearer ${savedToken}` },
-          });
+          const response = await apiClient.node().health({ url: savedUrl });
 
-          if (response.status === 401) {
+          if (response.error && response.error.code === 401) {
             logout();
-            setToastMessage('Session expired. Please connect again.');
-            setToastType('error');
+            setToast({
+              message: 'Session expired. Please connect again.',
+              type: 'error',
+            });
             return;
           }
 
-          if (!response.ok && isOnline) {
-            setToastMessage('Connection lost. Trying to reconnect...');
-            setToastType('error');
+          if (response.error && isOnline) {
+            setToast({
+              message: 'Connection lost. Trying to reconnect...',
+              type: 'error',
+            });
             setIsOnline(false);
-          } else if (response.ok && !isOnline) {
-            setToastMessage('Connection restored.');
-            setToastType('success');
+          } else if (!response.error && !isOnline) {
+            setToast({ message: 'Connection restored.', type: 'success' });
             setIsOnline(true);
-            setTimeout(() => setToastMessage(''), 5000);
+            setTimeout(() => setToast(null), 5000);
           }
         } catch (error) {
           if (isOnline) {
-            setToastMessage('Connection lost. Trying to reconnect...');
-            setToastType('error');
+            setToast({
+              message: 'Connection lost. Trying to reconnect...',
+              type: 'error',
+            });
             setIsOnline(false);
           }
         }
@@ -214,11 +210,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
               onClose={() => setIsLoginOpen(false)}
             />
           )}
-          {toastMessage && (
+          {toast && (
             <Toast
-              message={toastMessage}
-              type={toastType}
-              onClose={() => setToastMessage('')}
+              message={toast.message}
+              type={toast.type}
+              onClose={() => setToast(null)}
             />
           )}
         </>

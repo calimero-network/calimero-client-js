@@ -1,64 +1,78 @@
 import { ApiClient } from '../api';
 import {
-  CalimeroApp,
+  Context as ApiContext,
+  FetchContextIdentitiesResponse,
+} from '../api/nodeApi';
+import {
   Context,
-  ExecutionResponse,
-  ProtocolID,
+  CalimeroApp,
   Protocol,
+  ProtocolID,
+  ExecutionResponse,
 } from './types';
+import { RpcResult, RpcQueryResponse } from '../types';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
-  private applicationId: string;
+  private clientApplicationId: string;
 
-  constructor(apiClient: ApiClient, applicationId: string) {
+  constructor(apiClient: ApiClient, clientApplicationId: string) {
     this.apiClient = apiClient;
-    this.applicationId = applicationId;
+    this.clientApplicationId = clientApplicationId;
+  }
+
+  private async getContext(context: Context): Promise<ApiContext | undefined> {
+    const contextsResponse = await this.apiClient.node().getContexts();
+    if (contextsResponse.error) {
+      throw new Error(
+        `Error fetching contexts: ${contextsResponse.error.message}`,
+      );
+    }
+    return contextsResponse.data?.contexts.find(
+      (c) => c.id === context.contextId,
+    );
   }
 
   async fetchContexts(): Promise<Context[]> {
     const contextsResponse = await this.apiClient.node().getContexts();
     if (contextsResponse.error) {
-      throw contextsResponse.error;
+      throw new Error(
+        `Error fetching contexts: ${contextsResponse.error.message}`,
+      );
     }
 
-    const filteredApiContexts = contextsResponse.data.contexts.filter(
-      (apiContext) => apiContext.applicationId === this.applicationId,
-    );
+    const filteredApiContexts = contextsResponse.data
+      ? contextsResponse.data.contexts.filter(
+          (apiContext) => apiContext.applicationId === this.clientApplicationId,
+        )
+      : [];
 
-    const contextsWithIdentities = await Promise.all(
+    const contexts = await Promise.all(
       filteredApiContexts.map(async (apiContext) => {
         const identitiesResponse = await this.apiClient
           .node()
           .fetchContextIdentities(apiContext.id);
 
-        if (
-          identitiesResponse.error ||
-          identitiesResponse.data.identities.length === 0
-        ) {
-          console.warn(
+        if (identitiesResponse.error || !identitiesResponse.data) {
+          throw new Error(
             `Could not fetch identity for context ${apiContext.id}, or no identities found.`,
           );
-          return null;
         }
-
-        const executorId = identitiesResponse.data.identities[0];
 
         return {
           contextId: apiContext.id,
-          executorId: executorId,
+          executorId: identitiesResponse.data.identities[0], // Assuming the first identity is the executor
           applicationId: apiContext.applicationId,
         };
       }),
     );
-
-    return contextsWithIdentities.filter((ctx): ctx is Context => ctx !== null);
+    return contexts;
   }
 
   async execute(
     context: Context,
     method: string,
-    params?: Record<string, unknown>,
+    params: Record<string, unknown> = {},
   ): Promise<ExecutionResponse> {
     const response = await this.apiClient.rpc().execute({
       contextId: context.contextId,
@@ -83,19 +97,18 @@ export class CalimeroApplication implements CalimeroApp {
     const response = await this.apiClient
       .node()
       .createContext(
-        this.applicationId,
+        this.clientApplicationId,
         JSON.stringify(initParams || {}),
         protocol,
       );
 
     if (response.error) {
-      throw response.error;
+      throw new Error(`Error creating context: ${response.error.message}`);
     }
-
     return {
       contextId: response.data.contextId,
       executorId: response.data.memberPublicKey,
-      applicationId: this.applicationId,
+      applicationId: this.clientApplicationId,
     };
   }
 
@@ -104,7 +117,7 @@ export class CalimeroApplication implements CalimeroApp {
       .node()
       .deleteContext(context.contextId);
     if (response.error) {
-      throw response.error;
+      throw new Error(`Error deleting context: ${response.error.message}`);
     }
   }
 }
