@@ -175,7 +175,12 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         fetchContextApplication();
       }
     }
-  }, [nodeServerUrl]);
+  }, [
+    nodeServerUrl,
+    clientApplicationId,
+    setIsAuthenticated,
+    fetchContextApplication,
+  ]);
 
   useEffect(() => {
     if (authMode === false) {
