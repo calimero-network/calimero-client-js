@@ -270,7 +270,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     } else {
       checkAuth();
     }
-  }, [applicationId]);
+  }, [applicationId, checkAuth]);
 
   if (isLoading) {
     return (
