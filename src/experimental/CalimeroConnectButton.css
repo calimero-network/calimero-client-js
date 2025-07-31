@@ -10,6 +10,8 @@
   font-size: 16px;
   color: var(--text-color);
   transition: background-color 0.3s;
+  min-width: 150px; /* Ensure consistent width */
+  justify-content: center; /* Center content */
 }
 
 .calimero-connect-button .calimero-logo {
@@ -48,11 +50,12 @@
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  margin-top: 2px;
+  margin-top: 0; /* Remove gap */
   padding: 0;
   z-index: 1001;
   width: 100%;
   overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .dropdown-item {
@@ -68,7 +71,20 @@
   text-decoration: none;
 }
 
-.dropdown-item:hover {
-  background-color: var(--accent-color);
+.dropdown-item:hover,
+.dropdown-item:active {
+  background-color: var(--success-color);
   color: var(--background-color);
+}
+
+.dropdown-info-item {
+  padding: 10px 20px;
+  color: var(--text-secondary-color);
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* To prevent overly long URLs from breaking the layout */
 }

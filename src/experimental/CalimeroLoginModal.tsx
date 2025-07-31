@@ -57,15 +57,20 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
   return (
     <div className="overlay-backdrop" onClick={onClose}>
       <div className="overlay-content" onClick={(e) => e.stopPropagation()}>
-        <CalimeroLogo className="overlay-logo" />
+        <button onClick={onClose} className="close-icon-button">
+          &times;
+        </button>
+        <div className="overlay-header">
+          <CalimeroLogo className="overlay-logo" />
+          <h1>Calimero Connect</h1>
+        </div>
         {loading ? (
-          <>
+          <div className="spinner-container">
             <p>Connecting to node...</p>
             <Spinner />
-          </>
+          </div>
         ) : (
           <>
-            <h1>Calimero Connect</h1>
             <p>Select your Calimero node type to continue.</p>
             {error && <p className="error-message">{error}</p>}
             <div className="radio-group">
@@ -111,9 +116,6 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
                 Connect
               </button>
             </div>
-            <button onClick={onClose} className="close-button">
-              Close
-            </button>
           </>
         )}
       </div>

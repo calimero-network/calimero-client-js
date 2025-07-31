@@ -10,6 +10,7 @@
   --accent-color: #f97316;
   --accent-hover-color: #e85d04;
   --disabled-color: #444444;
-  --success-color: #4caf50;
+  --success-color: #a8e640;
+  --success-hover-color: #97cf2c; /* Darker lime green for hover */
   --border-color: #a0a0a0;
 }

@@ -42,6 +42,9 @@ const CalimeroConnectButton: React.FC = () => {
         </button>
         {isDropdownOpen && (
           <div className="dropdown-menu">
+            <div className="dropdown-info-item" title={appUrl || ''}>
+              {appUrl}
+            </div>
             <a
               href={dashboardUrl}
               target="_blank"
