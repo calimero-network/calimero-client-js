@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
-import { CalimeroProvider, useCalimero } from '../../src/experimental';
-import CalimeroConnectButton from '../../src/experimental/CalimeroConnectButton';
-import '../../src/styles/palette.css';
-import '../../src/experimental/CalimeroLoginModal.css';
 import {
+  CalimeroProvider,
+  useCalimero,
+  CalimeroConnectButton,
+  CalimeroLogo,
   Context,
   ExecutionResponse,
   AppMode,
-} from '../../src/experimental/types';
+} from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
-import CalimeroLogo from '../../src/experimental/CalimeroLogo';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();

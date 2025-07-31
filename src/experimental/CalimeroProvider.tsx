@@ -20,6 +20,7 @@ import CalimeroLoginModal from './CalimeroLoginModal';
 import Toast from './Toast';
 import { CalimeroApplication } from './app';
 import { AppMode, CalimeroApp } from './types';
+import { GlobalStyle } from '../styles/global';
 
 interface CalimeroContextValue {
   app: CalimeroApp | null;
@@ -198,6 +199,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         <div>Loading...</div>
       ) : (
         <>
+          <GlobalStyle />
           {children}
           {isLoginOpen && (
             <CalimeroLoginModal
