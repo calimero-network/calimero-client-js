@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCalimero } from './CalimeroProvider';
 import calimeroLogo from '../assets/calimero-logo.png';
-import './CalimeroLoginModal.css'; // Reuse the same styles
+import './CalimeroConnectButton.css';
 import { getAppEndpointKey } from '../storage/storage';
 
 const CalimeroConnectButton: React.FC = () => {
@@ -24,16 +24,19 @@ const CalimeroConnectButton: React.FC = () => {
     };
   }, [dropdownRef]);
 
-  if (isAuthenticated) {
+  const dashboardUrl = useMemo(() => {
+    if (!isAuthenticated) return '#';
     const appUrl = getAppEndpointKey();
-    let dashboardUrl;
     if (appUrl === 'http://localhost') {
-      dashboardUrl = 'http://localhost:5174/admin-dashboard/';
-    } else if (appUrl) {
-      dashboardUrl = appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
-    } else {
-      dashboardUrl = '#';
+      return 'http://localhost:5174/admin-dashboard/';
     }
+    if (appUrl) {
+      return appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
+    }
+    return '#';
+  }, [isAuthenticated]);
+
+  if (isAuthenticated) {
     return (
       <div className="connected-container" ref={dropdownRef}>
         <button
