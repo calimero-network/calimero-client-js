@@ -49,7 +49,7 @@
     "@near-wallet-selector/modal-ui": "^8.9.7"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
+    "build": "esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
     "test": "jest test",
     "lint": "eslint . --ext .ts,.tsx src",
     "lint:fix": "eslint . --ext .ts,.tsx --fix src",
