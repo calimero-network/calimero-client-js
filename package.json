@@ -1,6 +1,6 @@
 {
   "name": "@calimero-network/calimero-client",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Javascript library to interact with Calimero P2P node",
   "type": "module",
   "main": "lib/index.js",
@@ -14,6 +14,10 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^11.0.3",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/bn.js": "^5.1.1",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^18.19.34",
@@ -43,10 +47,10 @@
     "typescript-eslint": "^7.13.0"
   },
   "peerDependencies": {
+    "@near-wallet-selector/modal-ui": "^8.9.7",
     "react": "^18.3.0",
     "react-dom": "^18.3.1",
-    "styled-components": "^6.1.13",
-    "@near-wallet-selector/modal-ui": "^8.9.7"
+    "styled-components": "^6.1.13"
   },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
