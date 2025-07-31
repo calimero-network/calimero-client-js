@@ -55,12 +55,14 @@ class ApiClient {
   }
 }
 
-const apiClient = new ApiClient(new AxiosHttpClient(axios));
-const authClient = new AuthApiDataSource(new AxiosHttpClient(axios));
-const contractClient = new ContractApiDataSource(new AxiosHttpClient(axios));
-const adminClient = new AdminApiDataSource(new AxiosHttpClient(axios));
-const blobClient = new BlobApiDataSource(new AxiosHttpClient(axios));
-const rpcClient = new JsonRpcClient(new AxiosHttpClient(axios));
+const httpClient = new AxiosHttpClient(axios);
+
+const apiClient = new ApiClient(httpClient);
+const authClient = new AuthApiDataSource(httpClient);
+const contractClient = new ContractApiDataSource(httpClient);
+const adminClient = new AdminApiDataSource(httpClient);
+const blobClient = new BlobApiDataSource(httpClient);
+const rpcClient = new JsonRpcClient(httpClient);
 
 export type { ApiClient };
 
