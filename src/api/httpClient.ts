@@ -87,6 +87,16 @@ export class AxiosHttpClient implements HttpClient {
     this.failedQueue = [];
   }
 
+  private convertHeaders(headers: any): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+    return Object.keys(headers).reduce((acc, key) => {
+      acc[key] = String(headers[key]);
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
   private async handleTokenRefresh(originalRequest: any): Promise<any> {
     // If refresh is already in progress, queue this request
     if (this.isRefreshing) {
@@ -156,6 +166,7 @@ export class AxiosHttpClient implements HttpClient {
         return {
           data: null as T,
           error: null,
+          headers: this.convertHeaders(response.headers),
         };
       }
 
@@ -168,6 +179,7 @@ export class AxiosHttpClient implements HttpClient {
       return {
         data: responseData,
         error: null,
+        headers: this.convertHeaders(response.headers),
       };
     } catch (e: unknown) {
       if (e instanceof AxiosError) {
@@ -238,6 +250,7 @@ export class AxiosHttpClient implements HttpClient {
               code: e.request.status,
               message: e.message,
             },
+            headers: this.convertHeaders(e.response?.headers),
           };
         }
 

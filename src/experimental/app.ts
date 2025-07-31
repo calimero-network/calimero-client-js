@@ -1,5 +1,3 @@
-import { ApiClient } from '../api';
-
 import {
   Context,
   CalimeroApp,
@@ -7,6 +5,7 @@ import {
   ProtocolID,
   ExecutionResponse,
 } from './types';
+import { ApiClient } from '../api';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
@@ -102,6 +101,36 @@ export class CalimeroApplication implements CalimeroApp {
       .deleteContext(context.contextId);
     if (response.error) {
       throw new Error(`Error deleting context: ${response.error.message}`);
+    }
+  }
+
+  public async uploadBlob(
+    file: File,
+    onProgress?: (p: number) => void,
+  ): Promise<{ blobId: string }> {
+    const response = await this.apiClient.blob().uploadBlob(file, onProgress);
+    if (response.error) {
+      throw new Error(`Error uploading blob: ${response.error.message}`);
+    }
+    return response.data;
+  }
+
+  public async downloadBlob(blobId: string): Promise<Blob> {
+    return this.apiClient.blob().downloadBlob(blobId);
+  }
+
+  public async listBlobs(): Promise<any> {
+    const response = await this.apiClient.blob().listBlobs();
+    if (response.error) {
+      throw new Error(`Error listing blobs: ${response.error.message}`);
+    }
+    return response.data;
+  }
+
+  public async deleteBlob(blobId: string): Promise<void> {
+    const response = await this.apiClient.blob().deleteBlob(blobId);
+    if (response.error) {
+      throw new Error(`Error deleting blob: ${response.error.message}`);
     }
   }
 }

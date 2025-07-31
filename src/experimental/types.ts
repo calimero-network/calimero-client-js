@@ -60,4 +60,12 @@ export interface CalimeroApp {
    * @param context - The context to delete.
    */
   deleteContext(context: Context): Promise<void>;
+
+  uploadBlob(
+    file: File,
+    onProgress?: (p: number) => void,
+  ): Promise<{ blobId: string }>;
+  downloadBlob(blobId: string): Promise<Blob>;
+  listBlobs(): Promise<any>;
+  deleteBlob(blobId: string): Promise<void>;
 }

@@ -18,6 +18,8 @@ const AppContent: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<Context | null>(null);
+  const [blobs, setBlobs] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const fetchContexts = useCallback(async () => {
     if (app) {
@@ -33,9 +35,21 @@ const AppContent: React.FC = () => {
     }
   }, [app]);
 
+  const fetchBlobs = useCallback(async () => {
+    if (app) {
+      try {
+        const blobList = await app.listBlobs();
+        setBlobs(blobList.blobs);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch blobs.');
+      }
+    }
+  }, [app]);
+
   useEffect(() => {
     fetchContexts();
-  }, [fetchContexts]);
+    fetchBlobs();
+  }, [fetchContexts, fetchBlobs]);
 
   const handleCreateContext = async () => {
     if (app) {
@@ -48,6 +62,22 @@ const AppContent: React.FC = () => {
         setError(err.message || 'Failed to create context.');
       } finally {
         setCreating(false);
+      }
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && app) {
+      try {
+        setUploading(true);
+        setError(null);
+        await app.uploadBlob(file);
+        fetchBlobs(); // Refresh blob list
+      } catch (err: any) {
+        setError(err.message || 'Failed to upload file.');
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -117,6 +147,22 @@ const AppContent: React.FC = () => {
           </div>
         ) : (
           <p>Please connect to see your contexts.</p>
+        )}
+        {isAuthenticated && (
+          <div>
+            <h2>Blob Storage</h2>
+            <input type="file" onChange={handleFileUpload} disabled={uploading} />
+            {uploading && <p>Uploading...</p>}
+            {blobs.length > 0 ? (
+              <ul>
+                {blobs.map((blob) => (
+                  <li key={blob.blobId}>{blob.blobId}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No blobs found.</p>
+            )}
+          </div>
         )}
       </main>
       {selectedContext && app && (

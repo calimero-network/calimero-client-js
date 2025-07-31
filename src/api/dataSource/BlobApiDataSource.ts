@@ -1,5 +1,4 @@
 import { ApiResponse } from '../../types/api-response';
-import { HttpClient } from '../httpClient';
 import {
   BlobApi,
   BlobUploadResponse,
@@ -8,7 +7,8 @@ import {
   BlobListResponseData,
   RawBlobListResponseData,
 } from '../blobApi';
-import { getAppEndpointKey } from '../../storage';
+import { getAppEndpointKey, getAccessToken } from '../../storage';
+import { HttpClient } from '../httpClient';
 
 export class BlobApiDataSource implements BlobApi {
   constructor(private client: HttpClient) {}
@@ -23,6 +23,7 @@ export class BlobApiDataSource implements BlobApi {
     expectedHash?: string,
   ): ApiResponse<BlobUploadResponse> {
     const fileArrayBuffer = await file.arrayBuffer();
+    const token = getAccessToken();
 
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
@@ -36,11 +37,10 @@ export class BlobApiDataSource implements BlobApi {
 
       xhr.addEventListener('load', () => {
         try {
-          if (xhr.status === 200) {
+          if (xhr.status >= 200 && xhr.status < 300) {
             const rawResponse: RawBlobUploadResponse = JSON.parse(
               xhr.responseText,
             );
-            // Transform snake_case to camelCase
             const transformedResponse: BlobUploadResponse = {
               blobId: rawResponse.blob_id,
               size: rawResponse.size,
@@ -92,12 +92,23 @@ export class BlobApiDataSource implements BlobApi {
 
       xhr.open('PUT', url);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
       xhr.send(fileArrayBuffer);
     });
   }
 
   async downloadBlob(blobId: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`);
+    const token = getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`, {
+      headers,
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -110,10 +121,17 @@ export class BlobApiDataSource implements BlobApi {
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
     try {
+      const token = getAccessToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `${this.baseUrl}/admin-api/blobs/${blobId}`,
         {
           method: 'HEAD',
+          headers,
         },
       );
 
@@ -124,11 +142,11 @@ export class BlobApiDataSource implements BlobApi {
           response.headers.get('X-Blob-MIME-Type') ||
           response.headers.get('content-type') ||
           'unknown';
-        const blobId = response.headers.get('X-Blob-ID');
+        const returnedBlobId = response.headers.get('X-Blob-ID');
 
         return {
           data: {
-            blobId,
+            blobId: returnedBlobId,
             size,
             fileType,
           },
@@ -164,24 +182,20 @@ export class BlobApiDataSource implements BlobApi {
         `${this.baseUrl}/admin-api/blobs`,
       );
 
-      if (response.data) {
-        // Transform snake_case to camelCase
-        const transformedData: BlobListResponseData = {
-          blobs: response.data.blobs.map((blob) => ({
-            blobId: blob.blob_id,
-            size: blob.size,
-          })),
-        };
-
-        return {
-          data: transformedData,
-          error: null,
-        };
+      if (response.error) {
+        return { data: null, error: response.error };
       }
 
+      const transformedData: BlobListResponseData = {
+        blobs: response.data.blobs.map((blob) => ({
+          blobId: blob.blob_id,
+          size: blob.size,
+        })),
+      };
+
       return {
-        data: null,
-        error: response.error,
+        data: transformedData,
+        error: null,
       };
     } catch (error) {
       console.error('listBlobs failed:', error);
