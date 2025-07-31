@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'xilosada/release_0.1.11'
   workflow_dispatch:
 
 permissions:
