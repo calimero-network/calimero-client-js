@@ -1,3 +1,5 @@
+import { SubscriptionsClient } from "../subscriptions";
+
 // Supported protocols for context creation
 export enum Protocol {
   ETHEREUM = 'ethereum',
@@ -68,4 +70,5 @@ export interface CalimeroApp {
   downloadBlob(blobId: string): Promise<Blob>;
   listBlobs(): Promise<any>;
   deleteBlob(blobId: string): Promise<void>;
+  getSubscriptionsClient(): SubscriptionsClient;
 }

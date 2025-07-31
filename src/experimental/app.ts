@@ -5,7 +5,10 @@ import {
   ProtocolID,
   ExecutionResponse,
 } from './types';
+import { SubscriptionsClient } from '../subscriptions';
 import { ApiClient } from '../api';
+import { getAppEndpointKey } from '../storage';
+import { WsSubscriptionsClient } from '../subscriptions/ws';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
@@ -132,5 +135,15 @@ export class CalimeroApplication implements CalimeroApp {
     if (response.error) {
       throw new Error(`Error deleting blob: ${response.error.message}`);
     }
+  }
+
+  getSubscriptionsClient(): SubscriptionsClient {
+    const baseUrl = getAppEndpointKey();
+    if (!baseUrl) {
+      throw new Error('Application endpoint URL is not set.');
+    }
+    const wsUrl = new URL(baseUrl);
+    const protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    return new WsSubscriptionsClient(`${protocol}//${wsUrl.host}`, '/ws');
   }
 }
