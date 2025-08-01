@@ -50,15 +50,11 @@ export class BlobApiDataSource implements BlobApi {
         };
       }
 
-      console.log('response', response);
-
       // Transform snake_case to camelCase
       const transformedResponse: BlobUploadResponse = {
         blobId: response.data!.blob_id,
         size: response.data!.size,
       };
-
-      console.log('transformedResponse', transformedResponse);
 
       return {
         data: transformedResponse,
