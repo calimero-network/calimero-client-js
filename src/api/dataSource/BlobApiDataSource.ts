@@ -22,127 +22,111 @@ export class BlobApiDataSource implements BlobApi {
     onProgress?: (progress: number) => void,
     expectedHash?: string,
   ): ApiResponse<BlobUploadResponse> {
-    const fileArrayBuffer = await file.arrayBuffer();
-
-    return new Promise((resolve) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable && onProgress) {
-          const progress = (event.loaded / event.total) * 100;
-          onProgress(progress);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        try {
-          if (xhr.status === 200) {
-            const rawResponse: RawBlobUploadResponse = JSON.parse(
-              xhr.responseText,
-            );
-            // Transform snake_case to camelCase
-            const transformedResponse: BlobUploadResponse = {
-              blobId: rawResponse.blob_id,
-              size: rawResponse.size,
-            };
-            resolve({
-              data: transformedResponse,
-              error: null,
-            });
-          } else {
-            const errorResponse = JSON.parse(xhr.responseText);
-            resolve({
-              data: null,
-              error: {
-                code: xhr.status,
-                message:
-                  errorResponse.error ||
-                  `HTTP ${xhr.status}: ${xhr.statusText}`,
-              },
-            });
-          }
-        } catch (error) {
-          resolve({
-            data: null,
-            error: {
-              code: xhr.status || 500,
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Failed to parse response',
-            },
-          });
-        }
-      });
-
-      xhr.addEventListener('error', () => {
-        resolve({
-          data: null,
-          error: {
-            code: 500,
-            message: 'Network error occurred during upload',
-          },
-        });
-      });
-
+    try {
+      const fileArrayBuffer = await file.arrayBuffer();
+      
       let url = `${this.baseUrl}/admin-api/blobs`;
+      const params = new URLSearchParams();
       if (expectedHash) {
-        url += `?hash=${encodeURIComponent(expectedHash)}`;
+        params.append('hash', expectedHash);
+      }
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
 
-      xhr.open('PUT', url);
-      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-      xhr.send(fileArrayBuffer);
-    });
+      // Use HttpClient PUT method with binary data and progress tracking
+      const response = await this.client.put<RawBlobUploadResponse>(
+        url,
+        fileArrayBuffer,
+        [{ 'Content-Type': 'application/octet-stream' }],
+        false,
+        onProgress,
+      );
+
+      if (response.error) {
+        return {
+          data: null,
+          error: response.error,
+        };
+      }
+
+      console.log('response', response);
+
+      // Transform snake_case to camelCase
+      const transformedResponse: BlobUploadResponse = {
+        blobId: response.data!.blob_id,
+        size: response.data!.size,
+      };
+
+      console.log('transformedResponse', transformedResponse);
+
+      return {
+        data: transformedResponse,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error: {
+          code: 500,
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to upload blob',
+        },
+      };
+    }
   }
 
-  async downloadBlob(blobId: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/admin-api/blobs/${blobId}`);
+  async downloadBlob(blobId: string, contextId?: string): Promise<Blob> {
+    let url = `${this.baseUrl}/admin-api/blobs/${blobId}`;
+    if (contextId) {
+      url += `?context_id=${contextId}`;
+    }
 
-    if (!response.ok) {
+    const response = await this.client.get<ArrayBuffer>(url);
+
+    if (response.error) {
       throw new Error(
-        `Failed to download blob: ${response.status} ${response.statusText}`,
+        `Failed to download blob: ${response.error.code} ${response.error.message}`,
       );
     }
 
-    return response.blob();
+    return new Blob([response.data!]);
   }
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
     try {
-      const response = await fetch(
+      // Use HttpClient HEAD method that now returns headers
+      const response = await this.client.head(
         `${this.baseUrl}/admin-api/blobs/${blobId}`,
-        {
-          method: 'HEAD',
-        },
       );
 
-      if (response.ok) {
-        const contentLength = response.headers.get('content-length');
-        const size = contentLength ? parseInt(contentLength, 10) : 0;
-        const fileType =
-          response.headers.get('X-Blob-MIME-Type') ||
-          response.headers.get('content-type') ||
-          'unknown';
-        const blobId = response.headers.get('X-Blob-ID');
-
-        return {
-          data: {
-            blobId,
-            size,
-            fileType,
-          },
-          error: null,
-        };
-      } else {
+      if (response.error) {
         return {
           data: null,
-          error: {
-            code: response.status,
-            message: `HTTP ${response.status}: ${response.statusText}`,
-          },
+          error: response.error,
         };
       }
+
+      // Extract metadata from response headers
+      const headers = response.data!.headers;
+      const contentLength = headers['content-length'];
+      const size = contentLength ? parseInt(contentLength, 10) : 0;
+      const fileType =
+        headers['x-blob-mime-type'] ||
+        headers['content-type'] ||
+        'unknown';
+      const responseBlobId = headers['x-blob-id'];
+
+      return {
+        data: {
+          blobId: responseBlobId || blobId,
+          size,
+          fileType,
+        },
+        error: null,
+      };
     } catch (error) {
       console.error('getBlobMetadata failed:', error);
       return {

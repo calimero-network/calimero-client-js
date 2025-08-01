@@ -94,9 +94,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   }, []);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedAccessToken = urlParams.get('access_token');
-    const encodedRefreshToken = urlParams.get('refresh_token');
+    const fragment = window.location.hash.substring(1); // Remove the leading #
+    const fragmentParams = new URLSearchParams(fragment);
+    const encodedAccessToken = fragmentParams.get('access_token');
+    const encodedRefreshToken = fragmentParams.get('refresh_token');
 
     if (encodedAccessToken && encodedRefreshToken) {
       window.history.replaceState({}, document.title, window.location.pathname);
