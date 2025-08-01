@@ -24,7 +24,7 @@ export class BlobApiDataSource implements BlobApi {
   ): ApiResponse<BlobUploadResponse> {
     try {
       const fileArrayBuffer = await file.arrayBuffer();
-      
+
       let url = `${this.baseUrl}/admin-api/blobs`;
       const params = new URLSearchParams();
       if (expectedHash) {
@@ -70,9 +70,7 @@ export class BlobApiDataSource implements BlobApi {
         error: {
           code: 500,
           message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to upload blob',
+            error instanceof Error ? error.message : 'Failed to upload blob',
         },
       };
     }
@@ -114,9 +112,7 @@ export class BlobApiDataSource implements BlobApi {
       const contentLength = headers['content-length'];
       const size = contentLength ? parseInt(contentLength, 10) : 0;
       const fileType =
-        headers['x-blob-mime-type'] ||
-        headers['content-type'] ||
-        'unknown';
+        headers['x-blob-mime-type'] || headers['content-type'] || 'unknown';
       const responseBlobId = headers['x-blob-id'];
 
       return {

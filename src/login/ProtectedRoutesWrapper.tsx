@@ -268,7 +268,9 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       fragmentParams.delete('access_token');
       fragmentParams.delete('refresh_token');
       const newFragment = fragmentParams.toString();
-      const newUrl = window.location.pathname + window.location.search + 
+      const newUrl =
+        window.location.pathname +
+        window.location.search +
         (newFragment ? `#${newFragment}` : '');
       window.history.replaceState({}, '', newUrl);
       setIsAuthenticated(true);
