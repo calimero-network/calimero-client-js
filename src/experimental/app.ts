@@ -147,6 +147,14 @@ export class CalimeroApplication implements CalimeroApp {
     return this.apiClient.blob().downloadBlob(blobId);
   }
 
+  public async getBlobMetadata(blobId: string): Promise<{ blobId: string; size: number; fileType: string }> {
+    const response = await this.apiClient.blob().getBlobMetadata(blobId);
+    if (response.error) {
+      throw new Error(`Error getting blob metadata: ${response.error.message}`);
+    }
+    return response.data;
+  }
+
   public async listBlobs(): Promise<any> {
     const response = await this.apiClient.blob().listBlobs();
     if (response.error) {

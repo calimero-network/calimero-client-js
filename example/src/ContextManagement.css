@@ -240,8 +240,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -250,30 +254,30 @@
     margin: 1rem 0;
     border-radius: 8px;
   }
-  
+
   .context-management h2 {
     padding: 1rem;
     font-size: 1.1rem;
   }
-  
+
   .tab-buttons {
     padding: 0 1rem;
   }
-  
+
   .tab-button {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
   }
-  
+
   .tab-content {
     padding: 1.5rem 1rem;
   }
-  
+
   .tab-content input,
   .tab-content select {
     padding: 0.625rem 0.875rem;
   }
-  
+
   .tab-content button {
     padding: 0.625rem 1.25rem;
     font-size: 0.9rem;
@@ -286,57 +290,57 @@
     background: #2d3748;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
-  
+
   .context-management h2 {
     background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   }
-  
+
   .tab-buttons {
     background: #4a5568;
     border-bottom-color: #718096;
   }
-  
+
   .tab-button {
     color: #a0aec0;
   }
-  
+
   .tab-button:hover {
     color: #e2e8f0;
     background: rgba(66, 153, 225, 0.1);
   }
-  
+
   .tab-button.active {
     color: #63b3ed;
     background: #2d3748;
     border-bottom-color: #63b3ed;
   }
-  
+
   .tab-content {
     background: #2d3748;
   }
-  
+
   .tab-content h2 {
     color: #e2e8f0;
   }
-  
+
   .tab-content p {
     color: #a0aec0;
   }
-  
+
   .tab-content input,
   .tab-content select {
     background: #4a5568;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .tab-content input:focus,
   .tab-content select:focus {
     border-color: #63b3ed;
     background: #2d3748;
     box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
   }
-  
+
   .tab-content .payload {
     background: #4a5568;
     border-color: #718096;

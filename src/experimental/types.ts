@@ -68,6 +68,7 @@ export interface CalimeroApp {
     onProgress?: (p: number) => void,
   ): Promise<{ blobId: string }>;
   downloadBlob(blobId: string): Promise<Blob>;
+  getBlobMetadata(blobId: string): Promise<{ blobId: string; size: number; fileType: string }>;
   listBlobs(): Promise<any>;
   deleteBlob(blobId: string): Promise<void>;
 

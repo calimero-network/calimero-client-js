@@ -14,6 +14,7 @@ import {
   InviteContext,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
+import BlobDetailsModal from './BlobDetailsModal';
 import './ContextManagement.css';
 
 const AppContent: React.FC = () => {
@@ -27,6 +28,9 @@ const AppContent: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [events, setEvents] = useState<NodeEvent[]>([]);
   const [activeTab, setActiveTab] = useState<'join' | 'invite'>('join');
+  const [selectedBlob, setSelectedBlob] = useState<{ blobId: string; size: number; fileType: string } | null>(null);
+  const [blobMetadata, setBlobMetadata] = useState<{ [key: string]: { blobId: string; size: number; fileType: string } }>({});
+  const [loadingMetadata, setLoadingMetadata] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (app) {
@@ -69,6 +73,21 @@ const AppContent: React.FC = () => {
       try {
         const blobList = await app.listBlobs();
         setBlobs(blobList.blobs);
+        
+        // Fetch metadata for each blob
+        const metadataPromises = blobList.blobs.map(async (blob) => {
+          try {
+            setLoadingMetadata(prev => ({ ...prev, [blob.blobId]: true }));
+            const metadata = await app.getBlobMetadata(blob.blobId);
+            setBlobMetadata(prev => ({ ...prev, [blob.blobId]: metadata }));
+          } catch (err) {
+            console.error(`Failed to fetch metadata for blob ${blob.blobId}:`, err);
+          } finally {
+            setLoadingMetadata(prev => ({ ...prev, [blob.blobId]: false }));
+          }
+        });
+        
+        await Promise.all(metadataPromises);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch blobs.');
       }
@@ -117,6 +136,75 @@ const AppContent: React.FC = () => {
     console.log('Execution Result:', response);
   };
 
+  const handleBlobClick = async (blobId: string) => {
+    if (blobMetadata[blobId]) {
+      setSelectedBlob(blobMetadata[blobId]);
+    } else {
+      try {
+        const metadata = await app?.getBlobMetadata(blobId);
+        if (metadata) {
+          setBlobMetadata(prev => ({ ...prev, [blobId]: metadata }));
+          setSelectedBlob(metadata);
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch blob metadata.');
+      }
+    }
+  };
+
+  const handleDownloadBlob = async (blobId: string) => {
+    if (app) {
+      try {
+        const blob = await app.downloadBlob(blobId);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `blob-${blobId}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err: any) {
+        setError(err.message || 'Failed to download blob.');
+      }
+    }
+  };
+
+  const handleDeleteBlob = async (blobId: string) => {
+    if (app) {
+      try {
+        await app.deleteBlob(blobId);
+        setBlobs(prev => prev.filter(blob => blob.blobId !== blobId));
+        setBlobMetadata(prev => {
+          const newMetadata = { ...prev };
+          delete newMetadata[blobId];
+          return newMetadata;
+        });
+        setSelectedBlob(null);
+      } catch (err: any) {
+        setError(err.message || 'Failed to delete blob.');
+      }
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileType: string): string => {
+    if (fileType.startsWith('image/')) return '🖼️';
+    if (fileType.startsWith('video/')) return '🎥';
+    if (fileType.startsWith('audio/')) return '🎵';
+    if (fileType.includes('pdf')) return '📄';
+    if (fileType.includes('text') || fileType.includes('json') || fileType.includes('xml')) return '📝';
+    if (fileType.includes('zip') || fileType.includes('tar') || fileType.includes('rar')) return '📦';
+    return '📁';
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
       <header
@@ -143,7 +231,14 @@ const AppContent: React.FC = () => {
               style={{ color: 'black', width: '32px', height: '32px' }}
             />
           </div>
-          <h1 style={{ margin: 0, color: '#212529', fontSize: '1.5rem', fontWeight: '600' }}>
+          <h1
+            style={{
+              margin: 0,
+              color: '#212529',
+              fontSize: '1.5rem',
+              fontWeight: '600',
+            }}
+          >
             My dApp
           </h1>
         </div>
@@ -160,14 +255,22 @@ const AppContent: React.FC = () => {
                 marginBottom: '1rem',
               }}
             >
-              <h2 style={{ margin: 0, color: '#212529', fontSize: '1.25rem', fontWeight: '600' }}>
+              <h2
+                style={{
+                  margin: 0,
+                  color: '#212529',
+                  fontSize: '1.25rem',
+                  fontWeight: '600',
+                }}
+              >
                 Available Contexts
               </h2>
-              <button 
-                onClick={handleCreateContext} 
+              <button
+                onClick={handleCreateContext}
                 disabled={creating}
                 style={{
-                  background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                  background:
+                    'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
                   color: 'white',
                   border: 'none',
                   padding: '0.75rem 1.5rem',
@@ -183,58 +286,70 @@ const AppContent: React.FC = () => {
               </button>
             </div>
             {loading && (
-              <div style={{ 
-                padding: '2rem', 
-                textAlign: 'center', 
-                color: '#6c757d',
-                background: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}>
+              <div
+                style={{
+                  padding: '2rem',
+                  textAlign: 'center',
+                  color: '#6c757d',
+                  background: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}
+              >
                 Loading contexts...
               </div>
             )}
             {error && (
-              <div style={{ 
-                padding: '1rem', 
-                background: '#f8d7da', 
-                color: '#721c24', 
-                borderRadius: '8px', 
-                marginBottom: '1rem',
-                border: '1px solid #f5c6cb'
-              }}>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: '#f8d7da',
+                  color: '#721c24',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  border: '1px solid #f5c6cb',
+                }}
+              >
                 Error: {error}
               </div>
             )}
             {contexts.length > 0 ? (
-              <div style={{
-                background: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                overflow: 'hidden'
-              }}>
+              <div
+                style={{
+                  background: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  overflow: 'hidden',
+                }}
+              >
                 {contexts.map((ctx) => (
                   <div
                     key={ctx.contextId}
                     onClick={() => setSelectedContext(ctx)}
-                    style={{ 
-                      cursor: 'pointer', 
+                    style={{
+                      cursor: 'pointer',
                       padding: '1rem 1.5rem',
                       borderBottom: '1px solid #e9ecef',
                       transition: 'background-color 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem'
+                      gap: '0.5rem',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = '#f8f9fa')
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
                   >
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background: '#007bff'
-                    }} />
+                    <div
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: '#007bff',
+                      }}
+                    />
                     <span style={{ color: '#495057', fontWeight: '500' }}>
                       Context ID: {ctx.contextId}
                     </span>
@@ -243,52 +358,61 @@ const AppContent: React.FC = () => {
               </div>
             ) : (
               !loading && (
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  color: '#6c757d',
-                  background: 'white',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}>
+                <div
+                  style={{
+                    padding: '2rem',
+                    textAlign: 'center',
+                    color: '#6c757d',
+                    background: 'white',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  }}
+                >
                   No contexts found.
                 </div>
               )
             )}
           </div>
         ) : (
-          <div style={{ 
-            padding: '3rem', 
-            textAlign: 'center', 
-            color: '#6c757d',
-            background: 'white',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
+          <div
+            style={{
+              padding: '3rem',
+              textAlign: 'center',
+              color: '#6c757d',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          >
             <h2 style={{ margin: '0 0 1rem 0', color: '#212529' }}>
               Welcome to My dApp
             </h2>
             <p style={{ margin: 0, fontSize: '1.1rem' }}>
-              Please connect to see your contexts and start using the application.
+              Please connect to see your contexts and start using the
+              application.
             </p>
           </div>
         )}
         {isAuthenticated && (
           <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ 
-              margin: '0 0 1rem 0', 
-              color: '#212529', 
-              fontSize: '1.25rem', 
-              fontWeight: '600' 
-            }}>
+            <h2
+              style={{
+                margin: '0 0 1rem 0',
+                color: '#212529',
+                fontSize: '1.25rem',
+                fontWeight: '600',
+              }}
+            >
               Blob Storage
             </h2>
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
+            <div
+              style={{
+                background: 'white',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}
+            >
               <input
                 type="file"
                 onChange={handleFileUpload}
@@ -301,18 +425,20 @@ const AppContent: React.FC = () => {
                   background: '#f8f9fa',
                   cursor: uploading ? 'not-allowed' : 'pointer',
                   opacity: uploading ? 0.6 : 1,
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
                 }}
               />
               {uploading && (
-                <div style={{ 
-                  marginTop: '1rem', 
-                  padding: '0.75rem', 
-                  background: '#e3f2fd', 
-                  color: '#1976d2', 
-                  borderRadius: '6px',
-                  textAlign: 'center'
-                }}>
+                <div
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem',
+                    background: '#e3f2fd',
+                    color: '#1976d2',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                  }}
+                >
                   Uploading...
                 </div>
               )}
@@ -322,79 +448,159 @@ const AppContent: React.FC = () => {
                     Uploaded Files:
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {blobs.map((blob) => (
-                      <div key={blob.blobId} style={{
-                        padding: '0.75rem',
-                        background: '#f8f9fa',
-                        borderRadius: '6px',
-                        border: '1px solid #e9ecef',
-                        fontFamily: 'monospace',
-                        fontSize: '0.9rem',
-                        color: '#495057'
-                      }}>
-                        {blob.blobId}
-                      </div>
-                    ))}
+                    {blobs.map((blob) => {
+                        const metadata = blobMetadata[blob.blobId];
+                        const isLoading = loadingMetadata[blob.blobId];
+                        
+                        return (
+                          <div 
+                            key={blob.blobId} 
+                            onClick={() => handleBlobClick(blob.blobId)}
+                            style={{
+                              padding: '1rem',
+                              background: '#f8f9fa',
+                              borderRadius: '8px',
+                              border: '1px solid #e9ecef',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '1rem',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#e9ecef';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#f8f9fa';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }}
+                          >
+                            <span style={{ fontSize: '1.5rem' }}>
+                              {isLoading ? '⏳' : (metadata ? getFileIcon(metadata.fileType) : '📁')}
+                            </span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ 
+                                fontFamily: 'monospace', 
+                                fontSize: '0.9rem', 
+                                color: '#495057',
+                                fontWeight: '500',
+                                marginBottom: '0.25rem'
+                              }}>
+                                {blob.blobId.substring(0, 16)}...
+                              </div>
+                              {metadata && (
+                                <div style={{ 
+                                  fontSize: '0.8rem', 
+                                  color: '#6c757d',
+                                  display: 'flex',
+                                  gap: '1rem',
+                                  alignItems: 'center'
+                                }}>
+                                  <span>{metadata.fileType || 'Unknown Type'}</span>
+                                  <span>•</span>
+                                  <span>{formatFileSize(metadata.size)}</span>
+                                </div>
+                              )}
+                              {isLoading && (
+                                <div style={{ 
+                                  fontSize: '0.8rem', 
+                                  color: '#6c757d',
+                                  fontStyle: 'italic'
+                                }}>
+                                  Loading metadata...
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.8rem', 
+                              color: '#6c757d',
+                              fontStyle: 'italic'
+                            }}>
+                              Click to view details
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div style={{ 
-                  marginTop: '1rem', 
-                  padding: '1rem', 
-                  textAlign: 'center', 
-                  color: '#6c757d',
-                  background: '#f8f9fa',
-                  borderRadius: '6px'
-                }}>
-                  No blobs found.
-                </div>
-              )}
+                ) : (
+                  <div
+                    style={{
+                      marginTop: '1rem',
+                      padding: '1rem',
+                      textAlign: 'center',
+                      color: '#6c757d',
+                      background: '#f8f9fa',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    No blobs found.
+                  </div>
+                )}
             </div>
           </div>
         )}
         {isAuthenticated && (
           <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ 
-              margin: '0 0 1rem 0', 
-              color: '#212529', 
-              fontSize: '1.25rem', 
-              fontWeight: '600' 
-            }}>
+            <h2
+              style={{
+                margin: '0 0 1rem 0',
+                color: '#212529',
+                fontSize: '1.25rem',
+                fontWeight: '600',
+              }}
+            >
               Real-time Events
             </h2>
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              maxHeight: '300px',
-              overflow: 'auto'
-            }}>
+            <div
+              style={{
+                background: 'white',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                maxHeight: '300px',
+                overflow: 'auto',
+              }}
+            >
               {events.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                  }}
+                >
                   {events.map((event, index) => (
-                    <div key={index} style={{
-                      padding: '0.75rem',
-                      background: '#f8f9fa',
-                      borderRadius: '6px',
-                      border: '1px solid #e9ecef',
-                      fontFamily: 'monospace',
-                      fontSize: '0.85rem',
-                      color: '#495057',
-                      wordBreak: 'break-all'
-                    }}>
+                    <div
+                      key={index}
+                      style={{
+                        padding: '0.75rem',
+                        background: '#f8f9fa',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef',
+                        fontFamily: 'monospace',
+                        fontSize: '0.85rem',
+                        color: '#495057',
+                        wordBreak: 'break-all',
+                      }}
+                    >
                       {JSON.stringify(event, null, 2)}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ 
-                  padding: '1rem', 
-                  textAlign: 'center', 
-                  color: '#6c757d',
-                  background: '#f8f9fa',
-                  borderRadius: '6px'
-                }}>
+                <div
+                  style={{
+                    padding: '1rem',
+                    textAlign: 'center',
+                    color: '#6c757d',
+                    background: '#f8f9fa',
+                    borderRadius: '6px',
+                  }}
+                >
                   No events received yet.
                 </div>
               )}
@@ -430,6 +636,14 @@ const AppContent: React.FC = () => {
           context={selectedContext}
           onClose={() => setSelectedContext(null)}
           onExecute={handleExecute}
+        />
+      )}
+      {selectedBlob && (
+        <BlobDetailsModal
+          blob={selectedBlob}
+          onClose={() => setSelectedBlob(null)}
+          onDownload={handleDownloadBlob}
+          onDelete={handleDeleteBlob}
         />
       )}
     </div>
