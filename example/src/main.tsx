@@ -10,8 +10,11 @@ import {
   AppMode,
   BlobInfo,
   NodeEvent,
+  JoinContext,
+  InviteContext,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
+import './ContextManagement.css';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();
@@ -23,6 +26,7 @@ const AppContent: React.FC = () => {
   const [blobs, setBlobs] = useState<BlobInfo[]>([]);
   const [uploading, setUploading] = useState(false);
   const [events, setEvents] = useState<NodeEvent[]>([]);
+  const [activeTab, setActiveTab] = useState<'join' | 'invite'>('join');
 
   useEffect(() => {
     if (app) {
@@ -207,6 +211,28 @@ const AppContent: React.FC = () => {
             ) : (
               <p>No events received yet.</p>
             )}
+          </div>
+        )}
+        {isAuthenticated && (
+          <div className="context-management">
+            <h2>Context Management</h2>
+            <div className="tab-buttons">
+              <button
+                onClick={() => setActiveTab('join')}
+                className={`tab-button ${activeTab === 'join' ? 'active' : ''}`}
+              >
+                Join Context
+              </button>
+              <button
+                onClick={() => setActiveTab('invite')}
+                className={`tab-button ${activeTab === 'invite' ? 'active' : ''}`}
+              >
+                Invite to Context
+              </button>
+            </div>
+            <div className="tab-content">
+              {activeTab === 'join' ? <JoinContext /> : <InviteContext />}
+            </div>
           </div>
         )}
       </main>

@@ -11,9 +11,11 @@ const { app } = useCalimero();
 ```
 
 #### `app.uploadBlob(file, onProgress?, expectedHash?)`
+
 Upload a file to blob storage.
 
 **Parameters:**
+
 - `file: File` - The file to upload
 - `onProgress?: (progress: number) => void` - Optional progress callback (0-100)
 - `expectedHash?: string` - Optional expected file hash for validation
@@ -21,6 +23,7 @@ Upload a file to blob storage.
 **Returns:** `Promise<{ data: { blobId: string }, error: null }>`
 
 **Example:**
+
 ```typescript
 const result = await app.uploadBlob(file, (progress) => {
   console.log(`Upload: ${progress}%`);
@@ -29,41 +32,49 @@ console.log('Blob ID:', result.data.blobId);
 ```
 
 #### `app.downloadBlob(blobId)`
+
 Download a file from blob storage.
 
 **Parameters:**
+
 - `blobId: string` - The ID of the blob to download
 
 **Returns:** `Promise<Blob>`
 
 **Example:**
+
 ```typescript
 const blob = await app.downloadBlob('my-blob-id');
 const url = URL.createObjectURL(blob);
 ```
 
 #### `app.listBlobs()`
+
 List all available blobs.
 
 **Returns:** `Promise<{ data: BlobInfo[], error: null }>`
 
 **Example:**
+
 ```typescript
 const result = await app.listBlobs();
-result.data.forEach(blob => {
+result.data.forEach((blob) => {
   console.log('Blob:', blob.blobId);
 });
 ```
 
 #### `app.deleteBlob(blobId)`
+
 Delete a blob from storage.
 
 **Parameters:**
+
 - `blobId: string` - The ID of the blob to delete
 
 **Returns:** `Promise<{ data: null, error: null }>`
 
 **Example:**
+
 ```typescript
 await app.deleteBlob('my-blob-id');
 ```
@@ -73,59 +84,74 @@ await app.deleteBlob('my-blob-id');
 WebSocket subscription methods are now available directly on the `app` object:
 
 #### `app.connect(connectionId?)`
+
 Connect to the WebSocket server.
 
 **Parameters:**
+
 - `connectionId?: string` - Optional connection ID for multiple connections
 
 **Example:**
+
 ```typescript
 app.connect();
 ```
 
 #### `app.disconnect(connectionId?)`
+
 Disconnect from the WebSocket server.
 
 **Parameters:**
+
 - `connectionId?: string` - Optional connection ID
 
 **Example:**
+
 ```typescript
 app.disconnect();
 ```
 
 #### `app.subscribe(contexts, connectionId?)`
+
 Subscribe to real-time events for specific contexts.
 
 **Parameters:**
+
 - `contexts: Context[]` - Array of contexts to subscribe to
 - `connectionId?: string` - Optional connection ID
 
 **Example:**
+
 ```typescript
 app.subscribe([context1, context2]);
 ```
 
 #### `app.unsubscribe(contexts, connectionId?)`
+
 Unsubscribe from real-time events.
 
 **Parameters:**
+
 - `contexts: Context[]` - Array of contexts to unsubscribe from
 - `connectionId?: string` - Optional connection ID
 
 **Example:**
+
 ```typescript
 app.unsubscribe([context1, context2]);
 ```
 
 #### `app.addCallback(callback, connectionId?)`
+
 Add an event callback to handle real-time events.
 
 **Parameters:**
+
 - `callback: (event: NodeEvent) => void` - Function to handle events
 - `connectionId?: string` - Optional connection ID
 
 **Example:**
+
 ```typescript
 app.addCallback((event) => {
   console.log('Received event:', event);
@@ -133,13 +159,16 @@ app.addCallback((event) => {
 ```
 
 #### `app.removeCallback(callback, connectionId?)`
+
 Remove an event callback.
 
 **Parameters:**
+
 - `callback: (event: NodeEvent) => void` - The callback to remove
 - `connectionId?: string` - Optional connection ID
 
 **Example:**
+
 ```typescript
 const myCallback = (event) => console.log(event);
 app.addCallback(myCallback);
@@ -227,4 +256,4 @@ interface NodeEvent {
 - WebSocket connections are automatically managed by the client
 - The subscription API uses `Context` objects but maps them internally to maintain compatibility
 - All methods are fully typed with TypeScript
-- Error handling is consistent across all new methods 
+- Error handling is consistent across all new methods
