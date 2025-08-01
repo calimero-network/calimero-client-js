@@ -8,11 +8,8 @@ import {
   clearExecutorPublicKey,
   getAppEndpointKey,
   getApplicationId,
-  setAccessToken,
-  setApplicationId,
   setContextId,
   setExecutorPublicKey,
-  setRefreshToken,
 } from '../storage/storage';
 import {
   ErrorMessage,
@@ -157,30 +154,6 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
       applicationPath: clientApplicationPath,
     });
   }, [nodeServerUrl, permissions, clientApplicationId, clientApplicationPath]);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedAccessToken = urlParams.get('access_token');
-    const encodedRefreshToken = urlParams.get('refresh_token');
-
-    if (encodedAccessToken && encodedRefreshToken) {
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      if (clientApplicationId) {
-        setApplicationId(clientApplicationId);
-        setIsAuthenticated(true);
-      } else {
-        fetchContextApplication();
-      }
-    }
-  }, [
-    nodeServerUrl,
-    clientApplicationId,
-    setIsAuthenticated,
-    fetchContextApplication,
-  ]);
 
   useEffect(() => {
     if (authMode === false) {

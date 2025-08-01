@@ -243,10 +243,14 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   }, [authMode, error]);
 
   useEffect(() => {
-    // Check for tokens in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedAccessToken = urlParams.get('access_token');
-    const encodedRefreshToken = urlParams.get('refresh_token');
+    // Check for tokens in URL fragment
+    const fragment = window.location.hash.substring(1); // Remove the leading #
+    const fragmentParams = new URLSearchParams(fragment);
+    const encodedAccessToken = fragmentParams.get('access_token');
+    const encodedRefreshToken = fragmentParams.get('refresh_token');
+
+    console.log('encodedAccessToken', encodedAccessToken);
+    console.log('encodedRefreshToken', encodedRefreshToken);
 
     if (encodedAccessToken && encodedRefreshToken) {
       // Initialize application with tokens and optional applicationId
@@ -260,13 +264,17 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
         applicationId || undefined,
       );
 
-      // Clean up URL by removing the tokens
-      urlParams.delete('access_token');
-      urlParams.delete('refresh_token');
+      // Clean up URL by removing the tokens from fragment
+      fragmentParams.delete('access_token');
+      fragmentParams.delete('refresh_token');
+      const newFragment = fragmentParams.toString();
       const newUrl =
         window.location.pathname +
-        (urlParams.toString() ? `?${urlParams.toString()}` : '');
+        window.location.search +
+        (newFragment ? `#${newFragment}` : '');
       window.history.replaceState({}, '', newUrl);
+      setIsAuthenticated(true);
+      setIsInitialized(true);
     } else {
       checkAuth();
     }

@@ -16,6 +16,15 @@ export interface Header {
   [key: string]: string;
 }
 
+export interface ProgressCallback {
+  (progress: number): void;
+}
+
+export interface HeadResponse {
+  headers: Record<string, string>;
+  status: number;
+}
+
 export interface HttpClient {
   get<T>(
     url: string,
@@ -33,6 +42,7 @@ export interface HttpClient {
     body?: unknown,
     headers?: Header[],
     isJsonRpc?: boolean,
+    onUploadProgress?: ProgressCallback,
   ): Promise<ResponseData<T>>;
   delete<T>(
     url: string,
@@ -45,7 +55,7 @@ export interface HttpClient {
     headers?: Header[],
     isJsonRpc?: boolean,
   ): Promise<ResponseData<T>>;
-  head(url: string, headers?: Header[]): Promise<ResponseData<void>>;
+  head(url: string, headers?: Header[]): Promise<ResponseData<HeadResponse>>;
 }
 
 export class AxiosHttpClient implements HttpClient {
@@ -153,8 +163,25 @@ export class AxiosHttpClient implements HttpClient {
       const response = await promise;
 
       if (response?.config?.method?.toUpperCase() === 'HEAD') {
+        // For HEAD requests, return headers and status
+        // Convert axios headers to string record
+        const headers: Record<string, string> = {};
+        if (response.headers) {
+          Object.entries(response.headers).forEach(([key, value]) => {
+            if (value !== undefined) {
+              headers[key] = Array.isArray(value)
+                ? value.join(', ')
+                : String(value);
+            }
+          });
+        }
+
+        const headResponse: HeadResponse = {
+          headers,
+          status: response.status,
+        };
         return {
-          data: null as T,
+          data: headResponse as T,
           error: null,
         };
       }
@@ -324,18 +351,29 @@ export class AxiosHttpClient implements HttpClient {
     body?: unknown,
     headers?: Header[],
     isJsonRpc = false,
+    onUploadProgress?: ProgressCallback,
   ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
     const mergedHeaders = headers?.reduce(
       (acc, curr) => ({ ...acc, ...curr }),
       {},
     );
-    return this.request(
-      this.axios.put<T>(url, body, {
-        headers: { ...authHeaders, ...mergedHeaders },
-      }),
-      isJsonRpc,
-    );
+
+    const config: any = {
+      headers: { ...authHeaders, ...mergedHeaders },
+    };
+
+    // Add upload progress callback if provided
+    if (onUploadProgress) {
+      config.onUploadProgress = (progressEvent: any) => {
+        if (progressEvent.lengthComputable) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          onUploadProgress(progress);
+        }
+      };
+    }
+
+    return this.request(this.axios.put<T>(url, body, config), isJsonRpc);
   }
 
   async delete<T>(
@@ -375,7 +413,10 @@ export class AxiosHttpClient implements HttpClient {
     );
   }
 
-  async head(url: string, headers?: Header[]): Promise<ResponseData<void>> {
+  async head(
+    url: string,
+    headers?: Header[],
+  ): Promise<ResponseData<HeadResponse>> {
     const authHeaders = this.getAuthHeaders();
     const mergedHeaders = headers?.reduce(
       (acc, curr) => ({ ...acc, ...curr }),
