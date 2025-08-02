@@ -53,7 +53,7 @@
     "styled-components": "^6.1.13"
   },
   "scripts": {
-    "build": "tsc && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --define:__PROTOCOL_VERSION__='\"'$npm_package_version'\"' --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --define:__PROTOCOL_VERSION__='\"'$npm_package_version'\"' --external:react --external:react-dom --external:styled-components",
+    "build": "tsc && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
     "test": "jest test",
     "lint": "eslint . --ext .ts,.tsx src",
     "dev": "concurrently \"pnpm compile -w\" \"pnpm bundle:watch\"",
