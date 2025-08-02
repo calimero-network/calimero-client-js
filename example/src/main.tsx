@@ -147,7 +147,9 @@ const AppContent: React.FC = () => {
                   }
                   style={{ marginRight: '1rem' }}
                 >
-                  {areAllSubscribed ? 'Unsubscribe from All' : 'Subscribe to All'}
+                  {areAllSubscribed
+                    ? 'Unsubscribe from All'
+                    : 'Subscribe to All'}
                 </button>
                 <button onClick={handleCreateContext} disabled={creating}>
                   {creating ? 'Creating...' : 'Create New Context'}
