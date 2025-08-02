@@ -249,9 +249,6 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
-    console.log('encodedAccessToken', encodedAccessToken);
-    console.log('encodedRefreshToken', encodedRefreshToken);
-
     if (encodedAccessToken && encodedRefreshToken) {
       // Initialize application with tokens and optional applicationId
       const accessToken = decodeURIComponent(encodedAccessToken);
