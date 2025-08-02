@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { apiClient } from '../api';
 import {
@@ -190,10 +191,21 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   };
 
   const login = () => setIsLoginOpen(true);
-  const app =
-    isAuthenticated && isOnline
-      ? new CalimeroApplication(apiClient, clientApplicationId)
-      : null;
+
+  const app = useMemo(
+    () =>
+      isAuthenticated
+        ? new CalimeroApplication(apiClient, clientApplicationId)
+        : null,
+    [isAuthenticated, clientApplicationId],
+  );
+
+  useEffect(() => {
+    // Closes WebSocket connection on logout or when the component unmounts
+    return () => {
+      app?.close();
+    };
+  }, [app]);
 
   return (
     <CalimeroContext.Provider
