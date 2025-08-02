@@ -72,13 +72,12 @@ export class BlobApiDataSource implements BlobApi {
     }
   }
 
-  async downloadBlob(blobId: string, contextId?: string): Promise<Blob> {
+  async downloadBlob(blobId: string): Promise<Blob> {
     let url = `${this.baseUrl}/admin-api/blobs/${blobId}`;
-    if (contextId) {
-      url += `?context_id=${contextId}`;
-    }
 
-    const response = await this.client.get<ArrayBuffer>(url);
+    const response = await this.client.get<ArrayBuffer>(url, undefined, false, {
+      responseType: 'arraybuffer',
+    });
 
     if (response.error) {
       throw new Error(

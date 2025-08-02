@@ -25,11 +25,16 @@ export interface HeadResponse {
   status: number;
 }
 
+export interface RequestOptions {
+  responseType?: 'arraybuffer' | 'blob' | 'json';
+}
+
 export interface HttpClient {
   get<T>(
     url: string,
     headers?: Header[],
     isJsonRpc?: boolean,
+    options?: RequestOptions,
   ): Promise<ResponseData<T>>;
   post<T>(
     url: string,
@@ -158,6 +163,7 @@ export class AxiosHttpClient implements HttpClient {
   private async request<T>(
     promise: Promise<AxiosResponse<T>>,
     isJsonRpc = false,
+    responseType?: 'arraybuffer' | 'blob' | 'json',
   ): Promise<ResponseData<T>> {
     try {
       const response = await promise;
@@ -182,6 +188,14 @@ export class AxiosHttpClient implements HttpClient {
         };
         return {
           data: headResponse as T,
+          error: null,
+        };
+      }
+
+      // For binary responses, return the raw data
+      if (responseType === 'arraybuffer' || responseType === 'blob') {
+        return {
+          data: response.data as T,
           error: null,
         };
       }
@@ -313,6 +327,7 @@ export class AxiosHttpClient implements HttpClient {
     url: string,
     headers?: Header[],
     isJsonRpc = false,
+    options?: { responseType?: 'arraybuffer' | 'blob' | 'json' },
   ): Promise<ResponseData<T>> {
     const authHeaders = this.getAuthHeaders();
     const mergedHeaders = headers?.reduce(
@@ -322,8 +337,10 @@ export class AxiosHttpClient implements HttpClient {
     return this.request(
       this.axios.get<T>(url, {
         headers: { ...authHeaders, ...mergedHeaders },
+        responseType: options?.responseType,
       }),
       isJsonRpc,
+      options?.responseType,
     );
   }
 
