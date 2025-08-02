@@ -57,18 +57,25 @@ const ExecutionModal: React.FC<ExecutionModalProps> = ({
   };
 
   return (
-    <div className="overlay-backdrop" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose}>
       <div
-        className="overlay-content execution-modal-content"
+        className="modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2>Execute method on context: {context.contextId}</h2>
+        <div className="modal-header">
+          <h2>Execute method on context: {context.contextId}</h2>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
         <div className="form-group">
           <label htmlFor="method-select">Method</label>
           <select
             id="method-select"
             value={selectedMethod}
             onChange={(e) => setSelectedMethod(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', fontSize: '0.9rem' }}
           >
             {METHODS.map((method) => (
               <option key={method.name} value={method.name}>
@@ -92,12 +99,21 @@ const ExecutionModal: React.FC<ExecutionModalProps> = ({
         ))}
 
         <div className="button-group">
-          <button onClick={handleExecute} disabled={isExecuting}>
+          <button 
+            className="execute-button" 
+            onClick={handleExecute} 
+            disabled={isExecuting}
+          >
             {isExecuting ? 'Executing...' : 'Execute'}
           </button>
-          <button onClick={onClose} disabled={isExecuting}>
+          <button 
+            className="cancel-button" 
+            onClick={onClose} 
+            disabled={isExecuting}
+          >
             Cancel
           </button>
+        </div>
         </div>
       </div>
     </div>
