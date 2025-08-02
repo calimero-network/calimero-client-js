@@ -26,6 +26,13 @@ export interface ExecutionResponse {
   error?: string;
 }
 
+// Subscription event types
+export interface SubscriptionEvent {
+  contextId: string;
+  type: 'StateMutation' | 'ExecutionEvent';
+  data: any;
+}
+
 // Interface for the application client
 export interface CalimeroApp {
   /**
@@ -60,4 +67,25 @@ export interface CalimeroApp {
    * @param context - The context to delete.
    */
   deleteContext(context: Context): Promise<void>;
+
+  /**
+   * Subscribes to events for specific contexts.
+   * @param contextIds - Array of context IDs to subscribe to.
+   * @param callback - Function to call when events are received.
+   */
+  subscribeToEvents(
+    contextIds: string[],
+    callback: (event: SubscriptionEvent) => void,
+  ): void;
+
+  /**
+   * Unsubscribes from events for specific contexts.
+   * @param contextIds - Array of context IDs to unsubscribe from.
+   */
+  unsubscribeFromEvents(contextIds: string[]): void;
+
+  /**
+   * Closes the underlying WebSocket connection.
+   */
+  close(): void;
 }
