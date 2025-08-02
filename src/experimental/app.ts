@@ -19,7 +19,7 @@ export class CalimeroApplication implements CalimeroApp {
   constructor(apiClient: ApiClient, clientApplicationId: string) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
-    const baseUrl = getAppEndpointKey() || 'calimero-only-peers-dev.s3.amazonaws.com';
+    const baseUrl = getAppEndpointKey();
     this.websocket = new ExperimentalWebSocket(baseUrl);
   }
 

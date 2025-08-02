@@ -58,10 +58,7 @@ const ExecutionModal: React.FC<ExecutionModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Execute method on context: {context.contextId}</h2>
           <button className="close-button" onClick={onClose}>
@@ -69,51 +66,57 @@ const ExecutionModal: React.FC<ExecutionModalProps> = ({
           </button>
         </div>
         <div className="modal-body">
-        <div className="form-group">
-          <label htmlFor="method-select">Method</label>
-          <select
-            id="method-select"
-            value={selectedMethod}
-            onChange={(e) => setSelectedMethod(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px', fontSize: '0.9rem' }}
-          >
-            {METHODS.map((method) => (
-              <option key={method.name} value={method.name}>
-                {method.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {currentMethod?.args.map((argName) => (
-          <div className="form-group" key={argName}>
-            <label htmlFor={`arg-${argName}`}>{argName}</label>
-            <input
-              type="text"
-              id={`arg-${argName}`}
-              name={argName}
-              value={args[argName] || ''}
-              onChange={handleArgChange}
-            />
+          <div className="form-group">
+            <label htmlFor="method-select">Method</label>
+            <select
+              id="method-select"
+              value={selectedMethod}
+              onChange={(e) => setSelectedMethod(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '0.9rem',
+              }}
+            >
+              {METHODS.map((method) => (
+                <option key={method.name} value={method.name}>
+                  {method.name}
+                </option>
+              ))}
+            </select>
           </div>
-        ))}
 
-        <div className="button-group">
-          <button 
-            className="execute-button" 
-            onClick={handleExecute} 
-            disabled={isExecuting}
-          >
-            {isExecuting ? 'Executing...' : 'Execute'}
-          </button>
-          <button 
-            className="cancel-button" 
-            onClick={onClose} 
-            disabled={isExecuting}
-          >
-            Cancel
-          </button>
-        </div>
+          {currentMethod?.args.map((argName) => (
+            <div className="form-group" key={argName}>
+              <label htmlFor={`arg-${argName}`}>{argName}</label>
+              <input
+                type="text"
+                id={`arg-${argName}`}
+                name={argName}
+                value={args[argName] || ''}
+                onChange={handleArgChange}
+              />
+            </div>
+          ))}
+
+          <div className="button-group">
+            <button
+              className="execute-button"
+              onClick={handleExecute}
+              disabled={isExecuting}
+            >
+              {isExecuting ? 'Executing...' : 'Execute'}
+            </button>
+            <button
+              className="cancel-button"
+              onClick={onClose}
+              disabled={isExecuting}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
