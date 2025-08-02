@@ -2,6 +2,8 @@ import { getAccessToken } from '../storage/storage';
 import { NodeEvent } from '../subscriptions';
 
 const RECONNECT_DELAY = 5000; // 5 seconds
+const PROTOCOL_NAME = 'calimero-client';
+const PROTOCOL_VERSION = '0.1.11';
 
 type WsCallback = (event: NodeEvent) => void;
 
@@ -36,10 +38,11 @@ export class ExperimentalWebSocket {
       return;
     }
 
-    const fullUrl = `${this.url}?token=${encodeURIComponent(accessToken)}`;
+    const fullUrl = this.url; // Token is no longer in the URL
+    const protocol = [`${PROTOCOL_NAME}-v${PROTOCOL_VERSION}`, accessToken]; // Smuggle token
     console.log('Connecting to Experimental WebSocket:', fullUrl);
 
-    this.ws = new WebSocket(fullUrl);
+    this.ws = new WebSocket(fullUrl, protocol);
 
     this.ws.onopen = () => {
       console.log('Experimental WebSocket connected.');
