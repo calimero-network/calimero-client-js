@@ -1,4 +1,6 @@
 import { ApiClient } from '../api';
+import { getAppEndpointKey } from '../storage/storage';
+import { ExperimentalWebSocket } from './websocket';
 
 import {
   Context,
@@ -6,15 +8,19 @@ import {
   Protocol,
   ProtocolID,
   ExecutionResponse,
+  SubscriptionEvent,
 } from './types';
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
   private clientApplicationId: string;
+  private websocket: ExperimentalWebSocket;
 
   constructor(apiClient: ApiClient, clientApplicationId: string) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
+    const baseUrl = getAppEndpointKey() || 'calimero-only-peers-dev.s3.amazonaws.com';
+    this.websocket = new ExperimentalWebSocket(baseUrl);
   }
 
   async fetchContexts(): Promise<Context[]> {
@@ -103,5 +109,20 @@ export class CalimeroApplication implements CalimeroApp {
     if (response.error) {
       throw new Error(`Error deleting context: ${response.error.message}`);
     }
+  }
+
+  subscribeToEvents(
+    contextIds: string[],
+    callback: (event: SubscriptionEvent) => void,
+  ): void {
+    this.websocket.subscribe(contextIds, callback);
+  }
+
+  unsubscribeFromEvents(contextIds: string[]): void {
+    this.websocket.unsubscribe(contextIds);
+  }
+
+  public close(): void {
+    this.websocket.close();
   }
 }
