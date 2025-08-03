@@ -1,0 +1,40 @@
+{
+  "methods": [
+    {
+      "args": [],
+      "name": "init",
+      "result": { "ref": false, "type": "KvStore" }
+    },
+    {
+      "args": [
+        { "name": "key", "type": { "ref": false, "type": "String" } },
+        { "name": "value", "type": { "ref": false, "type": "String" } }
+      ],
+      "name": "set",
+      "result": { "ref": false, "type": "app :: Result < () >" }
+    },
+    {
+      "args": [],
+      "name": "entries",
+      "result": {
+        "ref": false,
+        "type": "app :: Result < BTreeMap < String, String > >"
+      }
+    },
+    {
+      "args": [],
+      "name": "len",
+      "result": { "ref": false, "type": "app :: Result < usize >" }
+    },
+    {
+      "args": [
+        {
+          "name": "key",
+          "type": { "ref": true, "type": "& 'CALIMERO_INPUT str" }
+        }
+      ],
+      "name": "get",
+      "result": { "ref": false, "type": "app :: Result < Option < String > >" }
+    }
+  ]
+}
