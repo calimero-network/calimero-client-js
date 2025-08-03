@@ -8,10 +8,8 @@ import {
   Context,
   ExecutionResponse,
   AppMode,
-  SubscriptionEvent,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
-import EventLog from './EventLog';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, app } = useCalimero();
@@ -20,10 +18,6 @@ const AppContent: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<Context | null>(null);
-  const [subscribedContexts, setSubscribedContexts] = useState<Set<string>>(
-    new Set(),
-  );
-  const [events, setEvents] = useState<SubscriptionEvent[]>([]);
 
   const fetchContexts = useCallback(async () => {
     if (app) {
@@ -58,48 +52,9 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const eventCallback = useCallback((event: SubscriptionEvent) => {
-    setEvents((prevEvents) => [event, ...prevEvents]);
-  }, []);
-
-  const handleToggleSubscription = useCallback(
-    async (contextId: string) => {
-      if (!app) return;
-      const newSubscribed = new Set(subscribedContexts);
-      const isSubscribed = newSubscribed.has(contextId);
-
-      if (isSubscribed) {
-        newSubscribed.delete(contextId);
-        app.unsubscribeFromEvents([contextId]);
-      } else {
-        newSubscribed.add(contextId);
-        app.subscribeToEvents([contextId], eventCallback);
-      }
-      setSubscribedContexts(newSubscribed);
-    },
-    [app, subscribedContexts, eventCallback],
-  );
-
-  const handleToggleAllSubscriptions = useCallback(async () => {
-    if (!app || contexts.length === 0) return;
-    const allContextIds = contexts.map((c) => c.contextId);
-    const allCurrentlySubscribed = subscribedContexts.size === contexts.length;
-
-    if (allCurrentlySubscribed) {
-      app.unsubscribeFromEvents(allContextIds);
-      setSubscribedContexts(new Set());
-    } else {
-      app.subscribeToEvents(allContextIds, eventCallback);
-      setSubscribedContexts(new Set(allContextIds));
-    }
-  }, [app, contexts, subscribedContexts, eventCallback]);
-
   const handleExecute = (response: ExecutionResponse) => {
     console.log('Execution Result:', response);
   };
-
-  const areAllSubscribed =
-    contexts.length > 0 && subscribedContexts.size === contexts.length;
 
   return (
     <div>
@@ -138,23 +93,9 @@ const AppContent: React.FC = () => {
               }}
             >
               <h2>Available Contexts:</h2>
-              <div>
-                <button
-                  onClick={handleToggleAllSubscriptions}
-                  disabled={contexts.length === 0}
-                  className={
-                    areAllSubscribed ? 'unsubscribe-button' : 'subscribe-button'
-                  }
-                  style={{ marginRight: '1rem' }}
-                >
-                  {areAllSubscribed
-                    ? 'Unsubscribe from All'
-                    : 'Subscribe to All'}
-                </button>
-                <button onClick={handleCreateContext} disabled={creating}>
-                  {creating ? 'Creating...' : 'Create New Context'}
-                </button>
-              </div>
+              <button onClick={handleCreateContext} disabled={creating}>
+                {creating ? 'Creating...' : 'Create New Context'}
+              </button>
             </div>
             {loading && <p>Loading contexts...</p>}
             {error && <p style={{ color: 'red' }}>Error: {error}</p>}
@@ -163,52 +104,16 @@ const AppContent: React.FC = () => {
                 {contexts.map((ctx) => (
                   <li
                     key={ctx.contextId}
-                    style={{
-                      cursor: 'pointer',
-                      marginBottom: '0.5rem',
-                      padding: '0.5rem',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
+                    onClick={() => setSelectedContext(ctx)}
+                    style={{ cursor: 'pointer', marginBottom: '0.5rem' }}
                   >
-                    <span>Context ID: {ctx.contextId}</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => handleToggleSubscription(ctx.contextId)}
-                        className={
-                          subscribedContexts.has(ctx.contextId)
-                            ? 'unsubscribe-button'
-                            : 'subscribe-button'
-                        }
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        {subscribedContexts.has(ctx.contextId)
-                          ? 'Unsubscribe'
-                          : 'Subscribe'}
-                      </button>
-                      <button
-                        onClick={() => setSelectedContext(ctx)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        Execute
-                      </button>
-                    </div>
+                    Context ID: {ctx.contextId}
                   </li>
                 ))}
               </ul>
             ) : (
               !loading && <p>No contexts found.</p>
             )}
-            <EventLog events={events} onClear={() => setEvents([])} />
           </div>
         ) : (
           <p>Please connect to see your contexts.</p>
