@@ -12,15 +12,23 @@ const EventLog: React.FC<EventLogProps> = ({ events, onClear }) => {
   return (
     <div className="event-log-container">
       <div className="event-log-header">
-        <h3 onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer' }}>
+        <h3
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{ cursor: 'pointer' }}
+        >
           {isCollapsed ? '▶' : '▼'} Event Log ({events.length})
         </h3>
-        <button onClick={onClear} disabled={events.length === 0}>Clear Log</button>
+        <button onClick={onClear} disabled={events.length === 0}>
+          Clear Log
+        </button>
       </div>
       {!isCollapsed && (
         <div className="event-log-content">
           {events.length === 0 ? (
-            <p>No events received yet. Subscribe to a context and execute a method to see events.</p>
+            <p>
+              No events received yet. Subscribe to a context and execute a
+              method to see events.
+            </p>
           ) : (
             <ul>
               {events.map((event, index) => (
@@ -36,4 +44,4 @@ const EventLog: React.FC<EventLogProps> = ({ events, onClear }) => {
   );
 };
 
-export default EventLog; 
+export default EventLog;
