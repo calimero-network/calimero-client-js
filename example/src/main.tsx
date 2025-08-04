@@ -1,122 +1,91 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  CalimeroProvider,
-  useCalimero,
-  CalimeroConnectButton,
-  CalimeroLogo,
-  Context,
-  ExecutionResponse,
-  AppMode,
-} from '@calimero-network/calimero-client';
+import { CalimeroProvider, useCalimero, Context, CalimeroConnectButton, AppMode, SubscriptionEvent, ExecutionResponse } from '@calimero-network/calimero-client';
+import EventLog from './EventLog';
+import './EventLog.css';
 import ExecutionModal from './ExecutionModal';
+import CalimeroLogo from '../../src/experimental/CalimeroLogo';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, app } = useCalimero();
+  const { app, isAuthenticated } = useCalimero();
   const [contexts, setContexts] = useState<Context[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [subscribedContexts, setSubscribedContexts] = useState<Set<string>>(new Set());
+  const [events, setEvents] = useState<SubscriptionEvent[]>([]);
   const [selectedContext, setSelectedContext] = useState<Context | null>(null);
 
-  const fetchContexts = useCallback(async () => {
-    if (app) {
-      try {
-        setLoading(true);
-        const contexts = await app.fetchContexts();
-        setContexts(contexts);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch contexts.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [app]);
-
   useEffect(() => {
-    fetchContexts();
-  }, [fetchContexts]);
-
-  const handleCreateContext = async () => {
-    if (app) {
-      try {
-        setCreating(true);
-        setError(null);
-        const newContext = await app.createContext();
-        setContexts((prevContexts) => [...prevContexts, newContext]);
-      } catch (err: any) {
-        setError(err.message || 'Failed to create context.');
-      } finally {
-        setCreating(false);
+    const fetchContexts = async () => {
+      if (app) {
+        const fetchedContexts = await app.fetchContexts();
+        setContexts(fetchedContexts);
       }
+    };
+    if (isAuthenticated) {
+      fetchContexts();
     }
-  };
+  }, [app, isAuthenticated]);
+
+  const eventCallback = useCallback((event: SubscriptionEvent) => {
+    setEvents((prevEvents) => [event, ...prevEvents]);
+  }, []);
+  
+  const handleToggleSubscription = useCallback((contextId: string) => {
+    if (!app) return;
+    const newSubscribed = new Set(subscribedContexts);
+    if (newSubscribed.has(contextId)) {
+      newSubscribed.delete(contextId);
+      app.unsubscribeFromEvents([contextId]);
+    } else {
+      newSubscribed.add(contextId);
+      app.subscribeToEvents([contextId], eventCallback);
+    }
+    setSubscribedContexts(newSubscribed);
+  }, [app, subscribedContexts, eventCallback]);
 
   const handleExecute = (response: ExecutionResponse) => {
     console.log('Execution Result:', response);
+    const event: SubscriptionEvent = {
+      contextId: selectedContext?.contextId || 'unknown',
+      type: 'ExecutionEvent',
+      data: response
+    };
+    setEvents(prev => [event, ...prev]);
   };
 
   return (
-    <div>
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '1rem',
-        }}
-      >
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div
-            style={{
-              backgroundColor: 'white',
-              padding: '0.5rem',
-              borderRadius: '8px',
-            }}
-          >
-            <CalimeroLogo
-              style={{ color: 'black', width: '32px', height: '32px' }}
-            />
-          </div>
-          <h1>My dApp</h1>
+          <CalimeroLogo style={{ width: '40px', height: '40px' }} />
+          <h1>Dynamic Example</h1>
         </div>
         <CalimeroConnectButton />
       </header>
+      
       <main>
-        {isAuthenticated ? (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <h2>Available Contexts:</h2>
-              <button onClick={handleCreateContext} disabled={creating}>
-                {creating ? 'Creating...' : 'Create New Context'}
-              </button>
-            </div>
-            {loading && <p>Loading contexts...</p>}
-            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-            {contexts.length > 0 ? (
-              <ul>
-                {contexts.map((ctx) => (
-                  <li
-                    key={ctx.contextId}
-                    onClick={() => setSelectedContext(ctx)}
-                    style={{ cursor: 'pointer', marginBottom: '0.5rem' }}
-                  >
-                    Context ID: {ctx.contextId}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              !loading && <p>No contexts found.</p>
-            )}
-          </div>
+        {!isAuthenticated ? (
+          <p>Please connect your wallet to see available contexts.</p>
         ) : (
-          <p>Please connect to see your contexts.</p>
+          <div>
+            <h2>Available Contexts</h2>
+            {contexts.length === 0 && <p>Loading contexts or none found...</p>}
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {contexts.map(ctx => (
+                <li key={ctx.contextId} style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '1rem', marginBottom: '1rem' }}>
+                  <p><strong>Context ID:</strong> {ctx.contextId}</p>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <button onClick={() => setSelectedContext(ctx)}>
+                      Execute Method
+                    </button>
+                    <button onClick={() => handleToggleSubscription(ctx.contextId)}>
+                      {subscribedContexts.has(ctx.contextId) ? 'Unsubscribe' : 'Subscribe'}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <EventLog events={events} onClear={() => setEvents([])} />
+          </div>
         )}
       </main>
       {selectedContext && app && (
@@ -131,16 +100,14 @@ const AppContent: React.FC = () => {
   );
 };
 
-function App() {
-  return (
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <CalimeroProvider
-      clientApplicationId="bk13KY5TSTjmp3cptTcmiv26upEPRnhs28pZMx2aByX"
+      clientApplicationId="YOUR_CLIENT_APP_ID"
+      applicationPath="YOUR_API_ENDPOINT"
       mode={AppMode.MultiContext}
-      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/b092670d7dacc612ec24701c9bbc8001.wasm"
     >
       <AppContent />
     </CalimeroProvider>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+  </React.StrictMode>
+);
