@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCallback, useState } from 'react';
 
 import Spinner from '../components/loader/Spinner';
@@ -109,6 +109,24 @@ export const SetupModal: React.FC<SetupModalProps> = ({ setNodeServerUrl }) => {
   };
 
   const isSubmitDisabled = !url || Boolean(errors.url);
+
+  useEffect(() => {
+    const fragment = window.location.hash.substring(1);
+    const fragmentParams = new URLSearchParams(fragment);
+    const nodeUrl = fragmentParams.get('node_url');
+
+    if (nodeUrl) {
+      handleUrlChange(decodeURIComponent(nodeUrl));
+
+      fragmentParams.delete('node_url');
+      const newFragment = fragmentParams.toString();
+      const newUrl =
+        window.location.pathname +
+        window.location.search +
+        (newFragment ? `#${newFragment}` : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   return (
     <SetupModalOverlay>
