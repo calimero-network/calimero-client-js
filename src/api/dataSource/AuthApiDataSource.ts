@@ -13,20 +13,22 @@ import {
   GenerateClientKeyRequest,
 } from '../authApi';
 import {
-  getAppEndpointKey,
   APP_URL,
   APPLICATION_ID,
+  getAuthEndpointURL,
+  setAuthEndpointURL,
 } from '../../storage/storage';
 
 export class AuthApiDataSource implements AuthApi {
   constructor(private client: HttpClient) {}
 
   private get baseUrl(): string {
-    return getAppEndpointKey();
+    return getAuthEndpointURL();
   }
 
   async login(request: LoginRequest): ApiResponse<LoginResponse> {
     try {
+      setAuthEndpointURL(request.url);
       window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(this.baseUrl)}`;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {

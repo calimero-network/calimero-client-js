@@ -41,6 +41,12 @@ export const REFRESH_TOKEN = 'refresh-token';
 export const APPLICATION_ID = 'application-id';
 
 /**
+ * @constant {string} AUTH_ENDPOINT_URL
+ * @description The key for the auth endpoint URL in localStorage.
+ */
+export const AUTH_ENDPOINT_URL = 'auth-url';
+
+/**
  * @function setAppEndpointKey
  * @description Sets the Node server URL in localStorage.
  * @param {string} url - The URL of the Node server URL.
@@ -72,6 +78,14 @@ export const getAppEndpointKey = (): string | null => {
  */
 export const clearAppEndpoint = (): void => {
   localStorage.removeItem(APP_URL);
+};
+
+export const setAuthEndpointURL = (url: string): void => {
+  localStorage.setItem(AUTH_ENDPOINT_URL, JSON.stringify(url));
+};
+
+export const getAuthEndpointURL = (): string | null => {
+  return localStorage.getItem(AUTH_ENDPOINT_URL);
 };
 
 /**

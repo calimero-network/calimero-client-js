@@ -146,8 +146,10 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
   };
 
   const login = useCallback(async () => {
+    const host = new URL(nodeServerUrl).host;
+    
     apiClient.auth().login({
-      url: nodeServerUrl,
+      url: host,
       callbackUrl: window.location.href,
       permissions: permissions,
       applicationId: clientApplicationId,
