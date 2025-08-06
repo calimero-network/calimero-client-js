@@ -85,7 +85,15 @@ export const setAuthEndpointURL = (url: string): void => {
 };
 
 export const getAuthEndpointURL = (): string | null => {
-  return localStorage.getItem(AUTH_ENDPOINT_URL);
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const authEndpointURL = localStorage.getItem(AUTH_ENDPOINT_URL);
+      return authEndpointURL ? JSON.parse(authEndpointURL) : null;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
 };
 
 /**
