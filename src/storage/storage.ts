@@ -15,7 +15,6 @@ const getStoragePrefix = (): string => {
     // Check if there's a global config
     const globalConfig = (window as any).__CALIMERO_CONFIG__;
     if (globalConfig?.storagePrefix) {
-      console.log('Using global config prefix:', globalConfig.storagePrefix);
       return globalConfig.storagePrefix;
     }
 
@@ -23,11 +22,8 @@ const getStoragePrefix = (): string => {
     const port = window.location.port;
     const pathname = window.location.pathname;
 
-    console.log('Storage prefix detection:', { hostname, port, pathname });
-
     // Special case: /auth/login should always use 'auth_' prefix
     if (pathname.startsWith('/auth/')) {
-      console.log('Using auth_ prefix for auth service');
       return 'auth_';
     }
 
@@ -157,34 +153,22 @@ export const AUTH_ENDPOINT_URL = 'auth-url';
  */
 export const setAppEndpointKey = (url: string): void => {
   const prefixedKey = getPrefixedKey(APP_URL);
-  console.log(
-    'setAppEndpointKey storing with key:',
-    prefixedKey,
-    'value:',
-    url,
-  );
-  
+
   try {
     // Check if localStorage is available
     if (typeof window === 'undefined' || !window.localStorage) {
-      console.error('setAppEndpointKey: localStorage not available');
       return;
     }
-    
+
     const jsonValue = JSON.stringify(url);
-    console.log('setAppEndpointKey JSON value:', jsonValue);
     localStorage.setItem(prefixedKey, jsonValue);
-    
+
     // Verify it was stored
     const storedValue = localStorage.getItem(prefixedKey);
-    console.log('setAppEndpointKey verification - stored value:', storedValue);
-    
+
     if (storedValue !== jsonValue) {
       console.error('setAppEndpointKey failed to store value correctly');
     }
-    
-    // Also log all localStorage keys to see what's actually there
-    console.log('All localStorage keys:', Object.keys(localStorage));
   } catch (error) {
     console.error('setAppEndpointKey error:', error);
   }
@@ -199,13 +183,11 @@ export const getAppEndpointKey = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const prefixedKey = getPrefixedKey(APP_URL);
-      console.log('getAppEndpointKey looking for key:', prefixedKey);
       const urlEndpoint = localStorage.getItem(prefixedKey);
-      console.log('getAppEndpointKey found value:', urlEndpoint);
       return urlEndpoint ? JSON.parse(urlEndpoint) : null;
     }
   } catch (e) {
-    console.error(e);
+    console.error('getAppEndpointKey error:', e);
   }
   return null;
 };
