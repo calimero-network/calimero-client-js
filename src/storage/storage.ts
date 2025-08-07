@@ -17,53 +17,55 @@ const getStoragePrefix = (): string => {
     if (globalConfig?.storagePrefix) {
       return globalConfig.storagePrefix;
     }
-    
+
     const hostname = window.location.hostname;
     const port = window.location.port;
     const pathname = window.location.pathname;
-    
+
     // Special case: /auth/login should always use 'auth_' prefix
     if (pathname.startsWith('/auth/')) {
       return 'auth_';
     }
-    
+
     // Handle any custom node paths: /nodename, /myapp, /production, etc.
     // This captures any path that starts with / and doesn't start with /auth or /admin-dashboard
-    const pathSegments = pathname.split('/').filter(segment => segment.length > 0);
+    const pathSegments = pathname
+      .split('/')
+      .filter((segment) => segment.length > 0);
     if (pathSegments.length > 0) {
       const firstSegment = pathSegments[0];
-      
+
       // Skip if it's auth or admin-dashboard (handled separately)
       if (firstSegment !== 'auth' && firstSegment !== 'admin-dashboard') {
         // Check if the second segment is admin-dashboard (for nodename/admin-dashboard)
         if (pathSegments.length > 1 && pathSegments[1] === 'admin-dashboard') {
           return `${firstSegment}_admin_`;
         }
-        
+
         // Regular node/app path
         return `${firstSegment}_`;
       }
     }
-    
+
     // Handle admin-dashboard paths (only if it's the first segment)
     if (pathname.startsWith('/admin-dashboard')) {
       return 'admin_';
     }
-    
+
     // Handle localhost with port (e.g., localhost:2428)
     if (hostname === 'localhost' && port) {
       return `localhost${port}_`;
     }
-    
+
     // Handle plain localhost without port
     if (hostname === 'localhost' && !port) {
       return 'localhost_';
     }
-    
+
     // Default prefix for production or other environments
     return 'calimero_';
   }
-  
+
   return 'calimero_';
 };
 
@@ -185,7 +187,9 @@ export const setAuthEndpointURL = (url: string): void => {
 export const getAuthEndpointURL = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const authEndpointURL = localStorage.getItem(getPrefixedKey(AUTH_ENDPOINT_URL));
+      const authEndpointURL = localStorage.getItem(
+        getPrefixedKey(AUTH_ENDPOINT_URL),
+      );
       return authEndpointURL ? JSON.parse(authEndpointURL) : null;
     }
   } catch (e) {
@@ -200,7 +204,10 @@ export const getAuthEndpointURL = (): string | null => {
  * @param {string} applicationId - The ID of the application.
  */
 export const setApplicationId = (applicationId: string): void => {
-  localStorage.setItem(getPrefixedKey(APPLICATION_ID), JSON.stringify(applicationId));
+  localStorage.setItem(
+    getPrefixedKey(APPLICATION_ID),
+    JSON.stringify(applicationId),
+  );
 };
 
 /**
@@ -211,7 +218,9 @@ export const setApplicationId = (applicationId: string): void => {
 export const getApplicationId = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const applicationId = localStorage.getItem(getPrefixedKey(APPLICATION_ID));
+      const applicationId = localStorage.getItem(
+        getPrefixedKey(APPLICATION_ID),
+      );
       return applicationId ? JSON.parse(applicationId) : null;
     }
   } catch (e) {
@@ -282,7 +291,10 @@ export const setContextAndIdentityFromJWT = (accessToken: string) => {
  * @param {string} accessToken - The access token to store.
  */
 export const setAccessToken = (accessToken: string) => {
-  localStorage.setItem(getPrefixedKey(ACCESS_TOKEN), JSON.stringify(accessToken));
+  localStorage.setItem(
+    getPrefixedKey(ACCESS_TOKEN),
+    JSON.stringify(accessToken),
+  );
 };
 
 /**
@@ -351,7 +363,10 @@ export const clearContextId = (): void => {
  * @param {string} refreshToken - The refresh token to store.
  */
 export const setRefreshToken = (refreshToken: string): void => {
-  localStorage.setItem(getPrefixedKey(REFRESH_TOKEN), JSON.stringify(refreshToken));
+  localStorage.setItem(
+    getPrefixedKey(REFRESH_TOKEN),
+    JSON.stringify(refreshToken),
+  );
 };
 
 /**
@@ -385,7 +400,10 @@ export const clearRefreshToken = (): void => {
  * @param {string} publicKey - The public key to store.
  */
 export const setExecutorPublicKey = (publicKey: string) => {
-  localStorage.setItem(getPrefixedKey(CONTEXT_IDENTITY), JSON.stringify(publicKey));
+  localStorage.setItem(
+    getPrefixedKey(CONTEXT_IDENTITY),
+    JSON.stringify(publicKey),
+  );
 };
 
 /**
@@ -396,7 +414,9 @@ export const setExecutorPublicKey = (publicKey: string) => {
 export const getExecutorPublicKey = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      let contextIdentity = localStorage.getItem(getPrefixedKey(CONTEXT_IDENTITY));
+      let contextIdentity = localStorage.getItem(
+        getPrefixedKey(CONTEXT_IDENTITY),
+      );
       return contextIdentity ? JSON.parse(contextIdentity) : null;
     }
     return null;
