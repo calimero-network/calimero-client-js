@@ -235,7 +235,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       const finalUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
 
       try {
-        const response = await fetch(`${finalUrl}/admin-api/health`);
+        const response = await fetch(`${finalUrl}/admin-api/is-authed`);
 
         if (response.ok || response.status === 401) {
           setLoading(false);
