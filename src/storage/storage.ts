@@ -15,6 +15,7 @@ const getStoragePrefix = (): string => {
     // Check if there's a global config
     const globalConfig = (window as any).__CALIMERO_CONFIG__;
     if (globalConfig?.storagePrefix) {
+      console.log('Using global config prefix:', globalConfig.storagePrefix);
       return globalConfig.storagePrefix;
     }
 
@@ -22,8 +23,11 @@ const getStoragePrefix = (): string => {
     const port = window.location.port;
     const pathname = window.location.pathname;
 
+    console.log('Storage prefix detection:', { hostname, port, pathname });
+
     // Special case: /auth/login should always use 'auth_' prefix
     if (pathname.startsWith('/auth/')) {
+      console.log('Using auth_ prefix for auth service');
       return 'auth_';
     }
 
@@ -152,7 +156,9 @@ export const AUTH_ENDPOINT_URL = 'auth-url';
  * @param {string} url - The URL of the Node server URL.
  */
 export const setAppEndpointKey = (url: string): void => {
-  localStorage.setItem(getPrefixedKey(APP_URL), JSON.stringify(url));
+  const prefixedKey = getPrefixedKey(APP_URL);
+  console.log('setAppEndpointKey storing with key:', prefixedKey, 'value:', url);
+  localStorage.setItem(prefixedKey, JSON.stringify(url));
 };
 
 /**
@@ -163,7 +169,10 @@ export const setAppEndpointKey = (url: string): void => {
 export const getAppEndpointKey = (): string | null => {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const urlEndpoint = localStorage.getItem(getPrefixedKey(APP_URL));
+      const prefixedKey = getPrefixedKey(APP_URL);
+      console.log('getAppEndpointKey looking for key:', prefixedKey);
+      const urlEndpoint = localStorage.getItem(prefixedKey);
+      console.log('getAppEndpointKey found value:', urlEndpoint);
       return urlEndpoint ? JSON.parse(urlEndpoint) : null;
     }
   } catch (e) {
