@@ -31,10 +31,10 @@ export class AuthApiDataSource implements AuthApi {
     try {
       setAuthEndpointURL(request.url);
       console.log('request.url', request.url);
-      
+
       // Get the original application URL from localStorage, fallback to callbackUrl if not available
       const originalAppUrl = getAppEndpointKey() || request.callbackUrl;
-      
+
       window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(originalAppUrl)}`;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
