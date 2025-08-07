@@ -163,7 +163,31 @@ export const setAppEndpointKey = (url: string): void => {
     'value:',
     url,
   );
-  localStorage.setItem(prefixedKey, JSON.stringify(url));
+  
+  try {
+    // Check if localStorage is available
+    if (typeof window === 'undefined' || !window.localStorage) {
+      console.error('setAppEndpointKey: localStorage not available');
+      return;
+    }
+    
+    const jsonValue = JSON.stringify(url);
+    console.log('setAppEndpointKey JSON value:', jsonValue);
+    localStorage.setItem(prefixedKey, jsonValue);
+    
+    // Verify it was stored
+    const storedValue = localStorage.getItem(prefixedKey);
+    console.log('setAppEndpointKey verification - stored value:', storedValue);
+    
+    if (storedValue !== jsonValue) {
+      console.error('setAppEndpointKey failed to store value correctly');
+    }
+    
+    // Also log all localStorage keys to see what's actually there
+    console.log('All localStorage keys:', Object.keys(localStorage));
+  } catch (error) {
+    console.error('setAppEndpointKey error:', error);
+  }
 };
 
 /**
