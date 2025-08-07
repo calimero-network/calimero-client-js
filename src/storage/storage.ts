@@ -157,7 +157,12 @@ export const AUTH_ENDPOINT_URL = 'auth-url';
  */
 export const setAppEndpointKey = (url: string): void => {
   const prefixedKey = getPrefixedKey(APP_URL);
-  console.log('setAppEndpointKey storing with key:', prefixedKey, 'value:', url);
+  console.log(
+    'setAppEndpointKey storing with key:',
+    prefixedKey,
+    'value:',
+    url,
+  );
   localStorage.setItem(prefixedKey, JSON.stringify(url));
 };
 
