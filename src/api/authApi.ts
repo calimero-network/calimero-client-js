@@ -76,6 +76,10 @@ export interface GenerateClientKeyRequest {
   target_node_url: string;
 }
 
+export interface CheckAuthResponse {
+  payload: Record<string, any>;
+}
+
 export interface AuthApi {
   login(request: LoginRequest): ApiResponse<LoginResponse>;
   refreshToken(request: RefreshTokenRequest): ApiResponse<RefreshTokenResponse>;
@@ -85,4 +89,5 @@ export interface AuthApi {
   generateClientKey(
     request: GenerateClientKeyRequest,
   ): ApiResponse<TokenResponse>;
+  checkAuth(): ApiResponse<CheckAuthResponse>;
 }

@@ -11,6 +11,7 @@ import {
   TokenResponse,
   ChallengeResponse,
   GenerateClientKeyRequest,
+  CheckAuthResponse,
 } from '../authApi';
 import {
   APP_URL,
@@ -126,5 +127,12 @@ export class AuthApiDataSource implements AuthApi {
         error: { code: 500, message: 'Failed to generate client key.' },
       };
     }
+  }
+
+  async checkAuth(): ApiResponse<CheckAuthResponse> {
+    const response = await this.client.get<CheckAuthResponse>(
+      `${this.baseUrl}/admin-api/is-authed`,
+    );
+    return response;
   }
 }

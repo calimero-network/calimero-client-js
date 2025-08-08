@@ -110,7 +110,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       if (!newAppUrl) return;
 
       const verify = async () => {
-        const response = await apiClient.node().health({ url: newAppUrl });
+        const response = await apiClient.auth().checkAuth();
         if (!response.error) {
           setIsAuthenticated(true);
         }
@@ -125,7 +125,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const savedToken = getAccessToken();
       if (savedUrl && savedToken) {
         try {
-          const response = await apiClient.node().health({ url: savedUrl });
+          const response = await apiClient.auth().checkAuth();
           if (!response.error) {
             setIsAuthenticated(true);
             setIsOnline(true);
@@ -147,7 +147,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const savedUrl = getAppEndpointKey();
       if (savedUrl) {
         try {
-          const response = await apiClient.node().health({ url: savedUrl });
+          const response = await apiClient.auth().checkAuth();
 
           if (response.error && response.error.code === 401) {
             logout();
