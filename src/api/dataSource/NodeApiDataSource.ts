@@ -18,6 +18,7 @@ import {
   ContextUsersList,
   ContextStorage,
   CapabilitiesRequest,
+  CheckAuthResponse,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
@@ -317,5 +318,12 @@ export class NodeApiDataSource implements NodeApi {
         error: { code: 500, message: 'Failed to revoke capabilities.' },
       };
     }
+  }
+
+  async checkAuth(): ApiResponse<CheckAuthResponse> {
+    const response = await this.client.get<CheckAuthResponse>(
+      `${this.baseUrl}/admin-api/is-authed`,
+    );
+    return response;
   }
 }
