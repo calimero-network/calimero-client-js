@@ -150,7 +150,7 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     }
 
     try {
-      const response = await apiClient.auth().checkAuth();
+      const response = await apiClient.node().checkAuth();
       if (response.error?.code === 401) {
         setAuthMode(true);
       } else if (response.error) {
