@@ -11,24 +11,30 @@ import {
   TokenResponse,
   ChallengeResponse,
   GenerateClientKeyRequest,
-  CheckAuthResponse,
 } from '../authApi';
 import {
-  getAppEndpointKey,
   APP_URL,
   APPLICATION_ID,
+  getAuthEndpointURL,
+  setAuthEndpointURL,
+  getAppEndpointKey,
 } from '../../storage/storage';
 
 export class AuthApiDataSource implements AuthApi {
   constructor(private client: HttpClient) {}
 
   private get baseUrl(): string {
-    return getAppEndpointKey();
+    return getAuthEndpointURL();
   }
 
   async login(request: LoginRequest): ApiResponse<LoginResponse> {
     try {
-      window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(this.baseUrl)}`;
+      setAuthEndpointURL(request.url);
+
+      // Get the original application URL from localStorage, fallback to callbackUrl if not available
+      const originalAppUrl = getAppEndpointKey() || request.callbackUrl;
+
+      window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(originalAppUrl)}`;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
       console.error('Error during login redirect:', error);
@@ -120,12 +126,5 @@ export class AuthApiDataSource implements AuthApi {
         error: { code: 500, message: 'Failed to generate client key.' },
       };
     }
-  }
-
-  async checkAuth(): ApiResponse<CheckAuthResponse> {
-    const response = await this.client.get<CheckAuthResponse>(
-      `${this.baseUrl}/admin-api/is-authed`,
-    );
-    return response;
   }
 }

@@ -9,13 +9,13 @@ import {
   UpdateKeyPermissionsRequest,
 } from '../adminApi';
 import { HttpClient } from '../httpClient';
-import { getAppEndpointKey } from '../../storage';
+import { getAuthEndpointURL } from '../../storage';
 
 export class AdminApiDataSource implements AdminApi {
   constructor(private client: HttpClient) {}
 
   private get baseUrl(): string {
-    return getAppEndpointKey();
+    return getAuthEndpointURL();
   }
 
   async getRootKeys(): ApiResponse<RootKey[]> {
