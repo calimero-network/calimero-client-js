@@ -90,6 +90,10 @@ export interface CapabilitiesRequest {
   signer_id: string;
 }
 
+export interface CheckAuthResponse {
+  payload: Record<string, any>;
+}
+
 export interface NodeApi {
   health(request: HealthRequest): ApiResponse<HealthStatus>;
   getContext(contextId: string): ApiResponse<Context>;
@@ -142,4 +146,5 @@ export interface NodeApi {
     contextId: string,
     request: CapabilitiesRequest,
   ): ApiResponse<void>;
+  checkAuth(): ApiResponse<CheckAuthResponse>;
 }

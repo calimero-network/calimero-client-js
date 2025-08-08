@@ -74,10 +74,6 @@ export interface GenerateClientKeyRequest {
   permissions?: string[];
 }
 
-export interface CheckAuthResponse {
-  payload: Record<string, any>;
-}
-
 export interface AuthApi {
   login(request: LoginRequest): ApiResponse<LoginResponse>;
   refreshToken(request: RefreshTokenRequest): ApiResponse<RefreshTokenResponse>;
@@ -87,5 +83,4 @@ export interface AuthApi {
   generateClientKey(
     request: GenerateClientKeyRequest,
   ): ApiResponse<TokenResponse>;
-  checkAuth(): ApiResponse<CheckAuthResponse>;
 }
