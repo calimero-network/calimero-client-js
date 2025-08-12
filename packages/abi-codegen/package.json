@@ -23,7 +23,9 @@
     "vitest": "^1.0.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "calimero",

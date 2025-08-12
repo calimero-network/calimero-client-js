@@ -4,6 +4,8 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { AbiManifest, AbiTypeRef } from './model.js';
+import { deepFreeze } from './utils/deepFreeze.js';
+import { formatAjvErrors } from './utils/ajvFormat.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,10 +29,7 @@ export function parseAbiManifest(json: unknown): AbiManifest {
   // Step 1: Validate against the schema
   const valid = validateSchema(json);
   if (!valid) {
-    const errors = validateSchema.errors
-      ?.map((e: any) => `${e.instancePath} ${e.message}`)
-      .join(', ');
-    throw new Error(`Schema validation failed: ${errors}`);
+    throw new Error("ABI schema validation failed:\n" + formatAjvErrors(validateSchema.errors || []));
   }
 
   const manifest = json as unknown as AbiManifest;
@@ -45,8 +44,11 @@ export function parseAbiManifest(json: unknown): AbiManifest {
   // Step 3: Enforce invariants
   validateInvariants(manifest);
 
-  // Step 4: Return frozen manifest to prevent mutation
-  return Object.freeze(manifest);
+  // Step 4: Check for duplicate names
+  assertUniqueNames(manifest);
+
+  // Step 5: Return deeply frozen manifest to prevent mutation
+  return deepFreeze(manifest);
 }
 
 /**
@@ -85,6 +87,28 @@ function hasKind(
   obj: AbiTypeRef,
 ): obj is Exclude<AbiTypeRef, { $ref: string }> {
   return !isTypeRef(obj) && 'kind' in obj;
+}
+
+/**
+ * Assert that names are unique within their respective collections
+ */
+function assertUniqueNames(manifest: AbiManifest): void {
+  function assertUnique(kind: string, names: string[]) {
+    const seen = new Set<string>();
+    const dups: string[] = [];
+    for (const n of names) {
+      const k = n;
+      if (seen.has(k)) dups.push(k);
+      else seen.add(k);
+    }
+    if (dups.length) {
+      throw new Error(`Duplicate ${kind} names: ${Array.from(new Set(dups)).join(", ")}`);
+    }
+  }
+  
+  assertUnique("method", manifest.methods.map(m => m.name));
+  assertUnique("event", manifest.events.map(e => e.name));
+  assertUnique("type", Object.keys(manifest.types));
 }
 
 /**
