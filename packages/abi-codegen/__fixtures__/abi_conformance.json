@@ -1,16 +1,37 @@
 {
   "schema_version": "wasm-abi/1",
   "types": {
-    "User": {
+    "AbiState": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "counter",
+          "type": { "kind": "u32" }
+        },
+        {
+          "name": "last_updated",
+          "type": { "kind": "u64" }
+        },
+        {
+          "name": "active",
+          "type": { "kind": "bool" }
+        }
+      ]
+    },
+    "Person": {
       "kind": "record",
       "fields": [
         {
           "name": "id",
-          "type": { "kind": "u64" }
+          "type": { "$ref": "UserId32" }
         },
         {
           "name": "name",
           "type": { "kind": "string" }
+        },
+        {
+          "name": "age",
+          "type": { "kind": "u32" }
         },
         {
           "name": "email",
@@ -18,28 +39,25 @@
           "nullable": true
         },
         {
-          "name": "avatar",
-          "type": { "kind": "bytes", "encoding": "hex" }
-        },
-        {
-          "name": "metadata",
-          "type": { "$ref": "UserMetadata" }
+          "name": "profile",
+          "type": { "$ref": "Profile" }
         }
       ]
     },
-    "UserMetadata": {
+    "Profile": {
       "kind": "record",
       "fields": [
         {
-          "name": "created_at",
-          "type": { "kind": "u64" }
+          "name": "bio",
+          "type": { "kind": "string" },
+          "nullable": true
         },
         {
-          "name": "tags",
-          "type": { "kind": "list", "items": { "kind": "string" } }
+          "name": "avatar_hash",
+          "type": { "$ref": "Hash64" }
         },
         {
-          "name": "settings",
+          "name": "preferences",
           "type": {
             "kind": "map",
             "key": { "kind": "string" },
@@ -48,40 +66,125 @@
         }
       ]
     },
-    "FixedBytes": {
+    "Action": {
+      "kind": "variant",
+      "variants": [
+        {
+          "name": "Create",
+          "code": "CREATE",
+          "payload": { "$ref": "Person" }
+        },
+        {
+          "name": "Update",
+          "code": "UPDATE",
+          "payload": {
+            "kind": "record",
+            "fields": [
+              { "name": "id", "type": { "$ref": "UserId32" } },
+              { "name": "changes", "type": { "kind": "string" } }
+            ]
+          }
+        },
+        {
+          "name": "Delete",
+          "code": "DELETE",
+          "payload": { "$ref": "UserId32" }
+        }
+      ]
+    },
+    "ConformanceError": {
+      "kind": "variant",
+      "variants": [
+        {
+          "name": "NotFound",
+          "code": "NOT_FOUND",
+          "payload": {
+            "kind": "record",
+            "fields": [
+              { "name": "resource", "type": { "kind": "string" } },
+              { "name": "id", "type": { "kind": "string" } }
+            ]
+          }
+        },
+        {
+          "name": "InvalidInput",
+          "code": "INVALID_INPUT",
+          "payload": { "kind": "string" }
+        },
+        {
+          "name": "InternalError",
+          "code": "INTERNAL_ERROR"
+        }
+      ]
+    },
+    "UserId32": {
       "kind": "bytes",
       "size": 32,
       "encoding": "hex"
     },
-    "Status": {
-      "kind": "variant",
-      "variants": [
-        {
-          "name": "Active",
-          "code": "ACTIVE"
-        },
-        {
-          "name": "Inactive",
-          "code": "INACTIVE"
-        },
-        {
-          "name": "Pending",
-          "code": "PENDING",
-          "payload": {
-            "kind": "record",
-            "fields": [{ "name": "reason", "type": { "kind": "string" } }]
-          }
-        }
-      ]
+    "Hash64": {
+      "kind": "bytes",
+      "size": 64,
+      "encoding": "hex"
     }
   },
   "methods": [
     {
-      "name": "create_user",
+      "name": "opt_u32",
+      "params": [
+        {
+          "name": "value",
+          "type": { "kind": "u32" },
+          "nullable": true
+        }
+      ],
+      "returns": { "kind": "u32" },
+      "returns_nullable": true
+    },
+    {
+      "name": "list_u32",
+      "params": [
+        {
+          "name": "values",
+          "type": {
+            "kind": "list",
+            "items": { "kind": "u32" }
+          }
+        }
+      ],
+      "returns": {
+        "kind": "list",
+        "items": { "kind": "u32" }
+      }
+    },
+    {
+      "name": "map_u32",
+      "params": [
+        {
+          "name": "data",
+          "type": {
+            "kind": "map",
+            "key": { "kind": "string" },
+            "value": { "kind": "u32" }
+          }
+        }
+      ],
+      "returns": {
+        "kind": "map",
+        "key": { "kind": "string" },
+        "value": { "kind": "u32" }
+      }
+    },
+    {
+      "name": "make_person",
       "params": [
         {
           "name": "name",
           "type": { "kind": "string" }
+        },
+        {
+          "name": "age",
+          "type": { "kind": "u32" }
         },
         {
           "name": "email",
@@ -89,85 +192,130 @@
           "nullable": true
         }
       ],
-      "returns": { "$ref": "User" },
+      "returns": { "$ref": "Person" },
       "errors": [
         {
-          "code": "INVALID_NAME",
-          "payload": {
-            "kind": "record",
-            "fields": [{ "name": "message", "type": { "kind": "string" } }]
-          }
+          "code": "INVALID_AGE",
+          "payload": { "kind": "string" }
         },
         {
-          "code": "USER_EXISTS"
+          "code": "NAME_TOO_LONG"
         }
       ]
     },
     {
-      "name": "get_user",
+      "name": "profile_roundtrip",
+      "params": [
+        {
+          "name": "profile",
+          "type": { "$ref": "Profile" }
+        }
+      ],
+      "returns": { "$ref": "Profile" }
+    },
+    {
+      "name": "act",
+      "params": [
+        {
+          "name": "action",
+          "type": { "$ref": "Action" }
+        }
+      ],
+      "returns": { "kind": "unit" },
+      "errors": [
+        {
+          "code": "ACTION_FAILED",
+          "payload": { "$ref": "ConformanceError" }
+        }
+      ]
+    },
+    {
+      "name": "roundtrip_id",
       "params": [
         {
           "name": "id",
-          "type": { "kind": "u64" }
+          "type": { "$ref": "UserId32" }
         }
       ],
-      "returns": { "$ref": "User" },
+      "returns": { "$ref": "UserId32" }
+    },
+    {
+      "name": "roundtrip_hash",
+      "params": [
+        {
+          "name": "hash",
+          "type": { "$ref": "Hash64" }
+        }
+      ],
+      "returns": { "$ref": "Hash64" }
+    },
+    {
+      "name": "may_fail",
+      "params": [
+        {
+          "name": "should_fail",
+          "type": { "kind": "bool" }
+        }
+      ],
+      "returns": { "kind": "string" },
+      "errors": [
+        {
+          "code": "INTENTIONAL_FAILURE",
+          "payload": { "kind": "string" }
+        }
+      ]
+    },
+    {
+      "name": "find_person",
+      "params": [
+        {
+          "name": "id",
+          "type": { "$ref": "UserId32" }
+        }
+      ],
+      "returns": { "$ref": "Person" },
       "returns_nullable": true,
       "errors": [
         {
-          "code": "USER_NOT_FOUND"
+          "code": "PERSON_NOT_FOUND",
+          "payload": { "$ref": "ConformanceError" }
         }
       ]
-    },
-    {
-      "name": "update_user_status",
-      "params": [
-        {
-          "name": "id",
-          "type": { "kind": "u64" }
-        },
-        {
-          "name": "status",
-          "type": { "$ref": "Status" }
-        }
-      ],
-      "returns": { "kind": "unit" }
-    },
-    {
-      "name": "get_users_by_status",
-      "params": [
-        {
-          "name": "status",
-          "type": { "$ref": "Status" }
-        }
-      ],
-      "returns": { "kind": "list", "items": { "$ref": "User" } }
     }
   ],
   "events": [
     {
-      "name": "user_created",
-      "payload": { "$ref": "User" }
+      "name": "Ping",
+      "payload": { "kind": "unit" }
     },
     {
-      "name": "user_updated",
+      "name": "Named",
+      "payload": { "kind": "string" }
+    },
+    {
+      "name": "Data",
+      "payload": { "kind": "bytes", "encoding": "hex" }
+    },
+    {
+      "name": "PersonUpdated",
       "payload": {
         "kind": "record",
         "fields": [
-          { "name": "user_id", "type": { "kind": "u64" } },
-          {
-            "name": "changes",
-            "type": {
-              "kind": "map",
-              "key": { "kind": "string" },
-              "value": { "kind": "string" }
-            }
-          }
+          { "name": "person", "type": { "$ref": "Person" } },
+          { "name": "timestamp", "type": { "kind": "u64" } }
         ]
       }
     },
     {
-      "name": "user_deleted"
+      "name": "ActionTaken",
+      "payload": {
+        "kind": "record",
+        "fields": [
+          { "name": "action", "type": { "$ref": "Action" } },
+          { "name": "actor", "type": { "$ref": "UserId32" } },
+          { "name": "success", "type": { "kind": "bool" } }
+        ]
+      }
     }
   ]
 }

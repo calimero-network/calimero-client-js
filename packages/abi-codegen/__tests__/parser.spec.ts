@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { parseAbiManifest, loadAbiManifestFromFile } from '../src/parse.js';
+import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe('WASM-ABI v1 Parser', () => {
   describe('valid manifest', () => {
@@ -9,39 +15,46 @@ describe('WASM-ABI v1 Parser', () => {
       );
 
       expect(manifest.schema_version).toBe('wasm-abi/1');
-      expect(manifest.methods).toHaveLength(4);
-      expect(manifest.events).toHaveLength(3);
-      expect(Object.keys(manifest.types)).toHaveLength(4);
+      expect(manifest.methods).toHaveLength(10);
+      expect(manifest.events).toHaveLength(5);
+      expect(Object.keys(manifest.types)).toHaveLength(7);
 
       // Check specific types
-      expect(manifest.types.User).toBeDefined();
-      expect(manifest.types.User.kind).toBe('record');
-      expect(manifest.types.FixedBytes.kind).toBe('bytes');
-      expect((manifest.types.FixedBytes as any).size).toBe(32);
-      expect(manifest.types.Status.kind).toBe('variant');
-      expect((manifest.types.Status as any).variants).toHaveLength(3);
+      expect(manifest.types.AbiState).toBeDefined();
+      expect(manifest.types.AbiState.kind).toBe('record');
+      expect(manifest.types.Person).toBeDefined();
+      expect(manifest.types.Person.kind).toBe('record');
+      expect(manifest.types.Profile).toBeDefined();
+      expect(manifest.types.Profile.kind).toBe('record');
+      expect(manifest.types.Action).toBeDefined();
+      expect(manifest.types.Action.kind).toBe('variant');
+      expect(manifest.types.ConformanceError).toBeDefined();
+      expect(manifest.types.ConformanceError.kind).toBe('variant');
+      expect(manifest.types.UserId32).toBeDefined();
+      expect(manifest.types.UserId32.kind).toBe('bytes');
+      expect(manifest.types.Hash64).toBeDefined();
+      expect(manifest.types.Hash64.kind).toBe('bytes');
 
       // Check methods
-      const createUserMethod = manifest.methods.find(
-        (m) => m.name === 'create_user',
-      );
-      expect(createUserMethod).toBeDefined();
-      expect(createUserMethod!.params).toHaveLength(2);
-      expect(createUserMethod!.params[1].nullable).toBe(true);
-      expect(createUserMethod!.errors).toHaveLength(2);
+      const methodNames = manifest.methods.map((m) => m.name);
+      expect(methodNames).toContain('opt_u32');
+      expect(methodNames).toContain('list_u32');
+      expect(methodNames).toContain('map_u32');
+      expect(methodNames).toContain('make_person');
+      expect(methodNames).toContain('profile_roundtrip');
+      expect(methodNames).toContain('act');
+      expect(methodNames).toContain('roundtrip_id');
+      expect(methodNames).toContain('roundtrip_hash');
+      expect(methodNames).toContain('may_fail');
+      expect(methodNames).toContain('find_person');
 
       // Check events
-      const userCreatedEvent = manifest.events.find(
-        (e) => e.name === 'user_created',
-      );
-      expect(userCreatedEvent).toBeDefined();
-      expect(userCreatedEvent!.payload).toBeDefined();
-
-      const userDeletedEvent = manifest.events.find(
-        (e) => e.name === 'user_deleted',
-      );
-      expect(userDeletedEvent).toBeDefined();
-      expect(userDeletedEvent!.payload).toBeUndefined();
+      const eventNames = manifest.events.map((e) => e.name);
+      expect(eventNames).toContain('Ping');
+      expect(eventNames).toContain('Named');
+      expect(eventNames).toContain('Data');
+      expect(eventNames).toContain('PersonUpdated');
+      expect(eventNames).toContain('ActionTaken');
     });
 
     it('should return frozen manifest', () => {
@@ -52,6 +65,38 @@ describe('WASM-ABI v1 Parser', () => {
       expect(() => {
         (manifest as any).methods = [];
       }).toThrow();
+    });
+
+    it('should have correct invariants on conformance fixture', () => {
+      const manifest = loadAbiManifestFromFile(
+        '__fixtures__/abi_conformance.json',
+      );
+
+      // Check opt_u32 has nullable param and return
+      const optU32Method = manifest.methods.find((m) => m.name === 'opt_u32');
+      expect(optU32Method).toBeDefined();
+      expect(optU32Method!.params[0].nullable).toBe(true);
+      expect(optU32Method!.returns_nullable).toBe(true);
+
+      // Check map_u32 uses string key
+      const mapU32Method = manifest.methods.find((m) => m.name === 'map_u32');
+      expect(mapU32Method).toBeDefined();
+      const mapType = mapU32Method!.params[0].type;
+      expect((mapType as any).key.kind).toBe('string');
+
+      // Check Data event payload is variable bytes (no size)
+      const dataEvent = manifest.events.find((e) => e.name === 'Data');
+      expect(dataEvent).toBeDefined();
+      expect(dataEvent!.payload).toBeDefined();
+      expect('size' in (dataEvent!.payload as any)).toBe(false);
+
+      // Check ConformanceError variants have payload for NOT_FOUND
+      const conformanceError = manifest.types.ConformanceError;
+      const notFoundVariant = (conformanceError as any).variants.find(
+        (v: any) => v.name === 'NotFound',
+      );
+      expect(notFoundVariant).toBeDefined();
+      expect(notFoundVariant!.payload).toBeDefined();
     });
   });
 
@@ -275,6 +320,31 @@ describe('WASM-ABI v1 Parser', () => {
       const variantField = (manifest.types.Complex as any).fields[1].type;
       expect(listField.kind).toBe('list');
       expect(variantField.$ref).toBe('Status');
+    });
+  });
+
+  describe('CLI integration', () => {
+    it('should have correct bin entry in package.json', () => {
+      const packageJson = JSON.parse(
+        readFileSync(resolve(__dirname, '../package.json'), 'utf-8'),
+      );
+      expect(packageJson.bin['calimero-abi-codegen']).toBe('dist/cli.js');
+    });
+
+    it('should have CLI executable after build', () => {
+      const cliPath = resolve(__dirname, '../dist/cli.js');
+      expect(existsSync(cliPath)).toBe(true);
+    });
+
+    it('should have CLI executable and fixture files', () => {
+      const cliPath = resolve(__dirname, '../dist/cli.js');
+      const fixturePath = resolve(
+        __dirname,
+        '../__fixtures__/abi_conformance.json',
+      );
+
+      expect(existsSync(cliPath)).toBe(true);
+      expect(existsSync(fixturePath)).toBe(true);
     });
   });
 });
