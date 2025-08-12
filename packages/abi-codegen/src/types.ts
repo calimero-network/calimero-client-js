@@ -10,7 +10,7 @@ export interface AbiFunction {
   errors: string[];
 }
 
-export type AbiType = 
+export type AbiType =
   | string // Primitive types: "bool", "u8", "i8", etc.
   | Record<string, unknown> // Object types
   | unknown[] // Array types (for Vec<T>)
@@ -19,7 +19,11 @@ export type AbiType =
 // Transport interface for the client wrapper
 export interface CalimeroTransport {
   call<T>(method: string, params: Record<string, unknown>): Promise<T>;
-  subscribe<T>(method: string, params: Record<string, unknown>, callback: (data: T) => void): () => void;
+  subscribe<T>(
+    method: string,
+    params: Record<string, unknown>,
+    callback: (data: T) => void,
+  ): () => void;
 }
 
 // Error types
@@ -31,23 +35,23 @@ export interface CalimeroAbiError {
 // Type mapping from Rust to TypeScript
 export const RUST_TO_TS_TYPES: Record<string, string> = {
   // Primitives
-  'bool': 'boolean',
-  'String': 'string',
-  
+  bool: 'boolean',
+  String: 'string',
+
   // Unsigned integers
-  'u8': 'number',
-  'u16': 'number', 
-  'u32': 'number',
-  'u64': 'number',
-  'u128': 'string',
-  
+  u8: 'number',
+  u16: 'number',
+  u32: 'number',
+  u64: 'number',
+  u128: 'string',
+
   // Signed integers
-  'i8': 'number',
-  'i16': 'number',
-  'i32': 'number', 
-  'i64': 'number',
-  'i128': 'string',
-  
+  i8: 'number',
+  i16: 'number',
+  i32: 'number',
+  i64: 'number',
+  i128: 'string',
+
   // Special types
   'Vec<u8>': 'string', // hex string with 0x prefix
 };
@@ -77,4 +81,4 @@ export function getVecInnerType(type: string): string {
     throw new Error(`Not a Vec type: ${type}`);
   }
   return type.slice(4, -1); // Remove "Vec<" and ">"
-} 
+}

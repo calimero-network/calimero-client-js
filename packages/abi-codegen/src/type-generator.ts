@@ -1,11 +1,11 @@
-import { 
-  AbiType, 
-  RUST_TO_TS_TYPES, 
-  isPrimitiveType, 
-  isOptionType, 
-  isVecType, 
-  getOptionInnerType, 
-  getVecInnerType 
+import {
+  AbiType,
+  RUST_TO_TS_TYPES,
+  isPrimitiveType,
+  isOptionType,
+  isVecType,
+  getOptionInnerType,
+  getVecInnerType,
 } from './types';
 
 export class TypeGenerator {
@@ -43,7 +43,10 @@ export class TypeGenerator {
   /**
    * Generates TypeScript interface for function parameters
    */
-  generateParamsInterface(_functionName: string, params: Record<string, string>): string {
+  generateParamsInterface(
+    _functionName: string,
+    params: Record<string, string>,
+  ): string {
     if (Object.keys(params).length === 0) {
       return 'Record<string, never>';
     }
@@ -104,33 +107,55 @@ export class TypeGenerator {
       return 'never';
     }
 
-    const errorCodes = errors.map(error => `'${error}'`).join(' | ');
+    const errorCodes = errors.map((error) => `'${error}'`).join(' | ');
     return errorCodes;
   }
 
   /**
    * Generates the complete types.ts content
    */
-  generateTypesFile(abi: { schema: string; functions: Record<string, { params: Record<string, string>; returns: AbiType | null; errors: string[] }> }): string {
+  generateTypesFile(abi: {
+    schema: string;
+    functions: Record<
+      string,
+      {
+        params: Record<string, string>;
+        returns: AbiType | null;
+        errors: string[];
+      }
+    >;
+  }): string {
     const imports = `// Generated from ABI schema ${abi.schema}
 // This file contains TypeScript types for the ABI functions
 
 `;
 
-    const errorTypes = Object.entries(abi.functions).map(([functionName, func]) => {
-      const errorCodeType = this.generateErrorCodeType(functionName, func.errors);
-      return `export type ${this.toPascalCase(functionName)}ErrorCode = ${errorCodeType};`;
-    });
+    const errorTypes = Object.entries(abi.functions).map(
+      ([functionName, func]) => {
+        const errorCodeType = this.generateErrorCodeType(
+          functionName,
+          func.errors,
+        );
+        return `export type ${this.toPascalCase(functionName)}ErrorCode = ${errorCodeType};`;
+      },
+    );
 
-    const paramTypes = Object.entries(abi.functions).map(([functionName, func]) => {
-      const paramsInterface = this.generateParamsInterface(functionName, func.params);
-      return `export type ${this.toPascalCase(functionName)}Params = ${paramsInterface};`;
-    });
+    const paramTypes = Object.entries(abi.functions).map(
+      ([functionName, func]) => {
+        const paramsInterface = this.generateParamsInterface(
+          functionName,
+          func.params,
+        );
+        return `export type ${this.toPascalCase(functionName)}Params = ${paramsInterface};`;
+      },
+    );
 
-    const returnTypes = Object.entries(abi.functions).map(([functionName, func]) => {
-      const returnType = this.generateReturnType(func.returns);
-      return `export type ${this.toPascalCase(functionName)}Return = ${returnType};`;
-    });
+    const returnTypes = Object.entries(abi.functions).map(
+      ([functionName, func]) => {
+        const returnType = this.generateReturnType(func.returns);
+        return `export type ${this.toPascalCase(functionName)}Return = ${returnType};`;
+      },
+    );
 
     const errorInterface = `
 export interface CalimeroAbiError {
@@ -139,11 +164,16 @@ export interface CalimeroAbiError {
 }
 `;
 
-    return imports + 
-           errorTypes.join('\n') + '\n\n' +
-           paramTypes.join('\n') + '\n\n' +
-           returnTypes.join('\n') + '\n' +
-           errorInterface;
+    return (
+      imports +
+      errorTypes.join('\n') +
+      '\n\n' +
+      paramTypes.join('\n') +
+      '\n\n' +
+      returnTypes.join('\n') +
+      '\n' +
+      errorInterface
+    );
   }
 
   /**
@@ -152,7 +182,7 @@ export interface CalimeroAbiError {
   private toPascalCase(str: string): string {
     return str
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join('');
   }
-} 
+}

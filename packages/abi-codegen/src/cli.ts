@@ -16,9 +16,12 @@ program
       const codegen = new AbiCodegen();
       codegen.generate(options.input, options.output);
     } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : String(error));
+      console.error(
+        'Error:',
+        error instanceof Error ? error.message : String(error),
+      );
       process.exit(1);
     }
   });
 
-program.parse(); 
+program.parse();

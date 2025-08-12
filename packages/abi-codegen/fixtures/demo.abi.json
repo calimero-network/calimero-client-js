@@ -63,4 +63,4 @@
       "errors": ["USER_NOT_FOUND", "USER_HAS_BALANCE", "ACCESS_DENIED"]
     }
   }
-} 
+}

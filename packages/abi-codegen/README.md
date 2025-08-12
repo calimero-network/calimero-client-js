@@ -26,6 +26,7 @@ calimero-abi-codegen -i ./my-contract.abi.json -o ./generated
 ```
 
 This will generate:
+
 - `./generated/types.ts` - TypeScript interfaces and types
 - `./generated/client.ts` - Typed client wrapper
 
@@ -33,16 +34,16 @@ This will generate:
 
 The codegen supports the following Rust to TypeScript type mappings:
 
-| Rust Type | TypeScript Type | Notes |
-|-----------|----------------|-------|
-| `bool` | `boolean` | |
-| `String` | `string` | |
-| `u8` - `u64` | `number` | Unsigned integers up to 64 bits |
-| `i8` - `i64` | `number` | Signed integers up to 64 bits |
-| `u128`, `i128` | `string` | Large integers as strings |
-| `Vec<u8>` | `string` | Hex string with 0x prefix |
-| `Option<T>` | `T \| null` | Optional values |
-| `Vec<T>` | `T[]` | Arrays (where T is a primitive) |
+| Rust Type      | TypeScript Type | Notes                           |
+| -------------- | --------------- | ------------------------------- |
+| `bool`         | `boolean`       |                                 |
+| `String`       | `string`        |                                 |
+| `u8` - `u64`   | `number`        | Unsigned integers up to 64 bits |
+| `i8` - `i64`   | `number`        | Signed integers up to 64 bits   |
+| `u128`, `i128` | `string`        | Large integers as strings       |
+| `Vec<u8>`      | `string`        | Hex string with 0x prefix       |
+| `Option<T>`    | `T \| null`     | Optional values                 |
+| `Vec<T>`       | `T[]`           | Arrays (where T is a primitive) |
 
 ## ABI Schema Format
 
@@ -148,13 +149,19 @@ export class CalimeroAbiClient {
 
   async getUserInfo(params: GetUserInfoParams): Promise<GetUserInfoReturn> {
     try {
-      const result = await this.transport.call<GetUserInfoReturn>('get_user_info', params);
+      const result = await this.transport.call<GetUserInfoReturn>(
+        'get_user_info',
+        params,
+      );
       return result;
     } catch (error) {
-      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'get_user_info')) {
+      if (
+        this.isCalimeroError(error) &&
+        this.isKnownError(error.code, 'get_user_info')
+      ) {
         throw {
           code: error.code as GetUserInfoErrorCode,
-          data: error.data
+          data: error.data,
         } as CalimeroAbiError;
       }
       throw error;
@@ -163,13 +170,19 @@ export class CalimeroAbiClient {
 
   async createUser(params: CreateUserParams): Promise<CreateUserReturn> {
     try {
-      const result = await this.transport.call<CreateUserReturn>('create_user', params);
+      const result = await this.transport.call<CreateUserReturn>(
+        'create_user',
+        params,
+      );
       return result;
     } catch (error) {
-      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'create_user')) {
+      if (
+        this.isCalimeroError(error) &&
+        this.isKnownError(error.code, 'create_user')
+      ) {
         throw {
           code: error.code as CreateUserErrorCode,
-          data: error.data
+          data: error.data,
         } as CalimeroAbiError;
       }
       throw error;
@@ -182,8 +195,8 @@ export class CalimeroAbiClient {
 
   private isKnownError(code: string, functionName: string): boolean {
     const knownErrors = {
-      "get_user_info": ["USER_NOT_FOUND", "ACCESS_DENIED"],
-      "create_user": ["EMAIL_ALREADY_EXISTS"]
+      get_user_info: ['USER_NOT_FOUND', 'ACCESS_DENIED'],
+      create_user: ['EMAIL_ALREADY_EXISTS'],
     };
     return knownErrors[functionName]?.includes(code) ?? false;
   }
@@ -203,7 +216,11 @@ class MyTransport implements CalimeroTransport {
     return {} as T;
   }
 
-  subscribe<T>(method: string, params: Record<string, unknown>, callback: (data: T) => void): () => void {
+  subscribe<T>(
+    method: string,
+    params: Record<string, unknown>,
+    callback: (data: T) => void,
+  ): () => void {
     // Your implementation here
     return () => {}; // unsubscribe function
   }
@@ -216,14 +233,14 @@ const client = new CalimeroAbiClient(transport);
 // Type-safe function calls
 const userInfo = await client.getUserInfo({
   userId: 123,
-  includePrivate: false
+  includePrivate: false,
 });
 
 // Error handling with typed error codes
 try {
   await client.createUser({
-    name: "John Doe",
-    email: "john@example.com"
+    name: 'John Doe',
+    email: 'john@example.com',
   });
 } catch (error) {
   if (error.code === 'EMAIL_ALREADY_EXISTS') {
@@ -278,4 +295,4 @@ npm run prettier:check
 
 ## License
 
-MIT 
+MIT

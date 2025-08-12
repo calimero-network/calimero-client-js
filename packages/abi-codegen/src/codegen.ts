@@ -20,12 +20,12 @@ export class AbiCodegen {
     try {
       const content = readFileSync(filePath, 'utf-8');
       const abi = JSON.parse(content) as AbiSchema;
-      
+
       // Validate schema
       if (!abi.schema) {
         throw new Error('ABI schema must have a "schema" field');
       }
-      
+
       if (!abi.functions || typeof abi.functions !== 'object') {
         throw new Error('ABI schema must have a "functions" field');
       }
@@ -33,13 +33,17 @@ export class AbiCodegen {
       // Validate each function
       for (const [functionName, func] of Object.entries(abi.functions)) {
         if (!func.params || typeof func.params !== 'object') {
-          throw new Error(`Function "${functionName}" must have a "params" field`);
+          throw new Error(
+            `Function "${functionName}" must have a "params" field`,
+          );
         }
-        
+
         if (!Array.isArray(func.errors)) {
-          throw new Error(`Function "${functionName}" must have an "errors" array`);
+          throw new Error(
+            `Function "${functionName}" must have an "errors" array`,
+          );
         }
-        
+
         // Note: returns can be null, so we don't validate it
       }
 
@@ -80,13 +84,13 @@ export class AbiCodegen {
   generate(inputFile: string, outputDir: string): void {
     console.log(`Loading ABI schema from: ${inputFile}`);
     const abi = this.loadAbiSchema(inputFile);
-    
+
     console.log(`Schema version: ${abi.schema}`);
     console.log(`Functions found: ${Object.keys(abi.functions).length}`);
-    
+
     console.log(`Generating TypeScript files to: ${outputDir}`);
     this.generateFiles(abi, outputDir);
-    
+
     console.log('Code generation completed successfully!');
   }
-} 
+}
