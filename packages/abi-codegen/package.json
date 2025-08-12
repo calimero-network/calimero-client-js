@@ -1,0 +1,55 @@
+{
+  "name": "@calimero/abi-codegen",
+  "version": "0.1.0",
+  "description": "TypeScript code generator for Calimero ABI schemas",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "calimero-abi-codegen": "lib/cli.cjs"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "tsc && esbuild src/cli.ts --bundle --platform=node --target=node18 --format=cjs --outfile=lib/cli.cjs",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prettier": "prettier . --write",
+    "prettier:check": "prettier . --check",
+    "clean": "rimraf lib",
+    "prepack": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^18.19.34",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "esbuild": "^0.25.8",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^26.0.1",
+    "prettier": "3.3.2",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^26.5.6",
+    "typescript": "^4.9.5"
+  },
+  "keywords": [
+    "calimero",
+    "abi",
+    "codegen",
+    "typescript",
+    "client"
+  ],
+  "license": "MIT",
+  "author": "Calimero Ltd",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+} 

@@ -1,0 +1,66 @@
+{
+  "schema": "0.1.1",
+  "functions": {
+    "get_user_info": {
+      "params": {
+        "user_id": "u64",
+        "include_private": "bool"
+      },
+      "returns": {
+        "name": "String",
+        "email": "String",
+        "age": "u8",
+        "balance": "u128",
+        "is_active": "bool",
+        "metadata": "Option<String>",
+        "tags": "Vec<String>",
+        "avatar": "Option<Vec<u8>>"
+      },
+      "errors": ["USER_NOT_FOUND", "INVALID_USER_ID", "ACCESS_DENIED"]
+    },
+    "create_user": {
+      "params": {
+        "name": "String",
+        "email": "String",
+        "age": "u8",
+        "initial_balance": "u128",
+        "tags": "Vec<String>",
+        "avatar": "Option<Vec<u8>>"
+      },
+      "returns": {
+        "user_id": "u64",
+        "created_at": "u64"
+      },
+      "errors": ["EMAIL_ALREADY_EXISTS", "INVALID_EMAIL", "INVALID_AGE"]
+    },
+    "update_balance": {
+      "params": {
+        "user_id": "u64",
+        "amount": "i128",
+        "reason": "Option<String>"
+      },
+      "returns": {
+        "new_balance": "u128",
+        "transaction_id": "String"
+      },
+      "errors": ["USER_NOT_FOUND", "INSUFFICIENT_FUNDS", "INVALID_AMOUNT"]
+    },
+    "get_user_list": {
+      "params": {
+        "limit": "u32",
+        "offset": "u32",
+        "active_only": "bool"
+      },
+      "returns": "Vec<u64>",
+      "errors": ["INVALID_LIMIT", "INVALID_OFFSET"]
+    },
+    "delete_user": {
+      "params": {
+        "user_id": "u64",
+        "force": "bool"
+      },
+      "returns": null,
+      "errors": ["USER_NOT_FOUND", "USER_HAS_BALANCE", "ACCESS_DENIED"]
+    }
+  }
+} 

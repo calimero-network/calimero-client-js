@@ -1,0 +1,216 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AbiCodegen should generate types and client from demo ABI: client.ts 1`] = `
+"// Generated from ABI schema 0.1.1
+// This file contains a typed client wrapper for the ABI functions
+
+import type { CalimeroAbiError } from './types';
+import type { GetUserInfoParams, GetUserInfoReturn, GetUserInfoErrorCode, CreateUserParams, CreateUserReturn, CreateUserErrorCode, UpdateBalanceParams, UpdateBalanceReturn, UpdateBalanceErrorCode, GetUserListParams, GetUserListReturn, GetUserListErrorCode, DeleteUserParams, DeleteUserReturn, DeleteUserErrorCode } from './types';
+
+// Transport interface for the client wrapper
+export interface CalimeroTransport {
+  call<T>(method: string, params: Record<string, unknown>): Promise<T>;
+  subscribe<T>(method: string, params: Record<string, unknown>, callback: (data: T) => void): () => void;
+}
+
+export class CalimeroAbiClient {
+  constructor(private transport: CalimeroTransport) {}
+
+  async getUserInfo(params: GetUserInfoParams): Promise<GetUserInfoReturn> {
+    try {
+      const result = await this.transport.call<GetUserInfoReturn>('get_user_info', params);
+      return result;
+    } catch (error) {
+      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'get_user_info')) {
+        throw {
+          code: error.code as GetUserInfoErrorCode,
+          data: error.data
+        } as CalimeroAbiError;
+      }
+      throw error;
+    }
+  }
+
+  async createUser(params: CreateUserParams): Promise<CreateUserReturn> {
+    try {
+      const result = await this.transport.call<CreateUserReturn>('create_user', params);
+      return result;
+    } catch (error) {
+      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'create_user')) {
+        throw {
+          code: error.code as CreateUserErrorCode,
+          data: error.data
+        } as CalimeroAbiError;
+      }
+      throw error;
+    }
+  }
+
+  async updateBalance(params: UpdateBalanceParams): Promise<UpdateBalanceReturn> {
+    try {
+      const result = await this.transport.call<UpdateBalanceReturn>('update_balance', params);
+      return result;
+    } catch (error) {
+      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'update_balance')) {
+        throw {
+          code: error.code as UpdateBalanceErrorCode,
+          data: error.data
+        } as CalimeroAbiError;
+      }
+      throw error;
+    }
+  }
+
+  async getUserList(params: GetUserListParams): Promise<GetUserListReturn> {
+    try {
+      const result = await this.transport.call<GetUserListReturn>('get_user_list', params);
+      return result;
+    } catch (error) {
+      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'get_user_list')) {
+        throw {
+          code: error.code as GetUserListErrorCode,
+          data: error.data
+        } as CalimeroAbiError;
+      }
+      throw error;
+    }
+  }
+
+  async deleteUser(params: DeleteUserParams): Promise<void> {
+    try {
+      const result = await this.transport.call<DeleteUserReturn>('delete_user', params);
+      return result;
+    } catch (error) {
+      if (this.isCalimeroError(error) && this.isKnownError(error.code, 'delete_user')) {
+        throw {
+          code: error.code as DeleteUserErrorCode,
+          data: error.data
+        } as CalimeroAbiError;
+      }
+      throw error;
+    }
+  }
+
+  private isCalimeroError(error: unknown): error is CalimeroAbiError {
+    return typeof error === 'object' && error !== null && 'code' in error;
+  }
+
+  private isKnownError(code: string, functionName: string): boolean {
+    const knownErrors: Record<string, string[]> = {\\"get_user_info\\":[\\"USER_NOT_FOUND\\",\\"INVALID_USER_ID\\",\\"ACCESS_DENIED\\"],\\"create_user\\":[\\"EMAIL_ALREADY_EXISTS\\",\\"INVALID_EMAIL\\",\\"INVALID_AGE\\"],\\"update_balance\\":[\\"USER_NOT_FOUND\\",\\"INSUFFICIENT_FUNDS\\",\\"INVALID_AMOUNT\\"],\\"get_user_list\\":[\\"INVALID_LIMIT\\",\\"INVALID_OFFSET\\"],\\"delete_user\\":[\\"USER_NOT_FOUND\\",\\"USER_HAS_BALANCE\\",\\"ACCESS_DENIED\\"]};
+    return knownErrors[functionName]?.includes(code) ?? false;
+  }
+}
+"
+`;
+
+exports[`AbiCodegen should generate types and client from demo ABI: types.ts 1`] = `
+"// Generated from ABI schema 0.1.1
+// This file contains TypeScript types for the ABI functions
+
+export type GetUserInfoErrorCode = 'USER_NOT_FOUND' | 'INVALID_USER_ID' | 'ACCESS_DENIED';
+export type CreateUserErrorCode = 'EMAIL_ALREADY_EXISTS' | 'INVALID_EMAIL' | 'INVALID_AGE';
+export type UpdateBalanceErrorCode = 'USER_NOT_FOUND' | 'INSUFFICIENT_FUNDS' | 'INVALID_AMOUNT';
+export type GetUserListErrorCode = 'INVALID_LIMIT' | 'INVALID_OFFSET';
+export type DeleteUserErrorCode = 'USER_NOT_FOUND' | 'USER_HAS_BALANCE' | 'ACCESS_DENIED';
+
+export type GetUserInfoParams = {
+  user_id: number;
+  include_private: boolean;
+};
+export type CreateUserParams = {
+  name: string;
+  email: string;
+  age: number;
+  initial_balance: string;
+  tags: string[];
+  avatar: string | null;
+};
+export type UpdateBalanceParams = {
+  user_id: number;
+  amount: string;
+  reason: string | null;
+};
+export type GetUserListParams = {
+  limit: number;
+  offset: number;
+  active_only: boolean;
+};
+export type DeleteUserParams = {
+  user_id: number;
+  force: boolean;
+};
+
+export type GetUserInfoReturn = {
+  name: string;
+  email: string;
+  age: number;
+  balance: string;
+  is_active: boolean;
+  metadata: string | null;
+  tags: string[];
+  avatar: string | null;
+};
+export type CreateUserReturn = {
+  user_id: number;
+  created_at: number;
+};
+export type UpdateBalanceReturn = {
+  new_balance: string;
+  transaction_id: string;
+};
+export type GetUserListReturn = number[];
+export type DeleteUserReturn = void;
+
+export interface CalimeroAbiError {
+  code: string;
+  data?: unknown;
+}
+"
+`;
+
+exports[`AbiCodegen should handle empty functions object: empty-client.ts 1`] = `
+"// Generated from ABI schema 0.1.1
+// This file contains a typed client wrapper for the ABI functions
+
+import type { CalimeroAbiError } from './types';
+import type {  } from './types';
+
+// Transport interface for the client wrapper
+export interface CalimeroTransport {
+  call<T>(method: string, params: Record<string, unknown>): Promise<T>;
+  subscribe<T>(method: string, params: Record<string, unknown>, callback: (data: T) => void): () => void;
+}
+
+export class CalimeroAbiClient {
+  constructor(private transport: CalimeroTransport) {}
+
+
+
+  private isCalimeroError(error: unknown): error is CalimeroAbiError {
+    return typeof error === 'object' && error !== null && 'code' in error;
+  }
+
+  private isKnownError(code: string, functionName: string): boolean {
+    const knownErrors: Record<string, string[]> = {};
+    return knownErrors[functionName]?.includes(code) ?? false;
+  }
+}
+"
+`;
+
+exports[`AbiCodegen should handle empty functions object: empty-types.ts 1`] = `
+"// Generated from ABI schema 0.1.1
+// This file contains TypeScript types for the ABI functions
+
+
+
+
+
+
+
+export interface CalimeroAbiError {
+  code: string;
+  data?: unknown;
+}
+"
+`;
