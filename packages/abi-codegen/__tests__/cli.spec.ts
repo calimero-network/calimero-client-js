@@ -10,16 +10,22 @@ const __dirname = dirname(__filename);
 describe('CLI', () => {
   it('should have CLI executable and fixture files', () => {
     const cliPath = resolve(__dirname, '../dist/cli.js');
-    const fixturePath = resolve(__dirname, '../__fixtures__/abi_conformance.json');
-    
+    const fixturePath = resolve(
+      __dirname,
+      '../__fixtures__/abi_conformance.json',
+    );
+
     expect(existsSync(cliPath)).toBe(true);
     expect(existsSync(fixturePath)).toBe(true);
   });
 
   it('should validate valid ABI successfully', () => {
-    const fixturePath = resolve(__dirname, '../__fixtures__/abi_conformance.json');
+    const fixturePath = resolve(
+      __dirname,
+      '../__fixtures__/abi_conformance.json',
+    );
     const manifest = loadAbiManifestFromFile(fixturePath);
-    
+
     expect(manifest.schema_version).toBe('wasm-abi/1');
     expect(manifest.methods).toHaveLength(10);
     expect(manifest.events).toHaveLength(5);
@@ -36,18 +42,17 @@ describe('CLI', () => {
       events: [
         {
           name: 'test_event',
-          type: { kind: 'string' } // Should be 'payload'
-        }
-      ]
+          type: { kind: 'string' }, // Should be 'payload'
+        },
+      ],
     };
-    
+
     try {
       writeFileSync(tempFile, JSON.stringify(invalidAbi, null, 2));
-      
+
       expect(() => {
         loadAbiManifestFromFile(tempFile);
       }).toThrow('ABI schema validation failed:');
-      
     } finally {
       try {
         unlinkSync(tempFile);
@@ -56,4 +61,4 @@ describe('CLI', () => {
       }
     }
   });
-}); 
+});

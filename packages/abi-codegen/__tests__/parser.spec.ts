@@ -66,17 +66,17 @@ describe('WASM-ABI v1 Parser', () => {
       expect(() => {
         (manifest as any).methods = [];
       }).toThrow();
-      
+
       // Test that nested objects are also frozen
       expect(() => {
         (manifest.methods as any).push({ name: 'test', params: [] });
       }).toThrow();
-      
+
       // Test that nested type objects are frozen
       expect(() => {
         (manifest.types.Person as any).fields = [];
       }).toThrow();
-      
+
       // Verify that Object.isFrozen returns true for nested objects
       expect(Object.isFrozen(manifest.methods)).toBe(true);
       expect(Object.isFrozen(manifest.types.Person)).toBe(true);
@@ -228,12 +228,14 @@ describe('WASM-ABI v1 Parser', () => {
         types: {},
         methods: [
           { name: 'test', params: [] },
-          { name: 'test', params: [] } // Duplicate name
+          { name: 'test', params: [] }, // Duplicate name
         ],
-        events: []
+        events: [],
       };
-      
-      expect(() => parseAbiManifest(invalidManifest)).toThrow('Duplicate method names: test');
+
+      expect(() => parseAbiManifest(invalidManifest)).toThrow(
+        'Duplicate method names: test',
+      );
     });
 
     it('should reject duplicate event names', () => {
@@ -243,11 +245,13 @@ describe('WASM-ABI v1 Parser', () => {
         methods: [],
         events: [
           { name: 'test_event' },
-          { name: 'test_event' } // Duplicate name
-        ]
+          { name: 'test_event' }, // Duplicate name
+        ],
       };
-      
-      expect(() => parseAbiManifest(invalidManifest)).toThrow('Duplicate event names: test_event');
+
+      expect(() => parseAbiManifest(invalidManifest)).toThrow(
+        'Duplicate event names: test_event',
+      );
     });
 
     it('should reject duplicate type names', () => {
@@ -256,12 +260,12 @@ describe('WASM-ABI v1 Parser', () => {
       const invalidManifest = {
         schema_version: 'wasm-abi/1',
         types: {
-          Test: { kind: 'record', fields: [] }
+          Test: { kind: 'record', fields: [] },
         },
         methods: [],
-        events: []
+        events: [],
       };
-      
+
       // The duplicate detection is more about preventing programming errors
       // and ensuring the logic works correctly
       expect(() => parseAbiManifest(invalidManifest)).not.toThrow();

@@ -29,7 +29,10 @@ export function parseAbiManifest(json: unknown): AbiManifest {
   // Step 1: Validate against the schema
   const valid = validateSchema(json);
   if (!valid) {
-    throw new Error("ABI schema validation failed:\n" + formatAjvErrors(validateSchema.errors || []));
+    throw new Error(
+      'ABI schema validation failed:\n' +
+        formatAjvErrors(validateSchema.errors || []),
+    );
   }
 
   const manifest = json as unknown as AbiManifest;
@@ -102,13 +105,21 @@ function assertUniqueNames(manifest: AbiManifest): void {
       else seen.add(k);
     }
     if (dups.length) {
-      throw new Error(`Duplicate ${kind} names: ${Array.from(new Set(dups)).join(", ")}`);
+      throw new Error(
+        `Duplicate ${kind} names: ${Array.from(new Set(dups)).join(', ')}`,
+      );
     }
   }
-  
-  assertUnique("method", manifest.methods.map(m => m.name));
-  assertUnique("event", manifest.events.map(e => e.name));
-  assertUnique("type", Object.keys(manifest.types));
+
+  assertUnique(
+    'method',
+    manifest.methods.map((m) => m.name),
+  );
+  assertUnique(
+    'event',
+    manifest.events.map((e) => e.name),
+  );
+  assertUnique('type', Object.keys(manifest.types));
 }
 
 /**
