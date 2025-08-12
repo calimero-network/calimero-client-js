@@ -1,0 +1,173 @@
+{
+  "schema_version": "wasm-abi/1",
+  "types": {
+    "User": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "id",
+          "type": { "kind": "u64" }
+        },
+        {
+          "name": "name",
+          "type": { "kind": "string" }
+        },
+        {
+          "name": "email",
+          "type": { "kind": "string" },
+          "nullable": true
+        },
+        {
+          "name": "avatar",
+          "type": { "kind": "bytes", "encoding": "hex" }
+        },
+        {
+          "name": "metadata",
+          "type": { "$ref": "UserMetadata" }
+        }
+      ]
+    },
+    "UserMetadata": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "created_at",
+          "type": { "kind": "u64" }
+        },
+        {
+          "name": "tags",
+          "type": { "kind": "list", "items": { "kind": "string" } }
+        },
+        {
+          "name": "settings",
+          "type": {
+            "kind": "map",
+            "key": { "kind": "string" },
+            "value": { "kind": "string" }
+          }
+        }
+      ]
+    },
+    "FixedBytes": {
+      "kind": "bytes",
+      "size": 32,
+      "encoding": "hex"
+    },
+    "Status": {
+      "kind": "variant",
+      "variants": [
+        {
+          "name": "Active",
+          "code": "ACTIVE"
+        },
+        {
+          "name": "Inactive",
+          "code": "INACTIVE"
+        },
+        {
+          "name": "Pending",
+          "code": "PENDING",
+          "payload": {
+            "kind": "record",
+            "fields": [{ "name": "reason", "type": { "kind": "string" } }]
+          }
+        }
+      ]
+    }
+  },
+  "methods": [
+    {
+      "name": "create_user",
+      "params": [
+        {
+          "name": "name",
+          "type": { "kind": "string" }
+        },
+        {
+          "name": "email",
+          "type": { "kind": "string" },
+          "nullable": true
+        }
+      ],
+      "returns": { "$ref": "User" },
+      "errors": [
+        {
+          "code": "INVALID_NAME",
+          "payload": {
+            "kind": "record",
+            "fields": [{ "name": "message", "type": { "kind": "string" } }]
+          }
+        },
+        {
+          "code": "USER_EXISTS"
+        }
+      ]
+    },
+    {
+      "name": "get_user",
+      "params": [
+        {
+          "name": "id",
+          "type": { "kind": "u64" }
+        }
+      ],
+      "returns": { "$ref": "User" },
+      "returns_nullable": true,
+      "errors": [
+        {
+          "code": "USER_NOT_FOUND"
+        }
+      ]
+    },
+    {
+      "name": "update_user_status",
+      "params": [
+        {
+          "name": "id",
+          "type": { "kind": "u64" }
+        },
+        {
+          "name": "status",
+          "type": { "$ref": "Status" }
+        }
+      ],
+      "returns": { "kind": "unit" }
+    },
+    {
+      "name": "get_users_by_status",
+      "params": [
+        {
+          "name": "status",
+          "type": { "$ref": "Status" }
+        }
+      ],
+      "returns": { "kind": "list", "items": { "$ref": "User" } }
+    }
+  ],
+  "events": [
+    {
+      "name": "user_created",
+      "payload": { "$ref": "User" }
+    },
+    {
+      "name": "user_updated",
+      "payload": {
+        "kind": "record",
+        "fields": [
+          { "name": "user_id", "type": { "kind": "u64" } },
+          {
+            "name": "changes",
+            "type": {
+              "kind": "map",
+              "key": { "kind": "string" },
+              "value": { "kind": "string" }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "user_deleted"
+    }
+  ]
+}
