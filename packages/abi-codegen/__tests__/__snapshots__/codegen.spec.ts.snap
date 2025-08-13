@@ -22,83 +22,6 @@ export class TestClient {
   }
 
   /**
-   * Utility function to convert hex string to Uint8Array
-   */
-  private hexToBytes(hex: string): Uint8Array {
-    return new Uint8Array(hex.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-  }
-
-  /**
-   * Utility function to convert Uint8Array to hex string
-   */
-  private bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  /**
-   * Utility function to deserialize bytes from contract responses
-   */
-  private deserializeBytes(result: any): Uint8Array {
-    if (Array.isArray(result)) {
-      return new Uint8Array(result);
-    }
-    // Handle case where result might be a hex string
-    if (typeof result === 'string') {
-      return this.hexToBytes(result);
-    }
-    throw new Error(\`Unexpected bytes result format: \${typeof result}\`);
-  }
-
-  /**
-   * Utility function to convert complex types with hex bytes fields
-   */
-  private convertComplexType(obj: any, typeRef: any): any {
-    if (!obj) return obj;
-    const result = { ...obj };
-    if (typeRef.$ref === "Person") {
-      if (typeof result.id === "string") {
-        result.id = Array.from(this.hexToBytes(result.id));
-      }
-    } else if (typeRef.$ref === "Profile") {
-      if (typeof result.avatar === "string") {
-        result.avatar = Array.from(this.hexToBytes(result.avatar));
-      }
-    } else if (typeRef.$ref === "UpdatePayload") {
-      if (typeof result.id === "string") {
-        result.id = Array.from(this.hexToBytes(result.id));
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Utility function to convert enum variants to contract format
-   */
-  private convertVariant(variant: any, typeRef: any): any {
-    if (!variant) return variant;
-    
-    if (typeRef.$ref === "Action") {
-      // Convert Action variant to WASM format
-      if (typeof variant === "object" && "name" in variant) {
-        if ("payload" in variant) {
-          // Convert complex payload types if needed
-          let convertedPayload = variant.payload;
-          if (variant.name === "Update" && typeof variant.payload === "object") {
-            convertedPayload = this.convertComplexType(variant.payload, { $ref: "UpdatePayload" });
-          }
-          return { [variant.name]: convertedPayload };
-        } else {
-          return variant.name;
-        }
-      } else if (typeof variant === "string") {
-        return variant;
-      }
-    }
-    
-    return variant;
-  }
-
-  /**
    * init
    */
   public async init(): Promise<Types.AbiState> {
@@ -222,13 +145,9 @@ export class TestClient {
    * echo_bytes
    */
   public async echoBytes(params: { b: string }): Promise<string> {
-    const convertedParams = {
-      b: Array.from(this.hexToBytes(params.b)),
-    };
-    const response = await this.app.execute(this.context, 'echo_bytes', convertedParams);
+    const response = await this.app.execute(this.context, 'echo_bytes', params);
     if (response.success) {
-      const resultBytes = this.deserializeBytes(response.result);
-      return this.bytesToHex(resultBytes) as string;
+      return response.result as string;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -262,10 +181,7 @@ export class TestClient {
    * opt_record
    */
   public async optRecord(params: { p: Types.Person | null }): Promise<Types.Person | null> {
-    const convertedParams = {
-      p: params.p ? this.convertComplexType(params.p, {"$ref":"Person"}) : null,
-    };
-    const response = await this.app.execute(this.context, 'opt_record', convertedParams);
+    const response = await this.app.execute(this.context, 'opt_record', params);
     if (response.success) {
       return response.result as Types.Person | null;
     } else {
@@ -277,16 +193,9 @@ export class TestClient {
    * opt_id
    */
   public async optId(params: { x: string | null }): Promise<string | null> {
-    const convertedParams = {
-      x: params.x ? Array.from(this.hexToBytes(params.x)) : null,
-    };
-    const response = await this.app.execute(this.context, 'opt_id', convertedParams);
+    const response = await this.app.execute(this.context, 'opt_id', params);
     if (response.success) {
-      if (response.result === null) {
-        return null as string | null;
-      }
-      const resultBytes = this.deserializeBytes(response.result);
-      return this.bytesToHex(resultBytes) as string | null;
+      return response.result as string | null;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -380,10 +289,7 @@ export class TestClient {
    * make_person
    */
   public async makePerson(params: { p: Types.Person }): Promise<Types.Person> {
-    const convertedParams = {
-      p: params.p ? this.convertComplexType(params.p, {"$ref":"Person"}) : null,
-    };
-    const response = await this.app.execute(this.context, 'make_person', convertedParams);
+    const response = await this.app.execute(this.context, 'make_person', params);
     if (response.success) {
       return response.result as Types.Person;
     } else {
@@ -395,10 +301,7 @@ export class TestClient {
    * profile_roundtrip
    */
   public async profileRoundtrip(params: { p: Types.Profile }): Promise<Types.Profile> {
-    const convertedParams = {
-      p: params.p ? this.convertComplexType(params.p, {"$ref":"Profile"}) : null,
-    };
-    const response = await this.app.execute(this.context, 'profile_roundtrip', convertedParams);
+    const response = await this.app.execute(this.context, 'profile_roundtrip', params);
     if (response.success) {
       return response.result as Types.Profile;
     } else {
@@ -410,10 +313,7 @@ export class TestClient {
    * act
    */
   public async act(params: { a: Types.ActionPayload }): Promise<number> {
-    const convertedParams = {
-      a: params.a ? this.convertVariant(params.a, {"$ref":"Action"}) : null,
-    };
-    const response = await this.app.execute(this.context, 'act', convertedParams);
+    const response = await this.app.execute(this.context, 'act', params);
     if (response.success) {
       return response.result as number;
     } else {
@@ -425,13 +325,9 @@ export class TestClient {
    * roundtrip_id
    */
   public async roundtripId(params: { x: string }): Promise<string> {
-    const convertedParams = {
-      x: Array.from(this.hexToBytes(params.x)),
-    };
-    const response = await this.app.execute(this.context, 'roundtrip_id', convertedParams);
+    const response = await this.app.execute(this.context, 'roundtrip_id', params);
     if (response.success) {
-      const resultBytes = this.deserializeBytes(response.result);
-      return this.bytesToHex(resultBytes) as string;
+      return response.result as string;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -441,13 +337,9 @@ export class TestClient {
    * roundtrip_hash
    */
   public async roundtripHash(params: { h: string }): Promise<string> {
-    const convertedParams = {
-      h: Array.from(this.hexToBytes(params.h)),
-    };
-    const response = await this.app.execute(this.context, 'roundtrip_hash', convertedParams);
+    const response = await this.app.execute(this.context, 'roundtrip_hash', params);
     if (response.success) {
-      const resultBytes = this.deserializeBytes(response.result);
-      return this.bytesToHex(resultBytes) as string;
+      return response.result as string;
     } else {
       throw new Error(response.error || 'Execution failed');
     }

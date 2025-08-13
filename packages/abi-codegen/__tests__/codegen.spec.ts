@@ -150,7 +150,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
+        "const response = await this.app.execute(this.context, 'make_person', params);",
       );
       expect(clientContent).toContain(
         '@throws {Types.may_failError} May throw the following errors:',
@@ -174,7 +174,7 @@ describe('Codegen', () => {
         'async roundtripId(params: { x: string }): Promise<string> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'roundtrip_id', convertedParams);",
+        "const response = await this.app.execute(this.context, 'roundtrip_id', params);",
       );
       expect(clientContent).toContain(
         'async optU32(params: { x: number | null }): Promise<number | null> {',
@@ -192,7 +192,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
+        "const response = await this.app.execute(this.context, 'make_person', params);",
       );
     });
 
@@ -236,7 +236,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
+        "const response = await this.app.execute(this.context, 'make_person', params);",
       );
     });
 
