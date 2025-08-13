@@ -481,6 +481,21 @@ function App() {
         },
       },
 
+      // 27c. act with Update payload
+      {
+        name: 'actWithUpdate',
+        test: async () => {
+          const input = Action.Update({ age: 30 });
+          const result = await client.act({ a: input });
+          return {
+            method: 'actWithUpdate',
+            status: 'success' as const,
+            message: '✅ act() - Execute action with Update payload',
+            details: { input, output: result },
+          };
+        },
+      },
+
       // 28. may_fail
       {
         name: 'mayFail',
