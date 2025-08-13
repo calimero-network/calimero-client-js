@@ -79,13 +79,7 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest): string[] {
 
   lines.push('   */');
 
-  // Generate method signature
-  const params = method.params.map((param) => {
-    const paramType = generateTypeRef(param.type, manifest);
-    const nullableType = param.nullable ? `${paramType} | null` : paramType;
-    return `${formatIdentifier(param.name)}: ${nullableType}`;
-  });
-
+  // Generate method signature and body
   const returnType = method.returns
     ? generateTypeRef(method.returns, manifest)
     : 'void';
@@ -93,28 +87,28 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest): string[] {
     ? `${returnType} | null`
     : returnType;
 
-  // Generate method body using CalimeroApp transport
   if (method.params.length === 0) {
-    // No parameters - use empty object
+    // No parameters - expose method with no arguments and pass empty object
     lines.push(
       `  public async ${methodName}(): Promise<${nullableReturnType}> {`,
     );
-    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', {});`);
-  } else if (method.params.length === 1) {
-    // Single parameter - pass directly
-    const param = method.params[0];
-    const paramName = formatIdentifier(param.name);
     lines.push(
-      `  public async ${methodName}(${params.join(', ')}): Promise<${nullableReturnType}> {`,
+      `    const response = await this.app.execute(this.context, '${method.name}', {});`,
     );
-    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', ${paramName});`);
   } else {
-    // Multiple parameters - create params object
+    // 1+ parameters - build object type and expose single params argument
+    const paramsTypeFields = method.params.map((param) => {
+      const paramType = generateTypeRef(param.type, manifest);
+      const nullableType = param.nullable ? `${paramType} | null` : paramType;
+      return `${formatIdentifier(param.name)}: ${nullableType}`;
+    });
+    
     lines.push(
-      `  public async ${methodName}(${params.join(', ')}): Promise<${nullableReturnType}> {`,
+      `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
-    const paramsObj = method.params.map(p => `${formatIdentifier(p.name)}`).join(', ');
-    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', { ${paramsObj} });`);
+    lines.push(
+      `    const response = await this.app.execute(this.context, '${method.name}', params);`,
+    );
   }
 
   // Add response handling

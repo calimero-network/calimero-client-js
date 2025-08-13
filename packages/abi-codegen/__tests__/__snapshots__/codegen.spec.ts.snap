@@ -23,8 +23,8 @@ export class TestClient {
   /**
    * opt_u32
    */
-  public async optU32(value: number | null): Promise<number | null> {
-    const response = await this.app.execute(this.context, 'opt_u32', value);
+  public async optU32(params: { value: number | null }): Promise<number | null> {
+    const response = await this.app.execute(this.context, 'opt_u32', params);
     if (response.success) {
       return response.result as number | null;
     } else {
@@ -35,8 +35,8 @@ export class TestClient {
   /**
    * list_u32
    */
-  public async listU32(values: number[]): Promise<number[]> {
-    const response = await this.app.execute(this.context, 'list_u32', values);
+  public async listU32(params: { values: number[] }): Promise<number[]> {
+    const response = await this.app.execute(this.context, 'list_u32', params);
     if (response.success) {
       return response.result as number[];
     } else {
@@ -47,8 +47,8 @@ export class TestClient {
   /**
    * map_u32
    */
-  public async mapU32(data: Record<string, number>): Promise<Record<string, number>> {
-    const response = await this.app.execute(this.context, 'map_u32', data);
+  public async mapU32(params: { data: Record<string, number> }): Promise<Record<string, number>> {
+    const response = await this.app.execute(this.context, 'map_u32', params);
     if (response.success) {
       return response.result as Record<string, number>;
     } else {
@@ -63,8 +63,8 @@ export class TestClient {
    * - INVALID_AGE: string
    * - NAME_TOO_LONG
    */
-  public async makePerson(name: string, age: number, email: string | null): Promise<Person> {
-    const response = await this.app.execute(this.context, 'make_person', { name, age, email });
+  public async makePerson(params: { name: string; age: number; email: string | null }): Promise<Person> {
+    const response = await this.app.execute(this.context, 'make_person', params);
     if (response.success) {
       return response.result as Person;
     } else {
@@ -75,8 +75,8 @@ export class TestClient {
   /**
    * profile_roundtrip
    */
-  public async profileRoundtrip(profile: Profile): Promise<Profile> {
-    const response = await this.app.execute(this.context, 'profile_roundtrip', profile);
+  public async profileRoundtrip(params: { profile: Profile }): Promise<Profile> {
+    const response = await this.app.execute(this.context, 'profile_roundtrip', params);
     if (response.success) {
       return response.result as Profile;
     } else {
@@ -90,8 +90,8 @@ export class TestClient {
    * @throws {Error} May throw the following errors:
    * - ACTION_FAILED: ConformanceError
    */
-  public async act(action: Action): Promise<void> {
-    const response = await this.app.execute(this.context, 'act', action);
+  public async act(params: { action: Action }): Promise<void> {
+    const response = await this.app.execute(this.context, 'act', params);
     if (response.success) {
       return response.result as void;
     } else {
@@ -102,8 +102,8 @@ export class TestClient {
   /**
    * roundtrip_id
    */
-  public async roundtripId(id: UserId32): Promise<UserId32> {
-    const response = await this.app.execute(this.context, 'roundtrip_id', id);
+  public async roundtripId(params: { id: UserId32 }): Promise<UserId32> {
+    const response = await this.app.execute(this.context, 'roundtrip_id', params);
     if (response.success) {
       return response.result as UserId32;
     } else {
@@ -114,8 +114,8 @@ export class TestClient {
   /**
    * roundtrip_hash
    */
-  public async roundtripHash(hash: Hash64): Promise<Hash64> {
-    const response = await this.app.execute(this.context, 'roundtrip_hash', hash);
+  public async roundtripHash(params: { hash: Hash64 }): Promise<Hash64> {
+    const response = await this.app.execute(this.context, 'roundtrip_hash', params);
     if (response.success) {
       return response.result as Hash64;
     } else {
@@ -129,8 +129,8 @@ export class TestClient {
    * @throws {Error} May throw the following errors:
    * - INTENTIONAL_FAILURE: string
    */
-  public async mayFail(should_fail: boolean): Promise<string> {
-    const response = await this.app.execute(this.context, 'may_fail', should_fail);
+  public async mayFail(params: { should_fail: boolean }): Promise<string> {
+    const response = await this.app.execute(this.context, 'may_fail', params);
     if (response.success) {
       return response.result as string;
     } else {
@@ -144,8 +144,8 @@ export class TestClient {
    * @throws {Error} May throw the following errors:
    * - PERSON_NOT_FOUND: ConformanceError
    */
-  public async findPerson(id: UserId32): Promise<Person | null> {
-    const response = await this.app.execute(this.context, 'find_person', id);
+  public async findPerson(params: { id: UserId32 }): Promise<Person | null> {
+    const response = await this.app.execute(this.context, 'find_person', params);
     if (response.success) {
       return response.result as Person | null;
     } else {

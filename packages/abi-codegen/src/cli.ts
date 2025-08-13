@@ -78,9 +78,7 @@ function showHelp() {
   console.log(
     '  calimero-abi-codegen -i abi.json -o src --name-from kv_store.wasm',
   );
-  console.log(
-    '  calimero-abi-codegen -i abi-conformance.json -o src',
-  );
+  console.log('  calimero-abi-codegen -i abi-conformance.json -o src');
 }
 
 function main() {
@@ -118,7 +116,7 @@ function main() {
     // Code generation (default behavior)
     const inputPath = args.input || args.i || 'abi.json';
     const outputPath = args.output || args.o || 'src';
-    
+
     // Name resolution logic with priority order
     let clientName: string;
     if (args['client-name']) {
