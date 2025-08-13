@@ -62,8 +62,10 @@
       ]
     },
     "Hash64": {
-      "kind": "bytes",
-      "size": 64
+      "kind": "alias",
+      "target": {
+        "kind": "bytes"
+      }
     },
     "Person": {
       "kind": "record",
@@ -116,10 +118,6 @@
         }
       ]
     },
-    "UserId32": {
-      "kind": "bytes",
-      "size": 32
-    },
     "UpdatePayload": {
       "kind": "record",
       "fields": [
@@ -130,6 +128,13 @@
           }
         }
       ]
+    },
+    "UserId32": {
+      "kind": "alias",
+      "target": {
+        "kind": "bytes",
+        "size": 32
+      }
     }
   },
   "methods": [
@@ -165,7 +170,7 @@
       "name": "echo_i32",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "i32"
           }
@@ -179,7 +184,7 @@
       "name": "echo_i64",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "i64"
           }
@@ -193,7 +198,7 @@
       "name": "echo_u32",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "u32"
           }
@@ -207,7 +212,7 @@
       "name": "echo_u64",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "u64"
           }
@@ -221,7 +226,7 @@
       "name": "echo_f32",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "f32"
           }
@@ -235,7 +240,7 @@
       "name": "echo_f64",
       "params": [
         {
-          "name": "v",
+          "name": "x",
           "type": {
             "kind": "f64"
           }
@@ -383,12 +388,18 @@
         {
           "name": "ps",
           "type": {
-            "kind": "string"
+            "kind": "list",
+            "items": {
+              "$ref": "Person"
+            }
           }
         }
       ],
       "returns": {
-        "kind": "string"
+        "kind": "list",
+        "items": {
+          "$ref": "Person"
+        }
       }
     },
     {
@@ -397,12 +408,18 @@
         {
           "name": "xs",
           "type": {
-            "kind": "string"
+            "kind": "list",
+            "items": {
+              "$ref": "UserId32"
+            }
           }
         }
       ],
       "returns": {
-        "kind": "string"
+        "kind": "list",
+        "items": {
+          "$ref": "UserId32"
+        }
       }
     },
     {
@@ -469,12 +486,24 @@
         {
           "name": "m",
           "type": {
-            "kind": "string"
+            "kind": "map",
+            "key": {
+              "kind": "string"
+            },
+            "value": {
+              "$ref": "Person"
+            }
           }
         }
       ],
       "returns": {
-        "kind": "string"
+        "kind": "map",
+        "key": {
+          "kind": "string"
+        },
+        "value": {
+          "$ref": "Person"
+        }
       }
     },
     {
@@ -559,18 +588,7 @@
       ],
       "returns": {
         "kind": "u32"
-      },
-      "errors": [
-        {
-          "code": "BAD_INPUT"
-        },
-        {
-          "code": "NOT_FOUND",
-          "payload": {
-            "kind": "string"
-          }
-        }
-      ]
+      }
     },
     {
       "name": "find_person",
@@ -584,18 +602,7 @@
       ],
       "returns": {
         "$ref": "Person"
-      },
-      "errors": [
-        {
-          "code": "BAD_INPUT"
-        },
-        {
-          "code": "NOT_FOUND",
-          "payload": {
-            "kind": "string"
-          }
-        }
-      ]
+      }
     }
   ],
   "events": [
@@ -617,13 +624,13 @@
     {
       "name": "PersonUpdated",
       "payload": {
-        "kind": "string"
+        "$ref": "Person"
       }
     },
     {
       "name": "ActionTaken",
       "payload": {
-        "kind": "string"
+        "$ref": "Action"
       }
     }
   ]

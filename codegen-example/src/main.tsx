@@ -10,6 +10,8 @@ import {
   CalimeroConnectButton,
 } from '@calimero-network/calimero-client';
 
+
+
 import './EventLog.css';
 
 // Calimero app configuration
@@ -344,7 +346,17 @@ function App() {
       {
         name: 'listRecords',
         test: async () => {
-          const result = await client.listRecords({ ps: 'test' });
+          const person1 = {
+            id: '07'.repeat(32), // 32 bytes of 0x07 as hex string
+            name: 'List Person 1',
+            age: 40,
+          };
+          const person2 = {
+            id: '08'.repeat(32), // 32 bytes of 0x08 as hex string
+            name: 'List Person 2',
+            age: 45,
+          };
+          const result = await client.listRecords({ ps: [person1, person2] });
           return {
             method: 'listRecords',
             status: 'success' as const,
@@ -358,7 +370,8 @@ function App() {
       {
         name: 'listIds',
         test: async () => {
-          const result = await client.listIds({ xs: 'test' });
+          const ids = ['09'.repeat(32), '0A'.repeat(32)]; // 32 bytes each as hex strings
+          const result = await client.listIds({ xs: ids });
           return {
             method: 'listIds',
             status: 'success' as const,
@@ -403,7 +416,14 @@ function App() {
       {
         name: 'mapRecord',
         test: async () => {
-          const result = await client.mapRecord({ m: 'test' });
+          const person = {
+            id: '06'.repeat(32), // 32 bytes of 0x06 as hex string
+            name: 'Map Person',
+            age: 35,
+          };
+          const result = await client.mapRecord({ 
+            m: { 'key1': person, 'key2': person } 
+          });
           return {
             method: 'mapRecord',
             status: 'success' as const,

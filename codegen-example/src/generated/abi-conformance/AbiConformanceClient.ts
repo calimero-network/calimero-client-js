@@ -225,10 +225,10 @@ export class AbiConformanceClient {
   /**
    * list_records
    */
-  public async listRecords(params: { ps: string }): Promise<string> {
+  public async listRecords(params: { ps: Types.Person[] }): Promise<Types.Person[]> {
     const response = await this.app.execute(this.context, 'list_records', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as Types.Person[];
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -237,10 +237,10 @@ export class AbiConformanceClient {
   /**
    * list_ids
    */
-  public async listIds(params: { xs: string }): Promise<string> {
+  public async listIds(params: { xs: string[] }): Promise<string[]> {
     const response = await this.app.execute(this.context, 'list_ids', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as string[];
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -273,10 +273,10 @@ export class AbiConformanceClient {
   /**
    * map_record
    */
-  public async mapRecord(params: { m: string }): Promise<string> {
+  public async mapRecord(params: { m: Record<string, Types.Person> }): Promise<Record<string, Types.Person>> {
     const response = await this.app.execute(this.context, 'map_record', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as Record<string, Types.Person>;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
