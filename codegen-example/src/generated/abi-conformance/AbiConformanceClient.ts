@@ -57,7 +57,7 @@ export class AbiConformanceClient {
   /**
    * echo_i32
    */
-  public async echoI32(params: { v: number }): Promise<number> {
+  public async echoI32(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_i32', params);
     if (response.success) {
       return response.result as number;
@@ -69,7 +69,7 @@ export class AbiConformanceClient {
   /**
    * echo_i64
    */
-  public async echoI64(params: { v: number }): Promise<number> {
+  public async echoI64(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_i64', params);
     if (response.success) {
       return response.result as number;
@@ -81,7 +81,7 @@ export class AbiConformanceClient {
   /**
    * echo_u32
    */
-  public async echoU32(params: { v: number }): Promise<number> {
+  public async echoU32(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_u32', params);
     if (response.success) {
       return response.result as number;
@@ -93,7 +93,7 @@ export class AbiConformanceClient {
   /**
    * echo_u64
    */
-  public async echoU64(params: { v: number }): Promise<number> {
+  public async echoU64(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_u64', params);
     if (response.success) {
       return response.result as number;
@@ -105,7 +105,7 @@ export class AbiConformanceClient {
   /**
    * echo_f32
    */
-  public async echoF32(params: { v: number }): Promise<number> {
+  public async echoF32(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_f32', params);
     if (response.success) {
       return response.result as number;
@@ -117,7 +117,7 @@ export class AbiConformanceClient {
   /**
    * echo_f64
    */
-  public async echoF64(params: { v: number }): Promise<number> {
+  public async echoF64(params: { x: number }): Promise<number> {
     const response = await this.app.execute(this.context, 'echo_f64', params);
     if (response.success) {
       return response.result as number;
@@ -141,10 +141,10 @@ export class AbiConformanceClient {
   /**
    * echo_bytes
    */
-  public async echoBytes(params: { b: string }): Promise<string> {
+  public async echoBytes(params: { b: Uint8Array }): Promise<Uint8Array> {
     const response = await this.app.execute(this.context, 'echo_bytes', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as Uint8Array;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -189,10 +189,10 @@ export class AbiConformanceClient {
   /**
    * opt_id
    */
-  public async optId(params: { x: string | null }): Promise<string | null> {
+  public async optId(params: { x: Types.UserId32 | null }): Promise<Types.UserId32 | null> {
     const response = await this.app.execute(this.context, 'opt_id', params);
     if (response.success) {
-      return response.result as string | null;
+      return response.result as Types.UserId32 | null;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -237,10 +237,10 @@ export class AbiConformanceClient {
   /**
    * list_ids
    */
-  public async listIds(params: { xs: string[] }): Promise<string[]> {
+  public async listIds(params: { xs: Types.UserId32[] }): Promise<Types.UserId32[]> {
     const response = await this.app.execute(this.context, 'list_ids', params);
     if (response.success) {
-      return response.result as string[];
+      return response.result as Types.UserId32[];
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -321,10 +321,10 @@ export class AbiConformanceClient {
   /**
    * roundtrip_id
    */
-  public async roundtripId(params: { x: string }): Promise<string> {
+  public async roundtripId(params: { x: Types.UserId32 }): Promise<Types.UserId32> {
     const response = await this.app.execute(this.context, 'roundtrip_id', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as Types.UserId32;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -333,10 +333,10 @@ export class AbiConformanceClient {
   /**
    * roundtrip_hash
    */
-  public async roundtripHash(params: { h: string }): Promise<string> {
+  public async roundtripHash(params: { h: Types.Hash64 }): Promise<Types.Hash64> {
     const response = await this.app.execute(this.context, 'roundtrip_hash', params);
     if (response.success) {
-      return response.result as string;
+      return response.result as Types.Hash64;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -344,43 +344,25 @@ export class AbiConformanceClient {
 
   /**
    * may_fail
-   *
-   * @throws {Types.may_failError} May throw the following errors:
-   * - BAD_INPUT
-   * - NOT_FOUND: string
    */
   public async mayFail(params: { flag: boolean }): Promise<number> {
     const response = await this.app.execute(this.context, 'may_fail', params);
     if (response.success) {
       return response.result as number;
     } else {
-      // Parse the error response to match the expected error type
-      if (response.error && typeof response.error === 'object') {
-        throw response.error as Types.may_failError;
-      } else {
-        throw new Error(response.error || 'Execution failed');
-      }
+      throw new Error(response.error || 'Execution failed');
     }
   }
 
   /**
    * find_person
-   *
-   * @throws {Types.find_personError} May throw the following errors:
-   * - BAD_INPUT
-   * - NOT_FOUND: string
    */
   public async findPerson(params: { name: string }): Promise<Types.Person> {
     const response = await this.app.execute(this.context, 'find_person', params);
     if (response.success) {
       return response.result as Types.Person;
     } else {
-      // Parse the error response to match the expected error type
-      if (response.error && typeof response.error === 'object') {
-        throw response.error as Types.find_personError;
-      } else {
-        throw new Error(response.error || 'Execution failed');
-      }
+      throw new Error(response.error || 'Execution failed');
     }
   }
 

@@ -103,12 +103,15 @@ function generateTypeDefinition(
   } else if (typeDef.kind === 'bytes') {
     if ('size' in typeDef) {
       lines.push(
-        `/** Fixed-length bytes (size: ${typeDef.size}). Represented as string at runtime. */`,
+        `/** Fixed-length bytes (size: ${typeDef.size}). Represented as Uint8Array at runtime. */`,
       );
-      lines.push(`export type ${safeName} = string;`);
+      lines.push(`export type ${safeName} = Uint8Array;`);
     } else {
-      lines.push(`export type ${safeName} = string;`);
+      lines.push(`export type ${safeName} = Uint8Array;`);
     }
+  } else if (typeDef.kind === 'alias') {
+    const targetType = generateTypeRef(typeDef.target, manifest, true);
+    lines.push(`export type ${safeName} = ${targetType};`);
   }
 
   return lines;
@@ -147,7 +150,7 @@ function generateTypeRef(
     case 'unit':
       return 'void';
     case 'bytes':
-      return forUserApi ? 'string' : 'Uint8Array';
+      return 'Uint8Array';
     case 'list':
       const itemType = generateTypeRef(typeRef.items, manifest, forUserApi);
       return `${itemType}[]`;

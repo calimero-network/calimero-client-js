@@ -152,7 +152,6 @@ function generateMethod(
       `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
 
-    // Since we removed encoding fields, no conversion is needed
     lines.push(
       `    const response = await this.app.execute(this.context, '${method.name}', params);`,
     );
@@ -208,9 +207,9 @@ function generateTypeRef(
     const typeName = formatIdentifier(typeRef.$ref);
     const typeDef = manifest.types[typeRef.$ref];
 
-    // Check if this is a hex bytes type
-    if (forUserApi && typeDef && typeDef.kind === 'bytes') {
-      return 'string'; // Return string for user API
+    // Check if this is a bytes type
+    if (typeDef && typeDef.kind === 'bytes') {
+      return 'Uint8Array'; // Return Uint8Array for bytes types
     }
 
     // For variant types used as parameters, use the Payload type
@@ -239,7 +238,7 @@ function generateTypeRef(
     case 'unit':
       return 'void';
     case 'bytes':
-      return forUserApi ? 'string' : 'Uint8Array'; // Return string for user API if hex-encoded
+      return 'Uint8Array'; // Return Uint8Array for bytes types
     case 'list':
       const itemType = generateTypeRef(
         typeRef.items,

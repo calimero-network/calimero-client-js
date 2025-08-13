@@ -10,9 +10,20 @@ import {
   CalimeroConnectButton,
 } from '@calimero-network/calimero-client';
 
-
-
 import './EventLog.css';
+
+// Utility functions for converting hex strings to byte arrays
+function hexToBytes(hex: string): Uint8Array {
+  return new Uint8Array(
+    hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []
+  );
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 // Calimero app configuration
 const calimeroConfig = {
@@ -107,7 +118,7 @@ function App() {
       {
         name: 'echoI32',
         test: async () => {
-          const result = await client.echoI32({ v: -42 });
+          const result = await client.echoI32({ x: -42 });
           return {
             method: 'echoI32',
             status: 'success' as const,
@@ -121,7 +132,7 @@ function App() {
       {
         name: 'echoI64',
         test: async () => {
-          const result = await client.echoI64({ v: -123456789 });
+          const result = await client.echoI64({ x: -123456789 });
           return {
             method: 'echoI64',
             status: 'success' as const,
@@ -135,7 +146,7 @@ function App() {
       {
         name: 'echoU32',
         test: async () => {
-          const result = await client.echoU32({ v: 42 });
+          const result = await client.echoU32({ x: 42 });
           return {
             method: 'echoU32',
             status: 'success' as const,
@@ -149,7 +160,7 @@ function App() {
       {
         name: 'echoU64',
         test: async () => {
-          const result = await client.echoU64({ v: 123456789 });
+          const result = await client.echoU64({ x: 123456789 });
           return {
             method: 'echoU64',
             status: 'success' as const,
@@ -163,7 +174,7 @@ function App() {
       {
         name: 'echoF32',
         test: async () => {
-          const result = await client.echoF32({ v: 3.14159 });
+          const result = await client.echoF32({ x: 3.14159 });
           return {
             method: 'echoF32',
             status: 'success' as const,
@@ -177,7 +188,7 @@ function App() {
       {
         name: 'echoF64',
         test: async () => {
-          const result = await client.echoF64({ v: 2.718281828459045 });
+          const result = await client.echoF64({ x: 2.718281828459045 });
           return {
             method: 'echoF64',
             status: 'success' as const,
@@ -206,12 +217,13 @@ function App() {
         name: 'echoBytes',
         test: async () => {
           const hexInput = '0102030405';
-          const result = await client.echoBytes({ b: hexInput });
+          const inputBytes = hexToBytes(hexInput);
+          const result = await client.echoBytes({ b: inputBytes });
           return {
             method: 'echoBytes',
             status: 'success' as const,
-            message: '✅ echoBytes() - Echoes hex string',
-            details: { input: hexInput, output: result },
+            message: '✅ echoBytes() - Echoes byte array',
+            details: { input: hexInput, output: bytesToHex(result) },
           };
         },
       },
@@ -221,12 +233,13 @@ function App() {
         name: 'roundtripId',
         test: async () => {
           const userIdHex = '01'.repeat(32); // 32 bytes of 0x01
-          const result = await client.roundtripId({ x: userIdHex });
+          const userIdBytes = hexToBytes(userIdHex);
+          const result = await client.roundtripId({ x: userIdBytes });
           return {
             method: 'roundtripId',
             status: 'success' as const,
             message: '✅ roundtripId() - UserId32 roundtrip',
-            details: { input: userIdHex, output: result },
+            details: { input: userIdHex, output: bytesToHex(result) },
           };
         },
       },
@@ -236,12 +249,13 @@ function App() {
         name: 'roundtripHash',
         test: async () => {
           const hashHex = '02'.repeat(64); // 64 bytes of 0x02
-          const result = await client.roundtripHash({ h: hashHex });
+          const hashBytes = hexToBytes(hashHex);
+          const result = await client.roundtripHash({ h: hashBytes });
           return {
             method: 'roundtripHash',
             status: 'success' as const,
             message: '✅ roundtripHash() - Hash64 roundtrip',
-            details: { input: hashHex, output: result },
+            details: { input: hashHex, output: bytesToHex(result) },
           };
         },
       },
@@ -281,10 +295,10 @@ function App() {
         name: 'optRecord',
         test: async () => {
           const person = {
-            id: '01'.repeat(32), // 32 bytes of 0x01 as hex string
+            id: hexToBytes('01'.repeat(32)), // 32 bytes of 0x01
             name: 'Test Person',
             age: 30,
-          } as any; // Type assertion to bypass type mismatch
+          };
           const result1 = await client.optRecord({ p: person });
           const result2 = await client.optRecord({ p: null });
           return {
@@ -301,7 +315,8 @@ function App() {
         name: 'optId',
         test: async () => {
           const idHex = '03'.repeat(32);
-          const result1 = await client.optId({ x: idHex });
+          const idBytes = hexToBytes(idHex);
+          const result1 = await client.optId({ x: idBytes });
           const result2 = await client.optId({ x: null });
           return {
             method: 'optId',
@@ -347,12 +362,12 @@ function App() {
         name: 'listRecords',
         test: async () => {
           const person1 = {
-            id: '07'.repeat(32), // 32 bytes of 0x07 as hex string
+            id: hexToBytes('07'.repeat(32)), // 32 bytes of 0x07
             name: 'List Person 1',
             age: 40,
           };
           const person2 = {
-            id: '08'.repeat(32), // 32 bytes of 0x08 as hex string
+            id: hexToBytes('08'.repeat(32)), // 32 bytes of 0x08
             name: 'List Person 2',
             age: 45,
           };
@@ -370,7 +385,7 @@ function App() {
       {
         name: 'listIds',
         test: async () => {
-          const ids = ['09'.repeat(32), '0A'.repeat(32)]; // 32 bytes each as hex strings
+          const ids = [hexToBytes('09'.repeat(32)), hexToBytes('0A'.repeat(32))]; // 32 bytes each
           const result = await client.listIds({ xs: ids });
           return {
             method: 'listIds',
@@ -417,12 +432,12 @@ function App() {
         name: 'mapRecord',
         test: async () => {
           const person = {
-            id: '06'.repeat(32), // 32 bytes of 0x06 as hex string
+            id: hexToBytes('06'.repeat(32)), // 32 bytes of 0x06
             name: 'Map Person',
             age: 35,
           };
-          const result = await client.mapRecord({ 
-            m: { 'key1': person, 'key2': person } 
+          const result = await client.mapRecord({
+            m: { key1: person, key2: person },
           });
           return {
             method: 'mapRecord',
@@ -438,7 +453,7 @@ function App() {
         name: 'makePerson',
         test: async () => {
           const person = {
-            id: '04'.repeat(32), // 32 bytes of 0x04 as hex string
+            id: hexToBytes('04'.repeat(32)), // 32 bytes of 0x04
             name: 'John Doe',
             age: 25,
           };
@@ -458,9 +473,9 @@ function App() {
         test: async () => {
           const profile = {
             bio: 'Product Manager',
-            avatar: '05'.repeat(32), // 32 bytes of 0x05 as hex string
+            avatar: hexToBytes('05'.repeat(32)), // 32 bytes of 0x05
             nicknames: ['Jane', 'JS'],
-          } as any; // Type assertion to bypass type mismatch
+          };
           const result = await client.profileRoundtrip({ p: profile });
           return {
             method: 'profileRoundtrip',

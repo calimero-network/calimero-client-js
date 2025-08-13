@@ -76,12 +76,19 @@ export interface AbiVariant {
   payload?: AbiTypeRef;
 }
 
+// Alias type definition
+export interface AbiAlias {
+  kind: 'alias';
+  target: AbiTypeRef;
+}
+
 // Type definitions (what goes in the types object)
 export type AbiTypeDef =
   | AbiRecord
   | AbiVariantDef
   | AbiBytesVar
-  | AbiBytesFixed;
+  | AbiBytesFixed
+  | AbiAlias;
 
 export interface AbiVariantDef {
   kind: 'variant';
