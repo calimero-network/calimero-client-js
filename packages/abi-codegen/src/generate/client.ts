@@ -237,8 +237,12 @@ function generateMethod(
     lines.push('   *');
     // Generate specific error type name
     const errorTypeName = `${method.name}Error`;
-    const errorTypeRef = useTypesNamespace ? `Types.${errorTypeName}` : errorTypeName;
-    lines.push(`   * @throws {${errorTypeRef}} May throw the following errors:`);
+    const errorTypeRef = useTypesNamespace
+      ? `Types.${errorTypeName}`
+      : errorTypeName;
+    lines.push(
+      `   * @throws {${errorTypeRef}} May throw the following errors:`,
+    );
     for (const error of method.errors) {
       if (error.payload) {
         lines.push(
@@ -404,12 +408,20 @@ function generateMethod(
   if (method.errors && method.errors.length > 0) {
     // Generate specific error type name
     const errorTypeName = `${method.name}Error`;
-    const errorTypeRef = useTypesNamespace ? `Types.${errorTypeName}` : errorTypeName;
-    lines.push(`      // Parse the error response to match the expected error type`);
-    lines.push(`      if (response.error && typeof response.error === 'object') {`);
+    const errorTypeRef = useTypesNamespace
+      ? `Types.${errorTypeName}`
+      : errorTypeName;
+    lines.push(
+      `      // Parse the error response to match the expected error type`,
+    );
+    lines.push(
+      `      if (response.error && typeof response.error === 'object') {`,
+    );
     lines.push(`        throw response.error as ${errorTypeRef};`);
     lines.push(`      } else {`);
-    lines.push(`        throw new Error(response.error || 'Execution failed');`);
+    lines.push(
+      `        throw new Error(response.error || 'Execution failed');`,
+    );
     lines.push(`      }`);
   } else {
     lines.push(`      throw new Error(response.error || 'Execution failed');`);
