@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import { loadAbiManifestFromFile } from '../src/parse.js';
 import { generateTypes } from '../src/generate/types.js';
 import { generateClient } from '../src/generate/client.js';
+import { deriveClientNameFromPath } from '../src/generate/emit.js';
 
 describe('Codegen', () => {
   const conformanceAbiPath = path.join(
@@ -71,40 +72,48 @@ describe('Codegen', () => {
 
     it('should handle unit returns correctly', () => {
       const clientContent = generateClient(manifest);
-      
+
       // The 'act' method returns unit, which should map to void
-      expect(clientContent).toContain('async act(action: Action): Promise<void> {');
+      expect(clientContent).toContain(
+        'async act(action: Action): Promise<void> {',
+      );
     });
 
     it('should handle unit events correctly', () => {
       const typesContent = generateTypes(manifest);
-      
+
       // Unit events should not have payload property in the union
       expect(typesContent).toContain('| { name: "Ping" }');
       expect(typesContent).not.toContain('| { name: "Ping"; payload:');
-      
+
       // Unit events should not generate payload type aliases
       expect(typesContent).not.toContain('export type PingPayload =');
     });
 
     it('should include fixed bytes JSDoc', () => {
       const typesContent = generateTypes(manifest);
-      
+
       // Fixed bytes should have JSDoc with size information
-      expect(typesContent).toContain('/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */');
-      expect(typesContent).toContain('/** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */');
+      expect(typesContent).toContain(
+        '/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */',
+      );
+      expect(typesContent).toContain(
+        '/** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */',
+      );
     });
 
     it('should handle variant inline struct payloads correctly', () => {
       const typesContent = generateTypes(manifest);
-      
+
       // The Action variant "Update" has an inline struct payload
-      expect(typesContent).toContain('| { kind: "Update"; payload: { id: UserId32; changes: string } }');
+      expect(typesContent).toContain(
+        '| { kind: "Update"; payload: { id: UserId32; changes: string } }',
+      );
     });
 
     it('should handle variant $ref payloads correctly', () => {
       const typesContent = generateTypes(manifest);
-      
+
       // The Action variant "Create" references Person type
       expect(typesContent).toContain('| { kind: "Create"; payload: Person }');
       // The Action variant "Delete" references UserId32 type
@@ -122,14 +131,34 @@ describe('Codegen', () => {
       // Assert key patterns
       expect(clientContent).toContain('export class TestClient {');
       expect(clientContent).toContain(
-        'export type Caller = <T>(method: string, params: unknown[]) => Promise<T>;',
+        'import {',
       );
       expect(clientContent).toContain(
-        'async opt_u32(value: number | null): Promise<number | null> {',
+        '  CalimeroApp,',
       );
-      expect(clientContent).toContain('return this.call("opt_u32", [value]);');
       expect(clientContent).toContain(
-        'async make_person(name: string, age: number, email: string | null): Promise<Person> {',
+        '  Context,',
+      );
+      expect(clientContent).toContain(
+        '  ExecutionResponse,',
+      );
+      expect(clientContent).toContain(
+        "} from '@calimero-network/calimero-client';",
+      );
+      expect(clientContent).toContain(
+        'constructor(app: CalimeroApp, context: Context) {',
+      );
+      expect(clientContent).toContain(
+        'async optU32(value: number | null): Promise<number | null> {',
+      );
+      expect(clientContent).toContain(
+        'const response = await this.app.execute(this.context, \'opt_u32\', value);',
+      );
+      expect(clientContent).toContain(
+        'async makePerson(name: string, age: number, email: string | null): Promise<Person> {',
+      );
+      expect(clientContent).toContain(
+        'const response = await this.app.execute(this.context, \'make_person\', { name, age, email });',
       );
       expect(clientContent).toContain(
         '@throws {Error} May throw the following errors:',
@@ -142,7 +171,7 @@ describe('Codegen', () => {
       const clientContent = generateClient(manifest);
 
       expect(clientContent).toContain(
-        'async may_fail(should_fail: boolean): Promise<string> {',
+        'async mayFail(should_fail: boolean): Promise<string> {',
       );
       expect(clientContent).toContain('- INTENTIONAL_FAILURE: string');
     });
@@ -151,21 +180,25 @@ describe('Codegen', () => {
       const clientContent = generateClient(manifest);
 
       expect(clientContent).toContain(
-        'async find_person(id: UserId32): Promise<Person | null> {',
+        'async findPerson(id: UserId32): Promise<Person | null> {',
       );
     });
 
     it('should preserve parameter order in method calls', () => {
       const clientContent = generateClient(manifest);
-      
-      // The make_person method has parameters in order: name, age, email
-      expect(clientContent).toContain('async make_person(name: string, age: number, email: string | null): Promise<Person> {');
-      expect(clientContent).toContain('return this.call("make_person", [name, age, email]);');
+
+      // The makePerson method has parameters in order: name, age, email
+      expect(clientContent).toContain(
+        'async makePerson(name: string, age: number, email: string | null): Promise<Person> {',
+      );
+      expect(clientContent).toContain(
+        'const response = await this.app.execute(this.context, \'make_person\', { name, age, email });',
+      );
     });
 
     it('should include barrel export from types', () => {
       const clientContent = generateClient(manifest);
-      
+
       // Should re-export all types from types.ts
       expect(clientContent).toContain('export * from "./types";');
     });
@@ -173,10 +206,51 @@ describe('Codegen', () => {
     it('should include generated banner', () => {
       const clientContent = generateClient(manifest);
       const typesContent = generateTypes(manifest);
-      
+
       // Both files should have the generated banner
-      expect(clientContent).toContain('/** @generated by @calimero/abi-codegen — DO NOT EDIT. */');
-      expect(typesContent).toContain('/** @generated by @calimero/abi-codegen — DO NOT EDIT. */');
+      expect(clientContent).toContain(
+        '/** @generated by @calimero/abi-codegen — DO NOT EDIT. */',
+      );
+      expect(typesContent).toContain(
+        '/** @generated by @calimero/abi-codegen — DO NOT EDIT. */',
+      );
+    });
+  });
+
+  describe('name derivation', () => {
+    it('should derive client name from wasm filename correctly', () => {
+      expect(deriveClientNameFromPath('kv_store.wasm')).toBe('KVStoreClient');
+      expect(deriveClientNameFromPath('plantr.wasm')).toBe('PlantrClient');
+      expect(deriveClientNameFromPath('abi-conformance.wasm')).toBe('AbiConformanceClient');
+    });
+
+    it('should derive client name from json filename correctly', () => {
+      expect(deriveClientNameFromPath('abi-conformance.json')).toBe('AbiConformanceClient');
+      expect(deriveClientNameFromPath('kv_store.json')).toBe('KVStoreClient');
+    });
+
+    it('should handle paths with directories', () => {
+      expect(deriveClientNameFromPath('/tmp/kv_store.wasm')).toBe('KVStoreClient');
+      expect(deriveClientNameFromPath('apps/kv_store/target/wasm32-unknown-unknown/debug/kv_store.wasm')).toBe('KVStoreClient');
+    });
+
+    it('should handle edge cases', () => {
+      expect(deriveClientNameFromPath('')).toBe('Client');
+      expect(deriveClientNameFromPath('a')).toBe('AClient');
+      expect(deriveClientNameFromPath('ab')).toBe('ABClient');
+      expect(deriveClientNameFromPath('abc')).toBe('AbcClient');
+    });
+
+    it('should generate client with derived name', () => {
+      const clientContent = generateClient(manifest, 'KVStoreClient');
+      
+      expect(clientContent).toContain('export class KVStoreClient {');
+      expect(clientContent).toContain('constructor(app: CalimeroApp, context: Context) {');
+      expect(clientContent).toContain('import {');
+      expect(clientContent).toContain('  CalimeroApp,');
+      expect(clientContent).toContain('  Context,');
+      expect(clientContent).toContain('  ExecutionResponse,');
+      expect(clientContent).toContain("} from '@calimero-network/calimero-client';");
     });
   });
 
@@ -222,10 +296,23 @@ describe('Codegen', () => {
 
       // Also need to include the types directly in client.ts for the compile test
       const clientWithTypes = updatedClientContent.replace(
-        '// Re-export all types from types.ts\nexport * from "./types";',
+        'export * from "./types";',
         '// Include types directly for compile test\n' + typesContent,
       );
-      fs.writeFileSync(clientPath, clientWithTypes);
+      
+      // Remove the calimero-client import and add mock types for compile test
+      const clientWithMockedImport = clientWithTypes.replace(
+        `import {
+  CalimeroApp,
+  Context,
+  ExecutionResponse,
+} from '@calimero-network/calimero-client';`,
+        `// Mock types for compile test
+type CalimeroApp = any;
+type Context = any;
+type ExecutionResponse = any;`,
+      );
+      fs.writeFileSync(clientPath, clientWithMockedImport);
 
       // Create a minimal tsconfig.json
       const tsconfigPath = path.join(tmpDir, 'tsconfig.json');

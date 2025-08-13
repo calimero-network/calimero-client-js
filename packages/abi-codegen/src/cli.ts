@@ -5,6 +5,7 @@ import path from 'path';
 import { loadAbiManifestFromFile } from './parse.js';
 import { generateTypes } from './generate/types.js';
 import { generateClient } from './generate/client.js';
+import { deriveClientNameFromPath } from './generate/emit.js';
 
 const getArgs = () => {
   const args: { [key: string]: string } = {};
@@ -51,16 +52,35 @@ function showHelp() {
   console.log('Usage: calimero-abi-codegen [options]');
   console.log('');
   console.log('Options:');
-  console.log('  -i, --input <file>        Input ABI JSON file (default: abi.json)');
-  console.log('  -o, --outDir <dir>        Output directory for generated files (default: src)');
-  console.log('  --client-name <Name>      Custom client class name (default: Client)');
-  console.log('  --validate                Validate ABI manifest only (no code generation)');
+  console.log(
+    '  -i, --input <file>        Input ABI JSON file (default: abi.json)',
+  );
+  console.log(
+    '  -o, --outDir <dir>        Output directory for generated files (default: src)',
+  );
+  console.log(
+    '  --client-name <Name>      Custom client class name (default: Client)',
+  );
+  console.log(
+    '  --name-from <path>        Derive client name from file path (e.g., wasm file)',
+  );
+  console.log(
+    '  --validate                Validate ABI manifest only (no code generation)',
+  );
   console.log('  -h, --help                Show this help message');
   console.log('');
   console.log('Examples:');
   console.log('  calimero-abi-codegen -i abi.json -o src');
   console.log('  calimero-abi-codegen --validate -i abi.json');
-  console.log('  calimero-abi-codegen -i abi.json -o src --client-name MyClient');
+  console.log(
+    '  calimero-abi-codegen -i abi.json -o src --client-name MyClient',
+  );
+  console.log(
+    '  calimero-abi-codegen -i abi.json -o src --name-from kv_store.wasm',
+  );
+  console.log(
+    '  calimero-abi-codegen -i abi-conformance.json -o src',
+  );
 }
 
 function main() {
@@ -98,7 +118,19 @@ function main() {
     // Code generation (default behavior)
     const inputPath = args.input || args.i || 'abi.json';
     const outputPath = args.output || args.o || 'src';
-    const clientName = args['client-name'] || 'Client';
+    
+    // Name resolution logic with priority order
+    let clientName: string;
+    if (args['client-name']) {
+      // 1. Explicit client name (highest priority)
+      clientName = args['client-name'];
+    } else if (args['name-from']) {
+      // 2. Derive from --name-from path
+      clientName = deriveClientNameFromPath(args['name-from']);
+    } else {
+      // 3. Derive from input file basename
+      clientName = deriveClientNameFromPath(inputPath);
+    }
 
     const inputFilePath = path.resolve(process.cwd(), inputPath);
     const outputDir = path.resolve(process.cwd(), outputPath);
@@ -123,9 +155,9 @@ function main() {
       const typesPath = path.join(outputDir, 'types.ts');
       fs.writeFileSync(typesPath, typesContent);
 
-      // Generate client.ts
+      // Generate client.ts with derived filename
       const clientContent = generateClient(manifest, clientName);
-      const clientPath = path.join(outputDir, 'client.ts');
+      const clientPath = path.join(outputDir, `${clientName}.ts`);
       fs.writeFileSync(clientPath, clientContent);
 
       // Print summary
@@ -134,6 +166,7 @@ function main() {
       console.log(`   Methods: ${manifest.methods.length}`);
       console.log(`   Events: ${manifest.events.length}`);
       console.log(`   Types: ${Object.keys(manifest.types).length}`);
+      console.log(`   Client: ${clientName}`);
       console.log(`📁 Generated files:`);
       console.log(`   ${typesPath}`);
       console.log(`   ${clientPath}`);

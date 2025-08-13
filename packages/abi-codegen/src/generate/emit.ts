@@ -109,3 +109,17 @@ export function toCamelCase(str: string): string {
   const pascal = toPascalCase(str);
   return pascal.charAt(0).toLowerCase() + pascal.slice(1);
 }
+
+/**
+ * Derive a client class name from a file path
+ * @param p - The file path to derive the name from
+ * @returns The derived client class name
+ */
+export function deriveClientNameFromPath(p: string): string {
+  const base = (p.split(/[\\/]/).pop() || "").replace(/\.[^.]+$/, ""); // strip extension
+  const parts = base.split(/[^A-Za-z0-9]+/).filter(Boolean);
+  const word = (s: string) =>
+    s.length <= 2 ? s.toUpperCase() : (s[0].toUpperCase() + s.slice(1).toLowerCase());
+  const pascal = parts.map(word).join("");
+  return pascal + "Client";
+}

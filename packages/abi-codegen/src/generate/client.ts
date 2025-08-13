@@ -1,5 +1,5 @@
 import { AbiManifest, AbiMethod, AbiTypeRef } from '../model.js';
-import { formatIdentifier, generateFileBanner } from './emit.js';
+import { formatIdentifier, generateFileBanner, toCamelCase } from './emit.js';
 
 /**
  * Generate a typed client from a WASM-ABI v1 manifest
@@ -18,22 +18,26 @@ export function generateClient(
   lines.push('');
 
   // Add imports
-  lines.push('// Re-export all types from types.ts');
-  lines.push('export * from "./types";');
+  lines.push('import {');
+  lines.push('  CalimeroApp,');
+  lines.push('  Context,');
+  lines.push('  ExecutionResponse,');
+  lines.push("} from '@calimero-network/calimero-client';");
   lines.push('');
 
-  // Add Caller type
-  lines.push('/**');
-  lines.push(' * Transport-agnostic caller interface');
-  lines.push(' */');
-  lines.push(
-    'export type Caller = <T>(method: string, params: unknown[]) => Promise<T>;',
-  );
+  // Re-export all types from types.ts
+  lines.push('export * from "./types";');
   lines.push('');
 
   // Add Client class
   lines.push(`export class ${clientName} {`);
-  lines.push(`  constructor(private readonly call: Caller) {}`);
+  lines.push(`  private app: CalimeroApp;`);
+  lines.push(`  private context: Context;`);
+  lines.push('');
+  lines.push(`  constructor(app: CalimeroApp, context: Context) {`);
+  lines.push(`    this.app = app;`);
+  lines.push(`    this.context = context;`);
+  lines.push(`  }`);
   lines.push('');
 
   // Generate methods
@@ -52,7 +56,7 @@ export function generateClient(
  */
 function generateMethod(method: AbiMethod, manifest: AbiManifest): string[] {
   const lines: string[] = [];
-  const methodName = formatIdentifier(method.name);
+  const methodName = toCamelCase(method.name);
 
   // Generate JSDoc comment
   lines.push('  /**');
@@ -89,14 +93,41 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest): string[] {
     ? `${returnType} | null`
     : returnType;
 
-  lines.push(
-    `  async ${methodName}(${params.join(', ')}): Promise<${nullableReturnType}> {`,
-  );
-  // ABI parameter order is authoritative - preserve the order from the manifest
-  lines.push(
-    `    return this.call("${method.name}", [${method.params.map((p) => formatIdentifier(p.name)).join(', ')}]);`,
-  );
-  lines.push('  }');
+  // Generate method body using CalimeroApp transport
+  if (method.params.length === 0) {
+    // No parameters - use empty object
+    lines.push(
+      `  public async ${methodName}(): Promise<${nullableReturnType}> {`,
+    );
+    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', {});`);
+  } else if (method.params.length === 1) {
+    // Single parameter - pass directly
+    const param = method.params[0];
+    const paramName = formatIdentifier(param.name);
+    lines.push(
+      `  public async ${methodName}(${params.join(', ')}): Promise<${nullableReturnType}> {`,
+    );
+    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', ${paramName});`);
+  } else {
+    // Multiple parameters - create params object
+    lines.push(
+      `  public async ${methodName}(${params.join(', ')}): Promise<${nullableReturnType}> {`,
+    );
+    const paramsObj = method.params.map(p => `${formatIdentifier(p.name)}`).join(', ');
+    lines.push(`    const response = await this.app.execute(this.context, '${method.name}', { ${paramsObj} });`);
+  }
+
+  // Add response handling
+  lines.push(`    if (response.success) {`);
+  if (method.returns) {
+    lines.push(`      return response.result as ${nullableReturnType};`);
+  } else {
+    lines.push(`      return;`);
+  }
+  lines.push(`    } else {`);
+  lines.push(`      throw new Error(response.error || 'Execution failed');`);
+  lines.push(`    }`);
+  lines.push(`  }`);
 
   return lines;
 }

@@ -83,7 +83,9 @@ function generateTypeDefinition(
     lines.push(...variantLines);
   } else if (typeDef.kind === 'bytes') {
     if ('size' in typeDef) {
-      lines.push(`/** Fixed-length bytes (size: ${typeDef.size}). Represented as Uint8Array at runtime. */`);
+      lines.push(
+        `/** Fixed-length bytes (size: ${typeDef.size}). Represented as Uint8Array at runtime. */`,
+      );
       lines.push(`export type ${safeName} = Uint8Array;`);
     } else {
       lines.push(`export type ${safeName} = Uint8Array;`);
@@ -178,7 +180,11 @@ function generateEventPayloadType(event: AbiEvent): string[] {
   const eventName = formatIdentifier(event.name);
 
   // Only generate payload type if event has a payload and it's not unit
-  if (event.payload && !('$ref' in event.payload) && event.payload.kind !== 'unit') {
+  if (
+    event.payload &&
+    !('$ref' in event.payload) &&
+    event.payload.kind !== 'unit'
+  ) {
     const payloadType = generateTypeRef(event.payload, event as any);
     lines.push(`export type ${eventName}Payload = ${payloadType};`);
   }
@@ -198,11 +204,13 @@ function generateAbiEventUnion(events: readonly AbiEvent[]): string[] {
 
   const eventVariants = events.map((event) => {
     const eventName = formatIdentifier(event.name);
-    
+
     // Check if event has a payload and it's not unit
-    const hasPayload = event.payload && 
-      (!('$ref' in event.payload) && event.payload.kind !== 'unit');
-    
+    const hasPayload =
+      event.payload &&
+      !('$ref' in event.payload) &&
+      event.payload.kind !== 'unit';
+
     if (hasPayload) {
       const payloadType = generateTypeRef(event.payload!, event as any);
       return `  | { name: "${event.name}"; payload: ${payloadType} }`;
