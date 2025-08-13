@@ -6,13 +6,13 @@ export interface AbiState {
 }
 
 export type Action =
-  | { kind: "Ping" }
-  | { kind: "SetName"; payload: string }
-  | { kind: "Update"; payload: UpdatePayload }
+  | { kind: 'Ping' }
+  | { kind: 'SetName'; payload: string }
+  | { kind: 'Update'; payload: UpdatePayload };
 
 export type ConformanceError =
-  | { kind: "BadInput" }
-  | { kind: "NotFound"; payload: string }
+  | { kind: 'BadInput' }
+  | { kind: 'NotFound'; payload: string };
 
 /** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */
 export type Hash64 = Uint8Array;
@@ -37,18 +37,17 @@ export interface UpdatePayload {
   data: string;
 }
 
-export type may_failErrorCode = "BAD_INPUT" | "NOT_FOUND";
+export type may_failErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
 export type may_failError = { code: may_failErrorCode } & (
-  | { code: "BAD_INPUT" }
-  | { code: "NOT_FOUND"; payload: string }
+  | { code: 'BAD_INPUT' }
+  | { code: 'NOT_FOUND'; payload: string }
 );
 
-export type find_personErrorCode = "BAD_INPUT" | "NOT_FOUND";
+export type find_personErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
 export type find_personError = { code: find_personErrorCode } & (
-  | { code: "BAD_INPUT" }
-  | { code: "NOT_FOUND"; payload: string }
+  | { code: 'BAD_INPUT' }
+  | { code: 'NOT_FOUND'; payload: string }
 );
-
 
 export type NamedPayload = string;
 
@@ -59,9 +58,8 @@ export type PersonUpdatedPayload = string;
 export type ActionTakenPayload = string;
 
 export type AbiEvent =
-  | { name: "Ping" }
-  | { name: "Named"; payload: string }
-  | { name: "Data"; payload: Uint8Array }
-  | { name: "PersonUpdated"; payload: string }
-  | { name: "ActionTaken"; payload: string }
-;
+  | { name: 'Ping' }
+  | { name: 'Named'; payload: string }
+  | { name: 'Data'; payload: Uint8Array }
+  | { name: 'PersonUpdated'; payload: string }
+  | { name: 'ActionTaken'; payload: string };

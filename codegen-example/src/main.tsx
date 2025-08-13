@@ -240,6 +240,255 @@ function App() {
           };
         },
       },
+
+      // 14. opt_u32
+      {
+        name: 'optU32',
+        test: async () => {
+          const result1 = await client.optU32({ x: 42 });
+          const result2 = await client.optU32({ x: null });
+          return {
+            method: 'optU32',
+            status: 'success' as const,
+            message: '✅ optU32() - Optional 32-bit unsigned integer',
+            details: { withValue: result1, withNull: result2 },
+          };
+        },
+      },
+
+      // 15. opt_string
+      {
+        name: 'optString',
+        test: async () => {
+          const result1 = await client.optString({ x: 'Hello' });
+          const result2 = await client.optString({ x: null });
+          return {
+            method: 'optString',
+            status: 'success' as const,
+            message: '✅ optString() - Optional string',
+            details: { withValue: result1, withNull: result2 },
+          };
+        },
+      },
+
+      // 16. opt_record
+      {
+        name: 'optRecord',
+        test: async () => {
+          const person = {
+            id: new Uint8Array(32).fill(1),
+            name: 'Test Person',
+            age: 30,
+          };
+          const result1 = await client.optRecord({ p: person });
+          const result2 = await client.optRecord({ p: null });
+          return {
+            method: 'optRecord',
+            status: 'success' as const,
+            message: '✅ optRecord() - Optional record',
+            details: { withValue: result1, withNull: result2 },
+          };
+        },
+      },
+
+      // 17. opt_id
+      {
+        name: 'optId',
+        test: async () => {
+          const idHex = '03'.repeat(32);
+          const result1 = await client.optId({ x: idHex });
+          const result2 = await client.optId({ x: null });
+          return {
+            method: 'optId',
+            status: 'success' as const,
+            message: '✅ optId() - Optional ID',
+            details: { withValue: result1, withNull: result2 },
+          };
+        },
+      },
+
+      // 18. list_u32
+      {
+        name: 'listU32',
+        test: async () => {
+          const numbers = [1, 2, 3, 4, 5];
+          const result = await client.listU32({ xs: numbers });
+          return {
+            method: 'listU32',
+            status: 'success' as const,
+            message: '✅ listU32() - List of 32-bit unsigned integers',
+            details: { input: numbers, output: result },
+          };
+        },
+      },
+
+      // 19. list_strings
+      {
+        name: 'listStrings',
+        test: async () => {
+          const strings = ['Hello', 'World', 'Test'];
+          const result = await client.listStrings({ xs: strings });
+          return {
+            method: 'listStrings',
+            status: 'success' as const,
+            message: '✅ listStrings() - List of strings',
+            details: { input: strings, output: result },
+          };
+        },
+      },
+
+      // 20. list_records
+      {
+        name: 'listRecords',
+        test: async () => {
+          const result = await client.listRecords({ ps: 'test' });
+          return {
+            method: 'listRecords',
+            status: 'success' as const,
+            message: '✅ listRecords() - List of records',
+            details: { output: result },
+          };
+        },
+      },
+
+      // 21. list_ids
+      {
+        name: 'listIds',
+        test: async () => {
+          const result = await client.listIds({ xs: 'test' });
+          return {
+            method: 'listIds',
+            status: 'success' as const,
+            message: '✅ listIds() - List of IDs',
+            details: { output: result },
+          };
+        },
+      },
+
+      // 22. map_u32
+      {
+        name: 'mapU32',
+        test: async () => {
+          const map = { a: 1, b: 2, c: 3 };
+          const result = await client.mapU32({ m: map });
+          return {
+            method: 'mapU32',
+            status: 'success' as const,
+            message: '✅ mapU32() - Map of strings to 32-bit unsigned integers',
+            details: { input: map, output: result },
+          };
+        },
+      },
+
+      // 23. map_list_u32
+      {
+        name: 'mapListU32',
+        test: async () => {
+          const map = { a: [1, 2], b: [3, 4, 5] };
+          const result = await client.mapListU32({ m: map });
+          return {
+            method: 'mapListU32',
+            status: 'success' as const,
+            message: '✅ mapListU32() - Map of strings to lists of 32-bit unsigned integers',
+            details: { input: map, output: result },
+          };
+        },
+      },
+
+      // 24. map_record
+      {
+        name: 'mapRecord',
+        test: async () => {
+          const result = await client.mapRecord({ m: 'test' });
+          return {
+            method: 'mapRecord',
+            status: 'success' as const,
+            message: '✅ mapRecord() - Map of records',
+            details: { output: result },
+          };
+        },
+      },
+
+      // 25. make_person
+      {
+        name: 'makePerson',
+        test: async () => {
+          const person = {
+            id: new Uint8Array(32).fill(4),
+            name: 'John Doe',
+            age: 25,
+          };
+          const result = await client.makePerson({ p: person });
+          return {
+            method: 'makePerson',
+            status: 'success' as const,
+            message: '✅ makePerson() - Create a person record',
+            details: { input: person, output: result },
+          };
+        },
+      },
+
+      // 26. profile_roundtrip
+      {
+        name: 'profileRoundtrip',
+        test: async () => {
+          const profile = {
+            bio: 'Product Manager',
+            avatar: new Uint8Array(32).fill(5),
+            nicknames: ['Jane', 'JS'],
+          };
+          const result = await client.profileRoundtrip({ p: profile });
+          return {
+            method: 'profileRoundtrip',
+            status: 'success' as const,
+            message: '✅ profileRoundtrip() - Profile roundtrip',
+            details: { input: profile, output: result },
+          };
+        },
+      },
+
+      // 27. act
+      {
+        name: 'act',
+        test: async () => {
+          const action = { kind: 'Ping' as const };
+          const result = await client.act({ a: action });
+          return {
+            method: 'act',
+            status: 'success' as const,
+            message: '✅ act() - Execute action',
+            details: { input: action, output: result },
+          };
+        },
+      },
+
+      // 28. may_fail
+      {
+        name: 'mayFail',
+        test: async () => {
+          const result = await client.mayFail({ flag: false });
+          return {
+            method: 'mayFail',
+            status: 'success' as const,
+            message: '✅ mayFail() - Method that may fail',
+            details: { input: false, output: result },
+          };
+        },
+      },
+
+      // 29. find_person
+      {
+        name: 'findPerson',
+        test: async () => {
+          const result = await client.findPerson({ name: 'Test Person' });
+          return {
+            method: 'findPerson',
+            status: 'success' as const,
+            message: '✅ findPerson() - Find person by name',
+            details: { input: 'Test Person', output: result },
+          };
+        },
+      },
     ];
 
     // Run all tests
