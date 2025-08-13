@@ -37,12 +37,10 @@ export class ExperimentalWebSocket {
     }
 
     const fullUrl = `${this.url}?token=${encodeURIComponent(accessToken)}`;
-    console.log('Connecting to Experimental WebSocket:', fullUrl);
 
     this.ws = new WebSocket(fullUrl);
 
     this.ws.onopen = () => {
-      console.log('Experimental WebSocket connected.');
       this.clearReconnect();
     };
 
