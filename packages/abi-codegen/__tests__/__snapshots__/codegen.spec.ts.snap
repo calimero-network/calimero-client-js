@@ -456,7 +456,7 @@ export class TestClient {
   /**
    * may_fail
    *
-   * @throws {Error} May throw the following errors:
+   * @throws {Types.may_failError} May throw the following errors:
    * - BAD_INPUT
    * - NOT_FOUND: string
    */
@@ -465,14 +465,19 @@ export class TestClient {
     if (response.success) {
       return response.result as number;
     } else {
-      throw new Error(response.error || 'Execution failed');
+      // Parse the error response to match the expected error type
+      if (response.error && typeof response.error === 'object') {
+        throw response.error as Types.may_failError;
+      } else {
+        throw new Error(response.error || 'Execution failed');
+      }
     }
   }
 
   /**
    * find_person
    *
-   * @throws {Error} May throw the following errors:
+   * @throws {Types.find_personError} May throw the following errors:
    * - BAD_INPUT
    * - NOT_FOUND: string
    */
@@ -481,7 +486,12 @@ export class TestClient {
     if (response.success) {
       return response.result as Types.Person;
     } else {
-      throw new Error(response.error || 'Execution failed');
+      // Parse the error response to match the expected error type
+      if (response.error && typeof response.error === 'object') {
+        throw response.error as Types.find_personError;
+      } else {
+        throw new Error(response.error || 'Execution failed');
+      }
     }
   }
 

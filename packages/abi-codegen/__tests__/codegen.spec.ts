@@ -153,7 +153,7 @@ describe('Codegen', () => {
         "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
       );
       expect(clientContent).toContain(
-        '@throws {Error} May throw the following errors:',
+        '@throws {Types.may_failError} May throw the following errors:',
       );
       expect(clientContent).toContain('- BAD_INPUT');
       expect(clientContent).toContain('- NOT_FOUND: string');

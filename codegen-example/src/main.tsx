@@ -495,6 +495,20 @@ function App() {
         },
       },
 
+      // 28b. may_fail success case
+      {
+        name: 'mayFailSuccess',
+        test: async () => {
+          const result = await client.mayFail({ flag: true });
+          return {
+            method: 'mayFailSuccess',
+            status: 'success' as const,
+            message: '✅ mayFail(true) - Should return 42',
+            details: { input: true, output: result },
+          };
+        },
+      },
+
       // 29. find_person
       {
         name: 'findPerson',

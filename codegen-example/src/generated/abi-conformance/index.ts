@@ -1,2 +1,2 @@
-export { AbiConformanceClient } from './AbiConformanceClient';
-export * from './types';
+export { AbiConformanceClient } from "./AbiConformanceClient";
+export * from "./types";
