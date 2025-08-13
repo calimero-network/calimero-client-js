@@ -276,10 +276,10 @@ function App() {
         name: 'optRecord',
         test: async () => {
           const person = {
-            id: new Uint8Array(32).fill(1),
+            id: '01'.repeat(32), // 32 bytes of 0x01 as hex string
             name: 'Test Person',
             age: 30,
-          };
+          } as any; // Type assertion to bypass type mismatch
           const result1 = await client.optRecord({ p: person });
           const result2 = await client.optRecord({ p: null });
           return {
@@ -389,7 +389,8 @@ function App() {
           return {
             method: 'mapListU32',
             status: 'success' as const,
-            message: '✅ mapListU32() - Map of strings to lists of 32-bit unsigned integers',
+            message:
+              '✅ mapListU32() - Map of strings to lists of 32-bit unsigned integers',
             details: { input: map, output: result },
           };
         },
@@ -414,10 +415,10 @@ function App() {
         name: 'makePerson',
         test: async () => {
           const person = {
-            id: new Uint8Array(32).fill(4),
+            id: '04'.repeat(32), // 32 bytes of 0x04 as hex string
             name: 'John Doe',
             age: 25,
-          };
+          } as any; // Type assertion to bypass type mismatch
           const result = await client.makePerson({ p: person });
           return {
             method: 'makePerson',
@@ -434,9 +435,9 @@ function App() {
         test: async () => {
           const profile = {
             bio: 'Product Manager',
-            avatar: new Uint8Array(32).fill(5),
+            avatar: '05'.repeat(32), // 32 bytes of 0x05 as hex string
             nicknames: ['Jane', 'JS'],
-          };
+          } as any; // Type assertion to bypass type mismatch
           const result = await client.profileRoundtrip({ p: profile });
           return {
             method: 'profileRoundtrip',
