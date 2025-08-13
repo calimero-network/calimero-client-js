@@ -470,7 +470,7 @@ function App() {
       {
         name: 'actWithPayload',
         test: async () => {
-          const input = Action.SetName("John Doe");
+          const input = Action.SetName('John Doe');
           const result = await client.act({ a: input });
           return {
             method: 'actWithPayload',
@@ -480,8 +480,6 @@ function App() {
           };
         },
       },
-
-
 
       // 28. may_fail
       {

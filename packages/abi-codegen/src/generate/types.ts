@@ -90,9 +90,13 @@ function generateTypeDefinition(
       const variantName = formatIdentifier(variant.name);
       if (variant.payload) {
         const payloadType = generateTypeRef(variant.payload, manifest, true);
-        lines.push(`  ${variantName}: (${formatIdentifier(variant.name.toLowerCase())}: ${payloadType}): ${safeName}Payload => ({ name: '${variant.name}', payload: ${formatIdentifier(variant.name.toLowerCase())} }),`);
+        lines.push(
+          `  ${variantName}: (${formatIdentifier(variant.name.toLowerCase())}: ${payloadType}): ${safeName}Payload => ({ name: '${variant.name}', payload: ${formatIdentifier(variant.name.toLowerCase())} }),`,
+        );
       } else {
-        lines.push(`  ${variantName}: (): ${safeName}Payload => ({ name: '${variant.name}' }),`);
+        lines.push(
+          `  ${variantName}: (): ${safeName}Payload => ({ name: '${variant.name}' }),`,
+        );
       }
     });
     lines.push(`} as const;`);
