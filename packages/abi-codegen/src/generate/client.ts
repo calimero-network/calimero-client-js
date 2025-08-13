@@ -180,6 +180,10 @@ function generateHexUtilityFunctions(): string[] {
     '      if (typeof result.avatar === "string") {',
     '        result.avatar = Array.from(this.hexToBytes(result.avatar));',
     '      }',
+    '    } else if (typeRef.$ref === "UpdatePayload") {',
+    '      if (typeof result.id === "string") {',
+    '        result.id = Array.from(this.hexToBytes(result.id));',
+    '      }',
     '    }',
     '    return result;',
     '  }',
@@ -191,9 +195,18 @@ function generateHexUtilityFunctions(): string[] {
     '    if (!variant) return variant;',
     '    ',
     '    if (typeRef.$ref === "Action") {',
-    '      // Convert Action enum to contract format',
-    '      if (typeof variant === "object" && "variant" in variant && "payload" in variant) {',
-    '        return { kind: variant.variant, payload: variant.payload };',
+    '      // Convert Action variant to WASM format',
+    '      if (typeof variant === "object" && "name" in variant) {',
+    '        if ("payload" in variant) {',
+    '          // Convert complex payload types if needed',
+    '          let convertedPayload = variant.payload;',
+    '          if (variant.name === "Update" && typeof variant.payload === "object") {',
+    '            convertedPayload = this.convertComplexType(variant.payload, { $ref: "UpdatePayload" });',
+    '          }',
+    '          return { kind: variant.name, payload: convertedPayload };',
+    '        } else {',
+    '          return { kind: variant.name };',
+    '        }',
     '      } else if (typeof variant === "string") {',
     '        return { kind: variant };',
     '      }',
@@ -412,11 +425,12 @@ function generateTypeRef(
       return 'string'; // Return string for user API
     }
 
-    // For variant types used as parameters, create a union type that includes both enum values and payload variants
+    // For variant types used as parameters, use the Payload type
     if (forVariantParam && typeDef && typeDef.kind === 'variant') {
-      const enumType = useTypesNamespace ? `Types.${typeName}` : typeName;
-      const payloadType = useTypesNamespace ? `Types.${typeName}Payload` : `${typeName}Payload`;
-      return `${enumType} | ${payloadType}`;
+      const payloadType = useTypesNamespace
+        ? `Types.${typeName}Payload`
+        : `${typeName}Payload`;
+      return payloadType;
     }
 
     return useTypesNamespace ? `Types.${typeName}` : typeName;

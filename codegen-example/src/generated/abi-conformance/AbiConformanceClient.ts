@@ -60,6 +60,10 @@ export class AbiConformanceClient {
       if (typeof result.avatar === "string") {
         result.avatar = Array.from(this.hexToBytes(result.avatar));
       }
+    } else if (typeRef.$ref === "UpdatePayload") {
+      if (typeof result.id === "string") {
+        result.id = Array.from(this.hexToBytes(result.id));
+      }
     }
     return result;
   }
@@ -71,9 +75,18 @@ export class AbiConformanceClient {
     if (!variant) return variant;
     
     if (typeRef.$ref === "Action") {
-      // Convert Action enum to contract format
-      if (typeof variant === "object" && "variant" in variant && "payload" in variant) {
-        return { kind: variant.variant, payload: variant.payload };
+      // Convert Action variant to WASM format
+      if (typeof variant === "object" && "name" in variant) {
+        if ("payload" in variant) {
+          // Convert complex payload types if needed
+          let convertedPayload = variant.payload;
+          if (variant.name === "Update" && typeof variant.payload === "object") {
+            convertedPayload = this.convertComplexType(variant.payload, { $ref: "UpdatePayload" });
+          }
+          return { kind: variant.name, payload: convertedPayload };
+        } else {
+          return { kind: variant.name };
+        }
       } else if (typeof variant === "string") {
         return { kind: variant };
       }
@@ -393,7 +406,7 @@ export class AbiConformanceClient {
   /**
    * act
    */
-  public async act(params: { a: Types.Action | Types.ActionPayload }): Promise<number> {
+  public async act(params: { a: Types.ActionPayload }): Promise<number> {
     const convertedParams = {
       a: params.a ? this.convertVariant(params.a, {"$ref":"Action"}) : null,
     };

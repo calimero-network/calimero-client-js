@@ -70,26 +70,32 @@ function generateTypeDefinition(
     }
     lines.push('}');
   } else if (typeDef.kind === 'variant') {
-    // Generate TypeScript enum for variants
-    lines.push(`export enum ${safeName} {`);
+    // Generate discriminated union type for variants
+    lines.push(`export type ${safeName}Payload =`);
+    const variantLines = typeDef.variants.map((variant) => {
+      const variantName = formatIdentifier(variant.name);
+      if (variant.payload) {
+        const payloadType = generateTypeRef(variant.payload, manifest, true);
+        return `  | { name: '${variant.name}'; payload: ${payloadType} }`;
+      } else {
+        return `  | { name: '${variant.name}' }`;
+      }
+    });
+    lines.push(...variantLines);
+
+    // Generate factory object for variants
+    lines.push('');
+    lines.push(`export const ${safeName} = {`);
     typeDef.variants.forEach((variant) => {
       const variantName = formatIdentifier(variant.name);
-      lines.push(`  ${variantName} = "${variant.name}",`);
+      if (variant.payload) {
+        const payloadType = generateTypeRef(variant.payload, manifest, true);
+        lines.push(`  ${variantName}: (${formatIdentifier(variant.name.toLowerCase())}: ${payloadType}): ${safeName}Payload => ({ name: '${variant.name}', payload: ${formatIdentifier(variant.name.toLowerCase())} }),`);
+      } else {
+        lines.push(`  ${variantName}: (): ${safeName}Payload => ({ name: '${variant.name}' }),`);
+      }
     });
-    lines.push('}');
-    
-    // Generate payload types for variants that have payloads
-    const variantsWithPayloads = typeDef.variants.filter(variant => variant.payload);
-    if (variantsWithPayloads.length > 0) {
-      lines.push('');
-      lines.push(`export type ${safeName}Payload =`);
-      const payloadLines = variantsWithPayloads.map((variant) => {
-        const variantName = formatIdentifier(variant.name);
-        const payloadType = generateTypeRef(variant.payload!, manifest, true);
-        return `  | { variant: ${safeName}.${variantName}; payload: ${payloadType} }`;
-      });
-      lines.push(...payloadLines);
-    }
+    lines.push(`} as const;`);
   } else if (typeDef.kind === 'bytes') {
     if ('size' in typeDef) {
       lines.push(
@@ -111,9 +117,15 @@ function generateTypeRef(
   typeRef: AbiTypeRef,
   manifest: AbiManifest,
   forUserApi: boolean = false,
+  forVariantParam: boolean = false,
 ): string {
   if ('$ref' in typeRef) {
-    return formatIdentifier(typeRef.$ref);
+    const typeName = formatIdentifier(typeRef.$ref);
+    // For variant types, return the Payload type when used as parameters
+    if (forVariantParam && manifest.types[typeRef.$ref]?.kind === 'variant') {
+      return `${typeName}Payload`;
+    }
+    return typeName;
   }
 
   switch (typeRef.kind) {

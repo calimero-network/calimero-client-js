@@ -5,17 +5,28 @@ export interface AbiState {
   users: UserId32[];
 }
 
-export type Action =
-  | { kind: 'Ping' }
-  | { kind: 'SetName'; payload: string }
-  | { kind: 'Update'; payload: UpdatePayload };
+export type ActionPayload =
+  | { name: 'Ping' }
+  | { name: 'SetName'; payload: string }
+  | { name: 'Update'; payload: UpdatePayload }
 
-export type ConformanceError =
-  | { kind: 'BadInput' }
-  | { kind: 'NotFound'; payload: string };
+export const Action = {
+  Ping: (): ActionPayload => ({ name: 'Ping' }),
+  SetName: (setname: string): ActionPayload => ({ name: 'SetName', payload: setname }),
+  Update: (update: UpdatePayload): ActionPayload => ({ name: 'Update', payload: update }),
+} as const;
 
-/** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */
-export type Hash64 = Uint8Array;
+export type ConformanceErrorPayload =
+  | { name: 'BadInput' }
+  | { name: 'NotFound'; payload: string }
+
+export const ConformanceError = {
+  BadInput: (): ConformanceErrorPayload => ({ name: 'BadInput' }),
+  NotFound: (notfound: string): ConformanceErrorPayload => ({ name: 'NotFound', payload: notfound }),
+} as const;
+
+/** Fixed-length bytes (size: 64). Represented as string at runtime. */
+export type Hash64 = string;
 
 export interface Person {
   id: UserId32;
@@ -25,29 +36,30 @@ export interface Person {
 
 export interface Profile {
   bio: string | null;
-  avatar: Uint8Array | null;
+  avatar: string | null;
   nicknames: string[];
 }
 
-/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */
-export type UserId32 = Uint8Array;
+/** Fixed-length bytes (size: 32). Represented as string at runtime. */
+export type UserId32 = string;
 
 export interface UpdatePayload {
   id: UserId32;
   data: string;
 }
 
-export type may_failErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
+export type may_failErrorCode = "BAD_INPUT" | "NOT_FOUND";
 export type may_failError = { code: may_failErrorCode } & (
-  | { code: 'BAD_INPUT' }
-  | { code: 'NOT_FOUND'; payload: string }
+  | { code: "BAD_INPUT" }
+  | { code: "NOT_FOUND"; payload: string }
 );
 
-export type find_personErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
+export type find_personErrorCode = "BAD_INPUT" | "NOT_FOUND";
 export type find_personError = { code: find_personErrorCode } & (
-  | { code: 'BAD_INPUT' }
-  | { code: 'NOT_FOUND'; payload: string }
+  | { code: "BAD_INPUT" }
+  | { code: "NOT_FOUND"; payload: string }
 );
+
 
 export type NamedPayload = string;
 
@@ -58,8 +70,9 @@ export type PersonUpdatedPayload = string;
 export type ActionTakenPayload = string;
 
 export type AbiEvent =
-  | { name: 'Ping' }
-  | { name: 'Named'; payload: string }
-  | { name: 'Data'; payload: Uint8Array }
-  | { name: 'PersonUpdated'; payload: string }
-  | { name: 'ActionTaken'; payload: string };
+  | { name: "Ping" }
+  | { name: "Named"; payload: string }
+  | { name: "Data"; payload: Uint8Array }
+  | { name: "PersonUpdated"; payload: string }
+  | { name: "ActionTaken"; payload: string }
+;

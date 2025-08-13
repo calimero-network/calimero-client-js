@@ -50,6 +50,55 @@ export class TestClient {
   }
 
   /**
+   * Utility function to convert complex types with hex bytes fields
+   */
+  private convertComplexType(obj: any, typeRef: any): any {
+    if (!obj) return obj;
+    const result = { ...obj };
+    if (typeRef.$ref === "Person") {
+      if (typeof result.id === "string") {
+        result.id = Array.from(this.hexToBytes(result.id));
+      }
+    } else if (typeRef.$ref === "Profile") {
+      if (typeof result.avatar === "string") {
+        result.avatar = Array.from(this.hexToBytes(result.avatar));
+      }
+    } else if (typeRef.$ref === "UpdatePayload") {
+      if (typeof result.id === "string") {
+        result.id = Array.from(this.hexToBytes(result.id));
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Utility function to convert enum variants to contract format
+   */
+  private convertVariant(variant: any, typeRef: any): any {
+    if (!variant) return variant;
+    
+    if (typeRef.$ref === "Action") {
+      // Convert Action variant to WASM format
+      if (typeof variant === "object" && "name" in variant) {
+        if ("payload" in variant) {
+          // Convert complex payload types if needed
+          let convertedPayload = variant.payload;
+          if (variant.name === "Update" && typeof variant.payload === "object") {
+            convertedPayload = this.convertComplexType(variant.payload, { $ref: "UpdatePayload" });
+          }
+          return { kind: variant.name, payload: convertedPayload };
+        } else {
+          return { kind: variant.name };
+        }
+      } else if (typeof variant === "string") {
+        return { kind: variant };
+      }
+    }
+    
+    return variant;
+  }
+
+  /**
    * init
    */
   public async init(): Promise<Types.AbiState> {
@@ -213,7 +262,10 @@ export class TestClient {
    * opt_record
    */
   public async optRecord(params: { p: Types.Person | null }): Promise<Types.Person | null> {
-    const response = await this.app.execute(this.context, 'opt_record', params);
+    const convertedParams = {
+      p: params.p ? this.convertComplexType(params.p, {"$ref":"Person"}) : null,
+    };
+    const response = await this.app.execute(this.context, 'opt_record', convertedParams);
     if (response.success) {
       return response.result as Types.Person | null;
     } else {
@@ -328,7 +380,10 @@ export class TestClient {
    * make_person
    */
   public async makePerson(params: { p: Types.Person }): Promise<Types.Person> {
-    const response = await this.app.execute(this.context, 'make_person', params);
+    const convertedParams = {
+      p: params.p ? this.convertComplexType(params.p, {"$ref":"Person"}) : null,
+    };
+    const response = await this.app.execute(this.context, 'make_person', convertedParams);
     if (response.success) {
       return response.result as Types.Person;
     } else {
@@ -340,7 +395,10 @@ export class TestClient {
    * profile_roundtrip
    */
   public async profileRoundtrip(params: { p: Types.Profile }): Promise<Types.Profile> {
-    const response = await this.app.execute(this.context, 'profile_roundtrip', params);
+    const convertedParams = {
+      p: params.p ? this.convertComplexType(params.p, {"$ref":"Profile"}) : null,
+    };
+    const response = await this.app.execute(this.context, 'profile_roundtrip', convertedParams);
     if (response.success) {
       return response.result as Types.Profile;
     } else {
@@ -351,8 +409,11 @@ export class TestClient {
   /**
    * act
    */
-  public async act(params: { a: Types.Action }): Promise<number> {
-    const response = await this.app.execute(this.context, 'act', params);
+  public async act(params: { a: Types.ActionPayload }): Promise<number> {
+    const convertedParams = {
+      a: params.a ? this.convertVariant(params.a, {"$ref":"Action"}) : null,
+    };
+    const response = await this.app.execute(this.context, 'act', convertedParams);
     if (response.success) {
       return response.result as number;
     } else {
@@ -435,17 +496,28 @@ export interface AbiState {
   users: UserId32[];
 }
 
-export type Action =
-  | { kind: "Ping" }
-  | { kind: "SetName"; payload: string }
-  | { kind: "Update"; payload: UpdatePayload }
+export type ActionPayload =
+  | { name: 'Ping' }
+  | { name: 'SetName'; payload: string }
+  | { name: 'Update'; payload: UpdatePayload }
 
-export type ConformanceError =
-  | { kind: "BadInput" }
-  | { kind: "NotFound"; payload: string }
+export const Action = {
+  Ping: (): ActionPayload => ({ name: 'Ping' }),
+  SetName: (setname: string): ActionPayload => ({ name: 'SetName', payload: setname }),
+  Update: (update: UpdatePayload): ActionPayload => ({ name: 'Update', payload: update }),
+} as const;
 
-/** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */
-export type Hash64 = Uint8Array;
+export type ConformanceErrorPayload =
+  | { name: 'BadInput' }
+  | { name: 'NotFound'; payload: string }
+
+export const ConformanceError = {
+  BadInput: (): ConformanceErrorPayload => ({ name: 'BadInput' }),
+  NotFound: (notfound: string): ConformanceErrorPayload => ({ name: 'NotFound', payload: notfound }),
+} as const;
+
+/** Fixed-length bytes (size: 64). Represented as string at runtime. */
+export type Hash64 = string;
 
 export interface Person {
   id: UserId32;
@@ -455,12 +527,12 @@ export interface Person {
 
 export interface Profile {
   bio: string | null;
-  avatar: Uint8Array | null;
+  avatar: string | null;
   nicknames: string[];
 }
 
-/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */
-export type UserId32 = Uint8Array;
+/** Fixed-length bytes (size: 32). Represented as string at runtime. */
+export type UserId32 = string;
 
 export interface UpdatePayload {
   id: UserId32;

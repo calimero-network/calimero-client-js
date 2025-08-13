@@ -13,7 +13,8 @@
     ".": {
       "import": "./lib/index.mjs",
       "require": "./lib/index.js",
-      "types": "./lib/index.d.ts"
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.mjs"
     },
     "./abi-conformance": {
       "types": "./lib/abi-conformance/index.d.ts",

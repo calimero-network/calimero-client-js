@@ -5,6 +5,28 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./parse": {
+      "import": "./dist/parse.js",
+      "types": "./dist/parse.d.ts"
+    },
+    "./generate/types": {
+      "import": "./dist/generate/types.js",
+      "types": "./dist/generate/types.d.ts"
+    },
+    "./generate/client": {
+      "import": "./dist/generate/client.js",
+      "types": "./dist/generate/client.d.ts"
+    },
+    "./generate/emit": {
+      "import": "./dist/generate/emit.js",
+      "types": "./dist/generate/emit.d.ts"
+    }
+  },
   "bin": {
     "calimero-abi-codegen": "dist/cli.js"
   },

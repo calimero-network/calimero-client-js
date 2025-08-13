@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { AbiConformanceClient, Action } from './generated/abi-conformance/index';
+import {
+  AbiConformanceClient,
+  Action,
+} from './generated/abi-conformance/index';
 import {
   CalimeroProvider,
   useCalimero,
@@ -452,7 +455,7 @@ function App() {
       {
         name: 'act',
         test: async () => {
-          const action = Action.Ping;
+          const action = Action.Ping();
           const result = await client.act({ a: action });
           return {
             method: 'act',
@@ -467,16 +470,18 @@ function App() {
       {
         name: 'actWithPayload',
         test: async () => {
-          const action = { variant: Action.SetName, payload: 'New Name' } as const;
-          const result = await client.act({ a: action });
+          const input = Action.SetName("John Doe");
+          const result = await client.act({ a: input });
           return {
             method: 'actWithPayload',
             status: 'success' as const,
             message: '✅ act() - Execute action with payload',
-            details: { input: action, output: result },
+            details: { input, output: result },
           };
         },
       },
+
+
 
       // 28. may_fail
       {

@@ -5,23 +5,25 @@ export interface AbiState {
   users: UserId32[];
 }
 
-export enum Action {
-  Ping = "Ping",
-  SetName = "SetName",
-  Update = "Update",
-}
-
 export type ActionPayload =
-  | { variant: Action.SetName; payload: string }
-  | { variant: Action.Update; payload: UpdatePayload }
+  | { name: 'Ping' }
+  | { name: 'SetName'; payload: string }
+  | { name: 'Update'; payload: UpdatePayload }
 
-export enum ConformanceError {
-  BadInput = "BadInput",
-  NotFound = "NotFound",
-}
+export const Action = {
+  Ping: (): ActionPayload => ({ name: 'Ping' }),
+  SetName: (setname: string): ActionPayload => ({ name: 'SetName', payload: setname }),
+  Update: (update: UpdatePayload): ActionPayload => ({ name: 'Update', payload: update }),
+} as const;
 
 export type ConformanceErrorPayload =
-  | { variant: ConformanceError.NotFound; payload: string }
+  | { name: 'BadInput' }
+  | { name: 'NotFound'; payload: string }
+
+export const ConformanceError = {
+  BadInput: (): ConformanceErrorPayload => ({ name: 'BadInput' }),
+  NotFound: (notfound: string): ConformanceErrorPayload => ({ name: 'NotFound', payload: notfound }),
+} as const;
 
 /** Fixed-length bytes (size: 64). Represented as string at runtime. */
 export type Hash64 = string;

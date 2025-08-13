@@ -27,14 +27,14 @@ describe('Codegen', () => {
 
       // Assert key patterns
       expect(typesContent).toContain('export interface Person {');
-      expect(typesContent).toContain('export type Action =');
-      expect(typesContent).toContain('| { kind: "SetName"; payload: string }');
+      expect(typesContent).toContain('export type ActionPayload =');
+      expect(typesContent).toContain("| { name: 'SetName'; payload: string }");
       expect(typesContent).toContain(
-        '| { kind: "Update"; payload: UpdatePayload }',
+        "| { name: 'Update'; payload: UpdatePayload }",
       );
-      expect(typesContent).toContain('export type UserId32 = Uint8Array;');
+      expect(typesContent).toContain('export type UserId32 = string;');
       expect(typesContent).toContain(
-        '/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */',
+        '/** Fixed-length bytes (size: 32). Represented as string at runtime. */',
       );
       expect(typesContent).toContain(
         'export type may_failErrorCode = "BAD_INPUT" | "NOT_FOUND";',
@@ -75,7 +75,7 @@ describe('Codegen', () => {
 
       // The 'act' method returns number
       expect(clientContent).toContain(
-        'async act(params: { a: Types.Action }): Promise<number> {',
+        'async act(params: { a: Types.ActionPayload }): Promise<number> {',
       );
     });
 
@@ -95,10 +95,10 @@ describe('Codegen', () => {
 
       // Fixed bytes should have JSDoc with size information
       expect(typesContent).toContain(
-        '/** Fixed-length bytes (size: 32). Represented as Uint8Array at runtime. */',
+        '/** Fixed-length bytes (size: 32). Represented as string at runtime. */',
       );
       expect(typesContent).toContain(
-        '/** Fixed-length bytes (size: 64). Represented as Uint8Array at runtime. */',
+        '/** Fixed-length bytes (size: 64). Represented as string at runtime. */',
       );
     });
 
@@ -107,7 +107,7 @@ describe('Codegen', () => {
 
       // The Action variant "Update" has a reference to UpdatePayload
       expect(typesContent).toContain(
-        '| { kind: "Update"; payload: UpdatePayload }',
+        "| { name: 'Update'; payload: UpdatePayload }",
       );
     });
 
@@ -115,9 +115,9 @@ describe('Codegen', () => {
       const typesContent = generateTypes(manifest);
 
       // The Action variant "SetName" has a string payload
-      expect(typesContent).toContain('| { kind: "SetName"; payload: string }');
+      expect(typesContent).toContain("| { name: 'SetName'; payload: string }");
       // The Action variant "Ping" has no payload
-      expect(typesContent).toContain('| { kind: "Ping" }');
+      expect(typesContent).toContain("| { name: 'Ping' }");
     });
   });
 
@@ -150,7 +150,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', params);",
+        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
       );
       expect(clientContent).toContain(
         '@throws {Error} May throw the following errors:',
@@ -192,7 +192,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', params);",
+        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
       );
     });
 
@@ -236,7 +236,7 @@ describe('Codegen', () => {
         'async makePerson(params: { p: Types.Person }): Promise<Types.Person> {',
       );
       expect(clientContent).toContain(
-        "const response = await this.app.execute(this.context, 'make_person', params);",
+        "const response = await this.app.execute(this.context, 'make_person', convertedParams);",
       );
     });
 
@@ -376,7 +376,7 @@ const ctx = {} as any;
 const client = new Client(app, ctx);
 await client.roundtripId({ x: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" });
 await client.makePerson({ p: { id: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" as any, name: "test", age: 25 } });
-await client.act({ a: { kind: "Ping" } });
+await client.act({ a: Action.Ping() });
 `;
       const clientWithTestStub = clientWithMockedImport + testStub;
       fs.writeFileSync(clientPath, clientWithTestStub);
