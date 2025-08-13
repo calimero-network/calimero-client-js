@@ -11,7 +11,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --reporter=dot",
-    "validate:abi": "node dist/cli.js --validate -i __fixtures__/abi_conformance.json"
+    "codegen:test": "vitest run --reporter=dot __tests__/codegen.spec.ts",
+    "validate:abi": "node dist/cli.js --validate -i __fixtures__/abi_conformance.json",
+    "prepack": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "ajv": "^8.12.0",

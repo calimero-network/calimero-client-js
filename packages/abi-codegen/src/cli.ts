@@ -3,18 +3,27 @@
 import fs from 'fs';
 import path from 'path';
 import { loadAbiManifestFromFile } from './parse.js';
+import { generateTypes } from './generate/types.js';
+import { generateClient } from './generate/client.js';
 
 const getArgs = () => {
   const args: { [key: string]: string } = {};
   const flags: string[] = [];
 
-  process.argv.slice(2).forEach((arg) => {
+  process.argv.slice(2).forEach((arg, index) => {
     if (arg.startsWith('--')) {
       if (arg.includes('=')) {
         const [key, value] = arg.split('=');
         args[key.substring(2)] = value;
       } else {
-        flags.push(arg.substring(2));
+        const flagName = arg.substring(2);
+        // Check if next argument is a value (not a flag)
+        const nextArg = process.argv[index + 3]; // +3 because we're in slice(2) and need to account for index
+        if (nextArg && !nextArg.startsWith('-') && !nextArg.startsWith('--')) {
+          args[flagName] = nextArg;
+        } else {
+          flags.push(flagName);
+        }
       }
     } else if (arg.startsWith('-')) {
       // Handle short flags like -i, -o
@@ -38,61 +47,82 @@ const getArgs = () => {
   return { args, flags };
 };
 
-const { args, flags } = getArgs();
+function main() {
+  const { args, flags } = getArgs();
 
-// Check if --validate flag is present
-if (flags.includes('validate')) {
-  const inputPath = args.input || args.i || 'abi.json';
-  const inputFilePath = path.resolve(process.cwd(), inputPath);
+  // Check if --validate flag is present
+  if (flags.includes('validate')) {
+    const inputPath = args.input || args.i || 'abi.json';
+    const inputFilePath = path.resolve(process.cwd(), inputPath);
 
-  try {
-    const manifest = loadAbiManifestFromFile(inputFilePath);
+    try {
+      const manifest = loadAbiManifestFromFile(inputFilePath);
 
-    // Print summary
-    console.log(`✅ ABI manifest validated successfully!`);
-    console.log(`📊 Summary:`);
-    console.log(`   Methods: ${manifest.methods.length}`);
-    console.log(`   Events: ${manifest.events.length}`);
-    console.log(`   Types: ${Object.keys(manifest.types).length}`);
+      // Print summary
+      console.log(`✅ ABI manifest validated successfully!`);
+      console.log(`📊 Summary:`);
+      console.log(`   Methods: ${manifest.methods.length}`);
+      console.log(`   Events: ${manifest.events.length}`);
+      console.log(`   Types: ${Object.keys(manifest.types).length}`);
 
-    process.exit(0);
-  } catch (error) {
-    console.error(
-      `❌ Validation failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    process.exit(1);
-  }
-} else {
-  // Original codegen functionality (for CS2)
-  const abiPath = args.input || args.i || args.abi || 'abi.json';
-  // const outputPath = args.output || args.o || args.out || 'src/generated-client.ts'; // Will be used in CS2
+      process.exit(0);
+    } catch (error) {
+      console.error(
+        `❌ Validation failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      process.exitCode = 1;
+    }
+  } else {
+    // Code generation (default behavior)
+    const inputPath = args.input || args.i || 'abi.json';
+    const outputPath = args.output || args.o || 'src';
+    const clientName = args['client-name'] || 'Client';
 
-  const abiFilePath = path.resolve(process.cwd(), abiPath);
-  // const outputFilePath = path.resolve(process.cwd(), outputPath); // Will be used in CS2
+    const inputFilePath = path.resolve(process.cwd(), inputPath);
+    const outputDir = path.resolve(process.cwd(), outputPath);
 
-  if (!fs.existsSync(abiFilePath)) {
-    console.error(`Error: ABI file not found at ${abiFilePath}`);
-    process.exit(1);
-  }
+    if (!fs.existsSync(inputFilePath)) {
+      console.error(`❌ Error: ABI file not found at ${inputFilePath}`);
+      process.exitCode = 1;
+      return;
+    }
 
-  try {
-    // For now, just load and validate the manifest
-    const manifest = loadAbiManifestFromFile(abiFilePath);
-    console.log(`✅ ABI manifest loaded successfully!`);
-    console.log(`📊 Summary:`);
-    console.log(`   Methods: ${manifest.methods.length}`);
-    console.log(`   Events: ${manifest.events.length}`);
-    console.log(`   Types: ${Object.keys(manifest.types).length}`);
-    console.log(
-      `\n⚠️  Code generation is not yet implemented in this version.`,
-    );
-    console.log(`   Use --validate to check your ABI manifest.`);
+    try {
+      // Load and validate the manifest
+      const manifest = loadAbiManifestFromFile(inputFilePath);
+      
+      // Ensure output directory exists
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
 
-    process.exit(0);
-  } catch (error) {
-    console.error(
-      `❌ Failed to load ABI manifest: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    process.exit(1);
+      // Generate types.ts
+      const typesContent = generateTypes(manifest);
+      const typesPath = path.join(outputDir, 'types.ts');
+      fs.writeFileSync(typesPath, typesContent);
+
+      // Generate client.ts
+      const clientContent = generateClient(manifest, clientName);
+      const clientPath = path.join(outputDir, 'client.ts');
+      fs.writeFileSync(clientPath, clientContent);
+
+      // Print summary
+      console.log(`✅ Code generation completed successfully!`);
+      console.log(`📊 Summary:`);
+      console.log(`   Methods: ${manifest.methods.length}`);
+      console.log(`   Events: ${manifest.events.length}`);
+      console.log(`   Types: ${Object.keys(manifest.types).length}`);
+      console.log(`📁 Generated files:`);
+      console.log(`   ${typesPath}`);
+      console.log(`   ${clientPath}`);
+
+    } catch (error) {
+      console.error(
+        `❌ Code generation failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      process.exitCode = 1;
+    }
   }
 }
+
+main();
