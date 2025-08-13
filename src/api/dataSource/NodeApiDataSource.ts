@@ -148,14 +148,12 @@ export class NodeApiDataSource implements NodeApi {
   }
 
   async joinContext(
-    privateKey: string,
     invitationPayload: string,
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
         `${this.baseUrl}/admin-api/contexts/join`,
         {
-          privateKey,
           invitationPayload,
         },
       );

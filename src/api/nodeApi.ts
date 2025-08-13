@@ -114,7 +114,6 @@ export interface NodeApi {
     inviteePublicKey: string,
   ): ApiResponse<string>;
   joinContext(
-    privateKey: string,
     invitationPayload: string,
   ): ApiResponse<JoinContextResponse>;
 

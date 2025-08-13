@@ -27,7 +27,7 @@ export const JoinContext: React.FC = () => {
     setIsSuccess(false);
     const response: ResponseData<JoinContextResponse> = await apiClient
       .node()
-      .joinContext(identityPrivateKey, joinPayload);
+      .joinContext(joinPayload);
     if (response.error) {
       setJoinError(response.error.message);
     } else {
