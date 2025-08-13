@@ -5,14 +5,23 @@ export interface AbiState {
   users: UserId32[];
 }
 
-export type Action =
-  | { kind: "Ping" }
-  | { kind: "SetName"; payload: string }
-  | { kind: "Update"; payload: UpdatePayload }
+export enum Action {
+  Ping = "Ping",
+  SetName = "SetName",
+  Update = "Update",
+}
 
-export type ConformanceError =
-  | { kind: "BadInput" }
-  | { kind: "NotFound"; payload: string }
+export type ActionPayload =
+  | { variant: Action.SetName; payload: string }
+  | { variant: Action.Update; payload: UpdatePayload }
+
+export enum ConformanceError {
+  BadInput = "BadInput",
+  NotFound = "NotFound",
+}
+
+export type ConformanceErrorPayload =
+  | { variant: ConformanceError.NotFound; payload: string }
 
 /** Fixed-length bytes (size: 64). Represented as string at runtime. */
 export type Hash64 = string;

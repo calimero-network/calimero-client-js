@@ -86,24 +86,27 @@ function isHexBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
   if ('$ref' in typeRef) {
     const typeDef = manifest.types[typeRef.$ref];
     if (!typeDef) return false;
-    
+
     // If it's a bytes type, return true
     if (typeDef.kind === 'bytes') {
       return true;
     }
-    
+
     // If it's a record type, check its fields recursively
     if (typeDef.kind === 'record') {
-      return typeDef.fields.some((field) => isHexBytesType(field.type, manifest));
-    }
-    
-    // For variant types, check their variants
-    if (typeDef.kind === 'variant') {
-      return typeDef.variants.some((variant) => 
-        variant.payload && isHexBytesType(variant.payload, manifest)
+      return typeDef.fields.some((field) =>
+        isHexBytesType(field.type, manifest),
       );
     }
-    
+
+    // For variant types, check their variants
+    if (typeDef.kind === 'variant') {
+      return typeDef.variants.some(
+        (variant) =>
+          variant.payload && isHexBytesType(variant.payload, manifest),
+      );
+    }
+
     return false;
   }
 
@@ -180,6 +183,24 @@ function generateHexUtilityFunctions(): string[] {
     '    }',
     '    return result;',
     '  }',
+    '',
+    '  /**',
+    '   * Utility function to convert enum variants to contract format',
+    '   */',
+    '  private convertVariant(variant: any, typeRef: any): any {',
+    '    if (!variant) return variant;',
+    '    ',
+    '    if (typeRef.$ref === "Action") {',
+    '      // Convert Action enum to contract format',
+    '      if (typeof variant === "object" && "variant" in variant && "payload" in variant) {',
+    '        return { kind: variant.variant, payload: variant.payload };',
+    '      } else if (typeof variant === "string") {',
+    '        return { kind: variant };',
+    '      }',
+    '    }',
+    '    ',
+    '    return variant;',
+    '  }',
   ];
 }
 
@@ -239,6 +260,7 @@ function generateMethod(
         manifest,
         useTypesNamespace,
         true,
+        true, // forVariantParam - allow both enum values and payload variants
       );
       const nullableType = param.nullable ? `${paramType} | null` : paramType;
       return `${formatIdentifier(param.name)}: ${nullableType}`;
@@ -248,18 +270,33 @@ function generateMethod(
       `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
 
-    // Check if any parameters need hex conversion (direct hex bytes types or complex types containing hex bytes)
+    // Check if any parameters need conversion (hex bytes types, complex types containing hex bytes, or variant types)
     const hasHexParams = method.params.some((param) => {
       // Direct hex bytes types
       if ('kind' in param.type && param.type.kind === 'bytes') return true;
-      if ('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'bytes') return true;
-      
+      if (
+        '$ref' in param.type &&
+        manifest.types[param.type.$ref]?.kind === 'bytes'
+      )
+        return true;
+
       // Complex types that contain hex bytes fields
-      if (('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'record') || 
-          ('kind' in param.type && param.type.kind === 'record')) {
+      if (
+        ('$ref' in param.type &&
+          manifest.types[param.type.$ref]?.kind === 'record') ||
+        ('kind' in param.type && param.type.kind === 'record')
+      ) {
         return isHexBytesType(param.type, manifest);
       }
-      
+
+      // Variant types that need conversion
+      if (
+        '$ref' in param.type &&
+        manifest.types[param.type.$ref]?.kind === 'variant'
+      ) {
+        return true;
+      }
+
       return false;
     });
     const hasHexReturn =
@@ -269,13 +306,24 @@ function generateMethod(
       // Add parameter conversion for hex bytes types
       const convertedParams = method.params.map((param) => {
         const paramName = formatIdentifier(param.name);
-        
+
         // Handle complex types that contain hex bytes fields
-        if (('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'record') || 
-            ('kind' in param.type && param.type.kind === 'record')) {
+        if (
+          ('$ref' in param.type &&
+            manifest.types[param.type.$ref]?.kind === 'record') ||
+          ('kind' in param.type && param.type.kind === 'record')
+        ) {
           return `      ${paramName}: params.${paramName} ? this.convertComplexType(params.${paramName}, ${JSON.stringify(param.type)}) : null,`;
         }
-        
+
+        // Handle variant types
+        if (
+          '$ref' in param.type &&
+          manifest.types[param.type.$ref]?.kind === 'variant'
+        ) {
+          return `      ${paramName}: params.${paramName} ? this.convertVariant(params.${paramName}, ${JSON.stringify(param.type)}) : null,`;
+        }
+
         // Handle direct hex bytes types
         if (isHexBytesType(param.type, manifest)) {
           if (param.nullable) {
@@ -284,7 +332,7 @@ function generateMethod(
             return `      ${paramName}: Array.from(this.hexToBytes(params.${paramName})),`;
           }
         }
-        
+
         return `      ${paramName}: params.${paramName},`;
       });
 
@@ -306,9 +354,11 @@ function generateMethod(
   lines.push(`    if (response.success) {`);
   if (method.returns) {
     // Check if it's a direct hex bytes type (not a complex type containing hex bytes)
-    const isDirectHexBytes = ('kind' in method.returns && method.returns.kind === 'bytes') || 
-      ('$ref' in method.returns && manifest.types[method.returns.$ref]?.kind === 'bytes');
-    
+    const isDirectHexBytes =
+      ('kind' in method.returns && method.returns.kind === 'bytes') ||
+      ('$ref' in method.returns &&
+        manifest.types[method.returns.$ref]?.kind === 'bytes');
+
     if (isDirectHexBytes) {
       if (method.returns_nullable) {
         lines.push(`      if (response.result === null) {`);
@@ -351,6 +401,7 @@ function generateTypeRef(
   manifest: AbiManifest,
   useTypesNamespace: boolean = false,
   forUserApi: boolean = false,
+  forVariantParam: boolean = false,
 ): string {
   if ('$ref' in typeRef) {
     const typeName = formatIdentifier(typeRef.$ref);
@@ -359,6 +410,13 @@ function generateTypeRef(
     // Check if this is a hex bytes type
     if (forUserApi && typeDef && typeDef.kind === 'bytes') {
       return 'string'; // Return string for user API
+    }
+
+    // For variant types used as parameters, create a union type that includes both enum values and payload variants
+    if (forVariantParam && typeDef && typeDef.kind === 'variant') {
+      const enumType = useTypesNamespace ? `Types.${typeName}` : typeName;
+      const payloadType = useTypesNamespace ? `Types.${typeName}Payload` : `${typeName}Payload`;
+      return `${enumType} | ${payloadType}`;
     }
 
     return useTypesNamespace ? `Types.${typeName}` : typeName;

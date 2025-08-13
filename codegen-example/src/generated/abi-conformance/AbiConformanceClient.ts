@@ -65,6 +65,24 @@ export class AbiConformanceClient {
   }
 
   /**
+   * Utility function to convert enum variants to contract format
+   */
+  private convertVariant(variant: any, typeRef: any): any {
+    if (!variant) return variant;
+    
+    if (typeRef.$ref === "Action") {
+      // Convert Action enum to contract format
+      if (typeof variant === "object" && "variant" in variant && "payload" in variant) {
+        return { kind: variant.variant, payload: variant.payload };
+      } else if (typeof variant === "string") {
+        return { kind: variant };
+      }
+    }
+    
+    return variant;
+  }
+
+  /**
    * init
    */
   public async init(): Promise<Types.AbiState> {
@@ -375,8 +393,11 @@ export class AbiConformanceClient {
   /**
    * act
    */
-  public async act(params: { a: Types.Action }): Promise<number> {
-    const response = await this.app.execute(this.context, 'act', params);
+  public async act(params: { a: Types.Action | Types.ActionPayload }): Promise<number> {
+    const convertedParams = {
+      a: params.a ? this.convertVariant(params.a, {"$ref":"Action"}) : null,
+    };
+    const response = await this.app.execute(this.context, 'act', convertedParams);
     if (response.success) {
       return response.result as number;
     } else {
