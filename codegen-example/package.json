@@ -5,7 +5,8 @@
   "description": "An example demonstrating the Calimero SDK's generated client with React hooks.",
   "scripts": {
     "dev": "vite",
-    "codegen": "node ../lib/cli.cjs --abi=./abi.json --out=./src/generated-client.ts"
+    "build": "tsc -p tsconfig.json --noEmit",
+    "regenerate:abi-conformance": "cd .. && pnpm --filter @calimero/abi-codegen build && mkdir -p codegen-example/src/generated && node packages/abi-codegen/dist/cli.js -i packages/abi-codegen/__fixtures__/abi_conformance.json -o codegen-example/src/generated/abi-conformance --client-name AbiConformanceClient --import-path @calimero-network/calimero-client && cd codegen-example && echo 'export { AbiConformanceClient } from \"./AbiConformanceClient\";' > src/generated/abi-conformance/index.ts && echo 'export * from \"./types\";' >> src/generated/abi-conformance/index.ts"
   },
   "dependencies": {
     "react": "^18.2.0",

@@ -32,6 +32,22 @@ yarn add @calimero-network/calimero-client
 pnpm add @calimero-network/calimero-client
 ```
 
+## ABI Conformance Client
+
+The package includes a pre-built ABI conformance client for testing and development:
+
+```typescript
+import { AbiClient } from '@calimero-network/calimero-client/abi-conformance';
+
+// Use the client with your CalimeroApp and Context
+const client = new AbiClient(app, context);
+
+// Test basic operations
+const result = await client.optU32({ value: 42 });
+const listResult = await client.listU32({ values: [1, 2, 3] });
+const mapResult = await client.mapU32({ data: { test: 123 } });
+```
+
 ### Dependencies
 
 The SDK has the following peer dependencies:

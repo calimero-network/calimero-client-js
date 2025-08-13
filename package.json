@@ -14,6 +14,11 @@
       "import": "./lib/index.mjs",
       "require": "./lib/index.js",
       "types": "./lib/index.d.ts"
+    },
+    "./abi-conformance": {
+      "types": "./lib/abi-conformance/index.d.ts",
+      "import": "./lib/abi-conformance/index.js",
+      "require": "./lib/abi-conformance/index.js"
     }
   },
   "private": false,

@@ -65,6 +65,9 @@ function showHelp() {
     '  --name-from <path>        Derive client name from file path (e.g., wasm file)',
   );
   console.log(
+    '  --import-path <path>      Custom import path for CalimeroApp and Context (default: @calimero-network/calimero-client)',
+  );
+  console.log(
     '  --validate                Validate ABI manifest only (no code generation)',
   );
   console.log('  -h, --help                Show this help message');
@@ -154,7 +157,8 @@ function main() {
       fs.writeFileSync(typesPath, typesContent);
 
       // Generate client.ts with derived filename
-      const clientContent = generateClient(manifest, clientName);
+      const importPath = args['import-path'] || '@calimero-network/calimero-client';
+      const clientContent = generateClient(manifest, clientName, importPath);
       const clientPath = path.join(outputDir, `${clientName}.ts`);
       fs.writeFileSync(clientPath, clientContent);
 
