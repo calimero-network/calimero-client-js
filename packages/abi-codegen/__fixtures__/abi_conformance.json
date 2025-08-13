@@ -63,8 +63,7 @@
     },
     "Hash64": {
       "kind": "bytes",
-      "size": 64,
-      "encoding": "hex"
+      "size": 64
     },
     "Person": {
       "kind": "record",
@@ -102,8 +101,7 @@
         {
           "name": "avatar",
           "type": {
-            "kind": "bytes",
-            "encoding": "hex"
+            "kind": "bytes"
           },
           "nullable": true
         },
@@ -120,8 +118,7 @@
     },
     "UserId32": {
       "kind": "bytes",
-      "size": 32,
-      "encoding": "hex"
+      "size": 32
     },
     "UpdatePayload": {
       "kind": "record",
@@ -268,14 +265,12 @@
         {
           "name": "b",
           "type": {
-            "kind": "bytes",
-            "encoding": "hex"
+            "kind": "bytes"
           }
         }
       ],
       "returns": {
-        "kind": "bytes",
-        "encoding": "hex"
+        "kind": "bytes"
       }
     },
     {
@@ -616,8 +611,7 @@
     {
       "name": "Data",
       "payload": {
-        "kind": "bytes",
-        "encoding": "hex"
+        "kind": "bytes"
       }
     },
     {

@@ -60,7 +60,17 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["bool", "i32", "i64", "u32", "u64", "f32", "f64", "string", "unit"]
+          "enum": [
+            "bool",
+            "i32",
+            "i64",
+            "u32",
+            "u64",
+            "f32",
+            "f64",
+            "string",
+            "unit"
+          ]
         }
       }
     },
@@ -75,9 +85,6 @@
         "size": {
           "type": "integer",
           "minimum": 1
-        },
-        "encoding": {
-          "type": "string"
         }
       }
     },
@@ -285,4 +292,4 @@
       }
     }
   }
-} 
+}
