@@ -418,7 +418,7 @@ function App() {
             id: '04'.repeat(32), // 32 bytes of 0x04 as hex string
             name: 'John Doe',
             age: 25,
-          } as any; // Type assertion to bypass type mismatch
+          };
           const result = await client.makePerson({ p: person });
           return {
             method: 'makePerson',

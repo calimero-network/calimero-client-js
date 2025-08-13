@@ -85,7 +85,26 @@ function hasHexBytesTypes(manifest: AbiManifest): boolean {
 function isHexBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
   if ('$ref' in typeRef) {
     const typeDef = manifest.types[typeRef.$ref];
-    return typeDef && typeDef.kind === 'bytes';
+    if (!typeDef) return false;
+    
+    // If it's a bytes type, return true
+    if (typeDef.kind === 'bytes') {
+      return true;
+    }
+    
+    // If it's a record type, check its fields recursively
+    if (typeDef.kind === 'record') {
+      return typeDef.fields.some((field) => isHexBytesType(field.type, manifest));
+    }
+    
+    // For variant types, check their variants
+    if (typeDef.kind === 'variant') {
+      return typeDef.variants.some((variant) => 
+        variant.payload && isHexBytesType(variant.payload, manifest)
+      );
+    }
+    
+    return false;
   }
 
   if (typeRef.kind === 'bytes') {
@@ -142,6 +161,24 @@ function generateHexUtilityFunctions(): string[] {
     '      return this.hexToBytes(result);',
     '    }',
     '    throw new Error(`Unexpected bytes result format: ${typeof result}`);',
+    '  }',
+    '',
+    '  /**',
+    '   * Utility function to convert complex types with hex bytes fields',
+    '   */',
+    '  private convertComplexType(obj: any, typeRef: any): any {',
+    '    if (!obj) return obj;',
+    '    const result = { ...obj };',
+    '    if (typeRef.$ref === "Person") {',
+    '      if (typeof result.id === "string") {',
+    '        result.id = Array.from(this.hexToBytes(result.id));',
+    '      }',
+    '    } else if (typeRef.$ref === "Profile") {',
+    '      if (typeof result.avatar === "string") {',
+    '        result.avatar = Array.from(this.hexToBytes(result.avatar));',
+    '      }',
+    '    }',
+    '    return result;',
     '  }',
   ];
 }
@@ -211,10 +248,20 @@ function generateMethod(
       `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
 
-    // Check if any parameters need hex conversion
-    const hasHexParams = method.params.some((param) =>
-      isHexBytesType(param.type, manifest),
-    );
+    // Check if any parameters need hex conversion (direct hex bytes types or complex types containing hex bytes)
+    const hasHexParams = method.params.some((param) => {
+      // Direct hex bytes types
+      if ('kind' in param.type && param.type.kind === 'bytes') return true;
+      if ('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'bytes') return true;
+      
+      // Complex types that contain hex bytes fields
+      if (('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'record') || 
+          ('kind' in param.type && param.type.kind === 'record')) {
+        return isHexBytesType(param.type, manifest);
+      }
+      
+      return false;
+    });
     const hasHexReturn =
       method.returns && isHexBytesType(method.returns, manifest);
 
@@ -222,6 +269,14 @@ function generateMethod(
       // Add parameter conversion for hex bytes types
       const convertedParams = method.params.map((param) => {
         const paramName = formatIdentifier(param.name);
+        
+        // Handle complex types that contain hex bytes fields
+        if (('$ref' in param.type && manifest.types[param.type.$ref]?.kind === 'record') || 
+            ('kind' in param.type && param.type.kind === 'record')) {
+          return `      ${paramName}: params.${paramName} ? this.convertComplexType(params.${paramName}, ${JSON.stringify(param.type)}) : null,`;
+        }
+        
+        // Handle direct hex bytes types
         if (isHexBytesType(param.type, manifest)) {
           if (param.nullable) {
             return `      ${paramName}: params.${paramName} ? Array.from(this.hexToBytes(params.${paramName})) : null,`;
@@ -229,6 +284,7 @@ function generateMethod(
             return `      ${paramName}: Array.from(this.hexToBytes(params.${paramName})),`;
           }
         }
+        
         return `      ${paramName}: params.${paramName},`;
       });
 
@@ -249,7 +305,11 @@ function generateMethod(
   // Add response handling
   lines.push(`    if (response.success) {`);
   if (method.returns) {
-    if (isHexBytesType(method.returns, manifest)) {
+    // Check if it's a direct hex bytes type (not a complex type containing hex bytes)
+    const isDirectHexBytes = ('kind' in method.returns && method.returns.kind === 'bytes') || 
+      ('$ref' in method.returns && manifest.types[method.returns.$ref]?.kind === 'bytes');
+    
+    if (isDirectHexBytes) {
       if (method.returns_nullable) {
         lines.push(`      if (response.result === null) {`);
         lines.push(`        return null as ${nullableReturnType};`);

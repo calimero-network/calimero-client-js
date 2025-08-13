@@ -64,7 +64,7 @@ function generateTypeDefinition(
   if (typeDef.kind === 'record') {
     lines.push(`export interface ${safeName} {`);
     for (const field of typeDef.fields) {
-      const fieldType = generateTypeRef(field.type, manifest);
+      const fieldType = generateTypeRef(field.type, manifest, true);
       const nullableType = field.nullable ? `${fieldType} | null` : fieldType;
       lines.push(`  ${formatIdentifier(field.name)}: ${nullableType};`);
     }
@@ -74,7 +74,7 @@ function generateTypeDefinition(
     const variantLines = typeDef.variants.map((variant, index) => {
       const variantName = formatIdentifier(variant.name);
       if (variant.payload) {
-        const payloadType = generateTypeRef(variant.payload, manifest);
+        const payloadType = generateTypeRef(variant.payload, manifest, true);
         return `  | { kind: "${variant.name}"; payload: ${payloadType} }`;
       } else {
         return `  | { kind: "${variant.name}" }`;
@@ -84,11 +84,11 @@ function generateTypeDefinition(
   } else if (typeDef.kind === 'bytes') {
     if ('size' in typeDef) {
       lines.push(
-        `/** Fixed-length bytes (size: ${typeDef.size}). Represented as Uint8Array at runtime. */`,
+        `/** Fixed-length bytes (size: ${typeDef.size}). Represented as string at runtime. */`,
       );
-      lines.push(`export type ${safeName} = Uint8Array;`);
+      lines.push(`export type ${safeName} = string;`);
     } else {
-      lines.push(`export type ${safeName} = Uint8Array;`);
+      lines.push(`export type ${safeName} = string;`);
     }
   }
 
@@ -98,7 +98,7 @@ function generateTypeDefinition(
 /**
  * Generate TypeScript type from an ABI type reference
  */
-function generateTypeRef(typeRef: AbiTypeRef, manifest: AbiManifest): string {
+function generateTypeRef(typeRef: AbiTypeRef, manifest: AbiManifest, forUserApi: boolean = false): string {
   if ('$ref' in typeRef) {
     return formatIdentifier(typeRef.$ref);
   }
@@ -118,18 +118,18 @@ function generateTypeRef(typeRef: AbiTypeRef, manifest: AbiManifest): string {
     case 'unit':
       return 'void';
     case 'bytes':
-      return 'Uint8Array';
+      return forUserApi ? 'string' : 'Uint8Array';
     case 'list':
-      const itemType = generateTypeRef(typeRef.items, manifest);
+      const itemType = generateTypeRef(typeRef.items, manifest, forUserApi);
       return `${itemType}[]`;
     case 'map':
-      const keyType = generateTypeRef(typeRef.key, manifest);
-      const valueType = generateTypeRef(typeRef.value, manifest);
+      const keyType = generateTypeRef(typeRef.key, manifest, forUserApi);
+      const valueType = generateTypeRef(typeRef.value, manifest, forUserApi);
       return `Record<${keyType}, ${valueType}>`;
     case 'record':
       // Inline record type
       const fields = typeRef.fields.map((field) => {
-        const fieldType = generateTypeRef(field.type, manifest);
+        const fieldType = generateTypeRef(field.type, manifest, forUserApi);
         const nullableType = field.nullable ? `${fieldType} | null` : fieldType;
         return `${formatIdentifier(field.name)}: ${nullableType}`;
       });
