@@ -47,8 +47,30 @@ const getArgs = () => {
   return { args, flags };
 };
 
+function showHelp() {
+  console.log('Usage: calimero-abi-codegen [options]');
+  console.log('');
+  console.log('Options:');
+  console.log('  -i, --input <file>        Input ABI JSON file (default: abi.json)');
+  console.log('  -o, --outDir <dir>        Output directory for generated files (default: src)');
+  console.log('  --client-name <Name>      Custom client class name (default: Client)');
+  console.log('  --validate                Validate ABI manifest only (no code generation)');
+  console.log('  -h, --help                Show this help message');
+  console.log('');
+  console.log('Examples:');
+  console.log('  calimero-abi-codegen -i abi.json -o src');
+  console.log('  calimero-abi-codegen --validate -i abi.json');
+  console.log('  calimero-abi-codegen -i abi.json -o src --client-name MyClient');
+}
+
 function main() {
   const { args, flags } = getArgs();
+
+  // Show help if requested
+  if (flags.includes('help') || flags.includes('h')) {
+    showHelp();
+    return;
+  }
 
   // Check if --validate flag is present
   if (flags.includes('validate')) {
@@ -90,7 +112,7 @@ function main() {
     try {
       // Load and validate the manifest
       const manifest = loadAbiManifestFromFile(inputFilePath);
-      
+
       // Ensure output directory exists
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -115,7 +137,6 @@ function main() {
       console.log(`📁 Generated files:`);
       console.log(`   ${typesPath}`);
       console.log(`   ${clientPath}`);
-
     } catch (error) {
       console.error(
         `❌ Code generation failed: ${error instanceof Error ? error.message : String(error)}`,

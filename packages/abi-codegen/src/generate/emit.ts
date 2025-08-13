@@ -17,14 +17,67 @@ export function generateFileBanner(): string {
 export function formatIdentifier(name: string): string {
   // Handle reserved keywords and special characters
   const reservedKeywords = new Set([
-    'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default',
-    'delete', 'do', 'else', 'enum', 'export', 'extends', 'false', 'finally', 'for',
-    'function', 'if', 'import', 'in', 'instanceof', 'let', 'new', 'null', 'return',
-    'super', 'switch', 'this', 'throw', 'true', 'try', 'typeof', 'var', 'void',
-    'while', 'with', 'yield', 'abstract', 'boolean', 'byte', 'char', 'double',
-    'final', 'float', 'goto', 'implements', 'int', 'interface', 'long', 'native',
-    'package', 'private', 'protected', 'public', 'short', 'static', 'synchronized',
-    'throws', 'transient', 'volatile'
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'else',
+    'enum',
+    'export',
+    'extends',
+    'false',
+    'finally',
+    'for',
+    'function',
+    'if',
+    'import',
+    'in',
+    'instanceof',
+    'let',
+    'new',
+    'null',
+    'return',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'true',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'while',
+    'with',
+    'yield',
+    'abstract',
+    'boolean',
+    'byte',
+    'char',
+    'double',
+    'final',
+    'float',
+    'goto',
+    'implements',
+    'int',
+    'interface',
+    'long',
+    'native',
+    'package',
+    'private',
+    'protected',
+    'public',
+    'short',
+    'static',
+    'synchronized',
+    'throws',
+    'transient',
+    'volatile',
   ]);
 
   if (reservedKeywords.has(name)) {
@@ -43,7 +96,7 @@ export function formatIdentifier(name: string): string {
 export function toPascalCase(str: string): string {
   return str
     .split(/[-_\s]+/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('');
 }
 
@@ -55,4 +108,4 @@ export function toPascalCase(str: string): string {
 export function toCamelCase(str: string): string {
   const pascal = toPascalCase(str);
   return pascal.charAt(0).toLowerCase() + pascal.slice(1);
-} 
+}
