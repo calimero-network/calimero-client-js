@@ -69,13 +69,7 @@ function hasHexBytesTypes(manifest: AbiManifest): boolean {
   return false;
 }
 
-/**
- * Check if a type reference is a hex-encoded bytes type
- * Since we removed encoding fields, this is no longer needed
- */
-function isHexBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
-  return false;
-}
+// Removed isHexBytesType function since we no longer need conversion logic
 
 /**
  * Generate utility functions for hex string conversion
