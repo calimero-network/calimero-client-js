@@ -9,7 +9,8 @@ import { formatAjvErrors } from './utils/ajvFormat.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const schemaPath = join(__dirname, 'schema', 'wasm-abi-v1.schema.json');
+// Use the root schema that supports alias types
+const schemaPath = join(__dirname, '..', '..', '..', 'wasm-abi-v1.schema.json');
 const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'));
 
 // Initialize AJV with formats support

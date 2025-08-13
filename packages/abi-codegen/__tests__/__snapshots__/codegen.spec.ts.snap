@@ -545,8 +545,7 @@ export interface Profile {
 export type UserId32 = string;
 
 export interface UpdatePayload {
-  id: UserId32;
-  data: string;
+  age: number;
 }
 
 export type may_failErrorCode = "BAD_INPUT" | "NOT_FOUND";

@@ -8,30 +8,21 @@ export interface AbiState {
 export type ActionPayload =
   | { name: 'Ping' }
   | { name: 'SetName'; payload: string }
-  | { name: 'Update'; payload: UpdatePayload };
+  | { name: 'Update'; payload: UpdatePayload }
 
 export const Action = {
   Ping: (): ActionPayload => ({ name: 'Ping' }),
-  SetName: (setname: string): ActionPayload => ({
-    name: 'SetName',
-    payload: setname,
-  }),
-  Update: (update: UpdatePayload): ActionPayload => ({
-    name: 'Update',
-    payload: update,
-  }),
+  SetName: (setname: string): ActionPayload => ({ name: 'SetName', payload: setname }),
+  Update: (update: UpdatePayload): ActionPayload => ({ name: 'Update', payload: update }),
 } as const;
 
 export type ConformanceErrorPayload =
   | { name: 'BadInput' }
-  | { name: 'NotFound'; payload: string };
+  | { name: 'NotFound'; payload: string }
 
 export const ConformanceError = {
   BadInput: (): ConformanceErrorPayload => ({ name: 'BadInput' }),
-  NotFound: (notfound: string): ConformanceErrorPayload => ({
-    name: 'NotFound',
-    payload: notfound,
-  }),
+  NotFound: (notfound: string): ConformanceErrorPayload => ({ name: 'NotFound', payload: notfound }),
 } as const;
 
 /** Fixed-length bytes (size: 64). Represented as string at runtime. */
@@ -53,21 +44,21 @@ export interface Profile {
 export type UserId32 = string;
 
 export interface UpdatePayload {
-  id: UserId32;
-  data: string;
+  age: number;
 }
 
-export type may_failErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
+export type may_failErrorCode = "BAD_INPUT" | "NOT_FOUND";
 export type may_failError = { code: may_failErrorCode } & (
-  | { code: 'BAD_INPUT' }
-  | { code: 'NOT_FOUND'; payload: string }
+  | { code: "BAD_INPUT" }
+  | { code: "NOT_FOUND"; payload: string }
 );
 
-export type find_personErrorCode = 'BAD_INPUT' | 'NOT_FOUND';
+export type find_personErrorCode = "BAD_INPUT" | "NOT_FOUND";
 export type find_personError = { code: find_personErrorCode } & (
-  | { code: 'BAD_INPUT' }
-  | { code: 'NOT_FOUND'; payload: string }
+  | { code: "BAD_INPUT" }
+  | { code: "NOT_FOUND"; payload: string }
 );
+
 
 export type NamedPayload = string;
 
@@ -78,8 +69,9 @@ export type PersonUpdatedPayload = string;
 export type ActionTakenPayload = string;
 
 export type AbiEvent =
-  | { name: 'Ping' }
-  | { name: 'Named'; payload: string }
-  | { name: 'Data'; payload: Uint8Array }
-  | { name: 'PersonUpdated'; payload: string }
-  | { name: 'ActionTaken'; payload: string };
+  | { name: "Ping" }
+  | { name: "Named"; payload: string }
+  | { name: "Data"; payload: Uint8Array }
+  | { name: "PersonUpdated"; payload: string }
+  | { name: "ActionTaken"; payload: string }
+;

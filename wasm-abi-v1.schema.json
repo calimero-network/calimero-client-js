@@ -60,24 +60,14 @@
       "properties": {
         "kind": {
           "type": "string",
-          "enum": [
-            "bool",
-            "i32",
-            "i64",
-            "u32",
-            "u64",
-            "f32",
-            "f64",
-            "string",
-            "unit"
-          ]
+          "enum": ["bool", "i32", "i64", "u32", "u64", "f32", "f64", "string", "unit"]
         }
       }
     },
     "BytesType": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "encoding"],
+      "required": ["kind"],
       "properties": {
         "kind": {
           "const": "bytes"
@@ -87,7 +77,7 @@
           "minimum": 1
         },
         "encoding": {
-          "const": "hex"
+          "type": "string"
         }
       }
     },
@@ -207,10 +197,20 @@
           }
         },
         {
-          "$ref": "#/definitions/BytesType"
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "target"],
+          "properties": {
+            "kind": {
+              "const": "alias"
+            },
+            "target": {
+              "$ref": "#/definitions/TypeRef"
+            }
+          }
         },
         {
-          "$ref": "#/definitions/VariableBytesType"
+          "$ref": "#/definitions/BytesType"
         }
       ]
     },
@@ -285,4 +285,4 @@
       }
     }
   }
-}
+} 
