@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { AbiConformanceClient } from './generated/abi-conformance/index';
-import { CalimeroProvider, useCalimero, CalimeroConnectButton } from '@calimero-network/calimero-client';
+import {
+  CalimeroProvider,
+  useCalimero,
+  CalimeroConnectButton,
+} from '@calimero-network/calimero-client';
 
 import './EventLog.css';
 
@@ -9,7 +13,7 @@ import './EventLog.css';
 const calimeroConfig = {
   clientApplicationId: '9U3rBECcPFZCd844SiwAD4TC3sEdHHHdQppzqkwMVDmb',
   mode: 'multi-context' as any,
-  applicationPath: '/'
+  applicationPath: '/',
 };
 
 interface TestResult {
@@ -26,24 +30,26 @@ function App() {
 
   const runComprehensiveTests = async () => {
     if (!app || !isAuthenticated) {
-      setResults([{
-        method: 'connection',
-        status: 'error',
-        message: '❌ Not connected to Calimero. Please connect first.',
-        details: { app: !!app, authenticated: isAuthenticated }
-      }]);
+      setResults([
+        {
+          method: 'connection',
+          status: 'error',
+          message: '❌ Not connected to Calimero. Please connect first.',
+          details: { app: !!app, authenticated: isAuthenticated },
+        },
+      ]);
       return;
     }
 
     setIsRunning(true);
     setResults([]);
-    
+
     // Create a context for the client
     const context = await app.createContext();
     const client = new AbiConformanceClient(app, context);
-    
+
     const addResult = (result: TestResult) => {
-      setResults(prev => [...prev, result]);
+      setResults((prev) => [...prev, result]);
     };
 
     const tests = [
@@ -56,11 +62,14 @@ function App() {
             method: 'init',
             status: 'success' as const,
             message: '✅ init() - Returns AbiState with counters and users',
-            details: { counters: (result as any).counters, userCount: (result as any).users.length }
+            details: {
+              counters: (result as any).counters,
+              userCount: (result as any).users.length,
+            },
           };
-        }
+        },
       },
-      
+
       // 2. noop
       {
         name: 'noop',
@@ -70,11 +79,11 @@ function App() {
             method: 'noop',
             status: 'success' as const,
             message: '✅ noop() - Returns void/undefined',
-            details: { result: result === undefined ? 'undefined' : result }
+            details: { result: result === undefined ? 'undefined' : result },
           };
-        }
+        },
       },
-      
+
       // 3. echo_bool
       {
         name: 'echoBool',
@@ -84,11 +93,11 @@ function App() {
             method: 'echoBool',
             status: 'success' as const,
             message: '✅ echoBool() - Echoes boolean value',
-            details: { input: true, output: result }
+            details: { input: true, output: result },
           };
-        }
+        },
       },
-      
+
       // 4. echo_i32
       {
         name: 'echoI32',
@@ -98,11 +107,11 @@ function App() {
             method: 'echoI32',
             status: 'success' as const,
             message: '✅ echoI32() - Echoes 32-bit signed integer',
-            details: { input: -42, output: result }
+            details: { input: -42, output: result },
           };
-        }
+        },
       },
-      
+
       // 5. echo_i64
       {
         name: 'echoI64',
@@ -112,11 +121,11 @@ function App() {
             method: 'echoI64',
             status: 'success' as const,
             message: '✅ echoI64() - Echoes 64-bit signed integer',
-            details: { input: -123456789, output: result }
+            details: { input: -123456789, output: result },
           };
-        }
+        },
       },
-      
+
       // 6. echo_u32
       {
         name: 'echoU32',
@@ -126,11 +135,11 @@ function App() {
             method: 'echoU32',
             status: 'success' as const,
             message: '✅ echoU32() - Echoes 32-bit unsigned integer',
-            details: { input: 42, output: result }
+            details: { input: 42, output: result },
           };
-        }
+        },
       },
-      
+
       // 7. echo_u64
       {
         name: 'echoU64',
@@ -140,11 +149,11 @@ function App() {
             method: 'echoU64',
             status: 'success' as const,
             message: '✅ echoU64() - Echoes 64-bit unsigned integer',
-            details: { input: 123456789, output: result }
+            details: { input: 123456789, output: result },
           };
-        }
+        },
       },
-      
+
       // 8. echo_f32
       {
         name: 'echoF32',
@@ -154,11 +163,11 @@ function App() {
             method: 'echoF32',
             status: 'success' as const,
             message: '✅ echoF32() - Echoes 32-bit float',
-            details: { input: 3.14159, output: result }
+            details: { input: 3.14159, output: result },
           };
-        }
+        },
       },
-      
+
       // 9. echo_f64
       {
         name: 'echoF64',
@@ -168,11 +177,11 @@ function App() {
             method: 'echoF64',
             status: 'success' as const,
             message: '✅ echoF64() - Echoes 64-bit float',
-            details: { input: 2.718281828459045, output: result }
+            details: { input: 2.718281828459045, output: result },
           };
-        }
+        },
       },
-      
+
       // 10. echo_string
       {
         name: 'echoString',
@@ -182,11 +191,11 @@ function App() {
             method: 'echoString',
             status: 'success' as const,
             message: '✅ echoString() - Echoes string value',
-            details: { input: 'Hello, Calimero!', output: result }
+            details: { input: 'Hello, Calimero!', output: result },
           };
-        }
+        },
       },
-      
+
       // 11. echo_bytes
       {
         name: 'echoBytes',
@@ -197,11 +206,11 @@ function App() {
             method: 'echoBytes',
             status: 'success' as const,
             message: '✅ echoBytes() - Echoes hex string',
-            details: { input: hexInput, output: result }
+            details: { input: hexInput, output: result },
           };
-        }
+        },
       },
-      
+
       // 12. roundtrip_id
       {
         name: 'roundtripId',
@@ -212,11 +221,11 @@ function App() {
             method: 'roundtripId',
             status: 'success' as const,
             message: '✅ roundtripId() - UserId32 roundtrip',
-            details: { input: userIdHex, output: result }
+            details: { input: userIdHex, output: result },
           };
-        }
+        },
       },
-      
+
       // 13. roundtrip_hash
       {
         name: 'roundtripHash',
@@ -227,10 +236,10 @@ function App() {
             method: 'roundtripHash',
             status: 'success' as const,
             message: '✅ roundtripHash() - Hash64 roundtrip',
-            details: { input: hashHex, output: result }
+            details: { input: hashHex, output: result },
           };
-        }
-      }
+        },
+      },
     ];
 
     // Run all tests
@@ -243,7 +252,9 @@ function App() {
           method: test.name,
           status: 'error',
           message: `❌ ${test.name}() - Failed with error`,
-          details: { error: error instanceof Error ? error.message : String(error) }
+          details: {
+            error: error instanceof Error ? error.message : String(error),
+          },
         });
       }
     }
@@ -256,28 +267,34 @@ function App() {
   };
 
   const copyErrors = () => {
-    const errors = results.filter(r => r.status === 'error');
+    const errors = results.filter((r) => r.status === 'error');
     if (errors.length === 0) return;
 
-    const errorText = errors.map(error => 
-      `${error.method}: ${error.message}\n${error.details ? JSON.stringify(error.details, null, 2) : ''}`
-    ).join('\n\n');
+    const errorText = errors
+      .map(
+        (error) =>
+          `${error.method}: ${error.message}\n${error.details ? JSON.stringify(error.details, null, 2) : ''}`,
+      )
+      .join('\n\n');
 
-    navigator.clipboard.writeText(errorText).then(() => {
-      alert(`Copied ${errors.length} error(s) to clipboard!`);
-    }).catch(() => {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = errorText;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      alert(`Copied ${errors.length} error(s) to clipboard!`);
-    });
+    navigator.clipboard
+      .writeText(errorText)
+      .then(() => {
+        alert(`Copied ${errors.length} error(s) to clipboard!`);
+      })
+      .catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = errorText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert(`Copied ${errors.length} error(s) to clipboard!`);
+      });
   };
 
-  const passedCount = results.filter(r => r.status === 'success').length;
+  const passedCount = results.filter((r) => r.status === 'success').length;
   const totalCount = results.length;
   const errorCount = totalCount - passedCount;
 
@@ -285,8 +302,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>🔬 ABI Conformance Test Suite</h1>
-        <p>Comprehensive testing of the abi-conformance client with real Calimero app</p>
-        
+        <p>
+          Comprehensive testing of the abi-conformance client with real Calimero
+          app
+        </p>
+
         <div className="connection-status">
           <CalimeroConnectButton />
           {isAuthenticated ? (
@@ -295,26 +315,26 @@ function App() {
             <span className="status disconnected">❌ Not connected</span>
           )}
         </div>
-        
+
         <div className="test-controls">
-          <button 
-            onClick={runComprehensiveTests} 
+          <button
+            onClick={runComprehensiveTests}
             disabled={isRunning || !isAuthenticated}
             className="test-button"
           >
             {isRunning ? '🧪 Running Tests...' : '🚀 Run All Tests'}
           </button>
-          
-          <button 
-            onClick={clearResults} 
+
+          <button
+            onClick={clearResults}
             disabled={isRunning || results.length === 0}
             className="clear-button"
           >
             🗑️ Clear Results
           </button>
-          
-          <button 
-            onClick={copyErrors} 
+
+          <button
+            onClick={copyErrors}
             disabled={isRunning || errorCount === 0}
             className="copy-errors-button"
           >
@@ -330,7 +350,11 @@ function App() {
               <span className="stat failed">❌ Failed: {errorCount}</span>
               <span className="stat total">📈 Total: {totalCount}</span>
               <span className="stat rate">
-                🎯 Success Rate: {totalCount > 0 ? ((passedCount / totalCount) * 100).toFixed(1) : 0}%
+                🎯 Success Rate:{' '}
+                {totalCount > 0
+                  ? ((passedCount / totalCount) * 100).toFixed(1)
+                  : 0}
+                %
               </span>
             </div>
           </div>
@@ -371,5 +395,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <CalimeroProvider {...calimeroConfig}>
       <App />
     </CalimeroProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

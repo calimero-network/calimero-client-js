@@ -157,7 +157,8 @@ function main() {
       fs.writeFileSync(typesPath, typesContent);
 
       // Generate client.ts with derived filename
-      const importPath = args['import-path'] || '@calimero-network/calimero-client';
+      const importPath =
+        args['import-path'] || '@calimero-network/calimero-client';
       const clientContent = generateClient(manifest, clientName, importPath);
       const clientPath = path.join(outputDir, `${clientName}.ts`);
       fs.writeFileSync(clientPath, clientContent);

@@ -97,11 +97,14 @@ function isHexBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
   }
 
   if (typeRef.kind === 'map') {
-    return isHexBytesType(typeRef.key, manifest) || isHexBytesType(typeRef.value, manifest);
+    return (
+      isHexBytesType(typeRef.key, manifest) ||
+      isHexBytesType(typeRef.value, manifest)
+    );
   }
 
   if (typeRef.kind === 'record') {
-    return typeRef.fields.some(field => isHexBytesType(field.type, manifest));
+    return typeRef.fields.some((field) => isHexBytesType(field.type, manifest));
   }
 
   return false;
@@ -123,7 +126,7 @@ function generateHexUtilityFunctions(): string[] {
     '   * Utility function to convert Uint8Array to hex string',
     '   */',
     '  private bytesToHex(bytes: Uint8Array): string {',
-    '    return Array.from(bytes).map(b => b.toString(16).padStart(2, \'0\')).join(\'\');',
+    "    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');",
     '  }',
     '',
 
@@ -135,7 +138,7 @@ function generateHexUtilityFunctions(): string[] {
     '      return new Uint8Array(result);',
     '    }',
     '    // Handle case where result might be a hex string',
-    '    if (typeof result === \'string\') {',
+    "    if (typeof result === 'string') {",
     '      return this.hexToBytes(result);',
     '    }',
     '    throw new Error(`Unexpected bytes result format: ${typeof result}`);',
@@ -146,7 +149,11 @@ function generateHexUtilityFunctions(): string[] {
 /**
  * Generate a single method
  */
-function generateMethod(method: AbiMethod, manifest: AbiManifest, useTypesNamespace: boolean = false): string[] {
+function generateMethod(
+  method: AbiMethod,
+  manifest: AbiManifest,
+  useTypesNamespace: boolean = false,
+): string[] {
   const lines: string[] = [];
   const methodName = toCamelCase(method.name);
 
@@ -190,18 +197,26 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest, useTypesNamesp
   } else {
     // 1+ parameters - build object type and expose single params argument
     const paramsTypeFields = method.params.map((param) => {
-      const paramType = generateTypeRef(param.type, manifest, useTypesNamespace, true);
+      const paramType = generateTypeRef(
+        param.type,
+        manifest,
+        useTypesNamespace,
+        true,
+      );
       const nullableType = param.nullable ? `${paramType} | null` : paramType;
       return `${formatIdentifier(param.name)}: ${nullableType}`;
     });
-    
+
     lines.push(
       `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
 
     // Check if any parameters need hex conversion
-    const hasHexParams = method.params.some(param => isHexBytesType(param.type, manifest));
-    const hasHexReturn = method.returns && isHexBytesType(method.returns, manifest);
+    const hasHexParams = method.params.some((param) =>
+      isHexBytesType(param.type, manifest),
+    );
+    const hasHexReturn =
+      method.returns && isHexBytesType(method.returns, manifest);
 
     if (hasHexParams) {
       // Add parameter conversion for hex bytes types
@@ -209,9 +224,9 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest, useTypesNamesp
         const paramName = formatIdentifier(param.name);
         if (isHexBytesType(param.type, manifest)) {
           if (param.nullable) {
-            return `      ${paramName}: params.${paramName} ? this.hexToBytes(params.${paramName}) : null,`;
+            return `      ${paramName}: params.${paramName} ? Array.from(this.hexToBytes(params.${paramName})) : null,`;
           } else {
-            return `      ${paramName}: this.hexToBytes(params.${paramName}),`;
+            return `      ${paramName}: Array.from(this.hexToBytes(params.${paramName})),`;
           }
         }
         return `      ${paramName}: params.${paramName},`;
@@ -239,11 +254,19 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest, useTypesNamesp
         lines.push(`      if (response.result === null) {`);
         lines.push(`        return null as ${nullableReturnType};`);
         lines.push(`      }`);
-        lines.push(`      const resultBytes = this.deserializeBytes(response.result);`);
-        lines.push(`      return this.bytesToHex(resultBytes) as ${nullableReturnType};`);
+        lines.push(
+          `      const resultBytes = this.deserializeBytes(response.result);`,
+        );
+        lines.push(
+          `      return this.bytesToHex(resultBytes) as ${nullableReturnType};`,
+        );
       } else {
-        lines.push(`      const resultBytes = this.deserializeBytes(response.result);`);
-        lines.push(`      return this.bytesToHex(resultBytes) as ${nullableReturnType};`);
+        lines.push(
+          `      const resultBytes = this.deserializeBytes(response.result);`,
+        );
+        lines.push(
+          `      return this.bytesToHex(resultBytes) as ${nullableReturnType};`,
+        );
       }
     } else {
       lines.push(`      return response.result as ${nullableReturnType};`);
@@ -263,16 +286,21 @@ function generateMethod(method: AbiMethod, manifest: AbiManifest, useTypesNamesp
  * Generate TypeScript type from an ABI type reference
  * @param forUserApi - If true, return string for hex bytes types instead of Uint8Array
  */
-function generateTypeRef(typeRef: AbiTypeRef, manifest: AbiManifest, useTypesNamespace: boolean = false, forUserApi: boolean = false): string {
+function generateTypeRef(
+  typeRef: AbiTypeRef,
+  manifest: AbiManifest,
+  useTypesNamespace: boolean = false,
+  forUserApi: boolean = false,
+): string {
   if ('$ref' in typeRef) {
     const typeName = formatIdentifier(typeRef.$ref);
     const typeDef = manifest.types[typeRef.$ref];
-    
+
     // Check if this is a hex bytes type
     if (forUserApi && typeDef && typeDef.kind === 'bytes') {
       return 'string'; // Return string for user API
     }
-    
+
     return useTypesNamespace ? `Types.${typeName}` : typeName;
   }
 
@@ -293,16 +321,36 @@ function generateTypeRef(typeRef: AbiTypeRef, manifest: AbiManifest, useTypesNam
     case 'bytes':
       return forUserApi ? 'string' : 'Uint8Array'; // Return string for user API if hex-encoded
     case 'list':
-      const itemType = generateTypeRef(typeRef.items, manifest, useTypesNamespace, forUserApi);
+      const itemType = generateTypeRef(
+        typeRef.items,
+        manifest,
+        useTypesNamespace,
+        forUserApi,
+      );
       return `${itemType}[]`;
     case 'map':
-      const keyType = generateTypeRef(typeRef.key, manifest, useTypesNamespace, forUserApi);
-      const valueType = generateTypeRef(typeRef.value, manifest, useTypesNamespace, forUserApi);
+      const keyType = generateTypeRef(
+        typeRef.key,
+        manifest,
+        useTypesNamespace,
+        forUserApi,
+      );
+      const valueType = generateTypeRef(
+        typeRef.value,
+        manifest,
+        useTypesNamespace,
+        forUserApi,
+      );
       return `Record<${keyType}, ${valueType}>`;
     case 'record':
       // Inline record type
       const fields = typeRef.fields.map((field) => {
-        const fieldType = generateTypeRef(field.type, manifest, useTypesNamespace, forUserApi);
+        const fieldType = generateTypeRef(
+          field.type,
+          manifest,
+          useTypesNamespace,
+          forUserApi,
+        );
         const nullableType = field.nullable ? `${fieldType} | null` : fieldType;
         return `${formatIdentifier(field.name)}: ${nullableType}`;
       });
