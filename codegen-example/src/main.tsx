@@ -8,6 +8,7 @@ import {
   CalimeroProvider,
   useCalimero,
   CalimeroConnectButton,
+  AppMode,
 } from '@calimero-network/calimero-client';
 
 import './EventLog.css';
@@ -15,7 +16,7 @@ import './EventLog.css';
 // Utility functions for converting hex strings to byte arrays
 function hexToBytes(hex: string): Uint8Array {
   return new Uint8Array(
-    hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []
+    hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [],
   );
 }
 
@@ -27,9 +28,9 @@ function bytesToHex(bytes: Uint8Array): string {
 
 // Calimero app configuration
 const calimeroConfig = {
-  clientApplicationId: '9U3rBECcPFZCd844SiwAD4TC3sEdHHHdQppzqkwMVDmb',
-  mode: 'multi-context' as any,
-  applicationPath: '/',
+  clientApplicationId: '788ArcwPi1qpKaGnWecqCuVa6Ztm2ap4DoUKjZwn6eEY',
+  mode: AppMode.MultiContext,
+  applicationPath: 'https://calimero-only-peers-dev.s3.amazonaws.com/uploads/f865bc661343c9313fb55ea39554ecc3.wasm',
 };
 
 interface TestResult {
@@ -44,77 +45,76 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const { app, isAuthenticated } = useCalimero();
 
-  const runComprehensiveTests = async () => {
-    if (!app || !isAuthenticated) {
-      setResults([
+      const runComprehensiveTests = async () => {
+      if (!app || !isAuthenticated) {
+        setResults([
+          {
+            method: 'connection',
+            status: 'error',
+            message: '❌ Not connected to Calimero. Please connect first.',
+            details: { app: !!app, authenticated: isAuthenticated },
+          },
+        ]);
+        return;
+      }
+
+      setIsRunning(true);
+      setResults([]);
+
+      // Create a context for the client (this calls init automatically)
+      let context;
+      let client;
+      try {
+        context = await app.createContext();
+        console.log('Context creation result:', context);
+        client = new AbiConformanceClient(app, context);
+      } catch (error) {
+        setResults([
+          {
+            method: 'context-creation',
+            status: 'error',
+            message: '❌ Failed to create context',
+            details: { error: error instanceof Error ? error.message : String(error) },
+          },
+        ]);
+        setIsRunning(false);
+        return;
+      }
+
+      const addResult = (result: TestResult) => {
+        setResults((prev) => [...prev, result]);
+      };
+
+            const tests = [
+                // 1. noop
         {
-          method: 'connection',
-          status: 'error',
-          message: '❌ Not connected to Calimero. Please connect first.',
-          details: { app: !!app, authenticated: isAuthenticated },
+          name: 'noop',
+          test: async () => {
+            const result = await client.noop();
+            return {
+              method: 'noop',
+              status: 'success' as const,
+              message: '✅ noop() - Returns void/undefined',
+              details: { result: result === undefined ? 'undefined' : result },
+            };
+          },
         },
-      ]);
-      return;
-    }
 
-    setIsRunning(true);
-    setResults([]);
-
-    // Create a context for the client
-    const context = await app.createContext();
-    const client = new AbiConformanceClient(app, context);
-
-    const addResult = (result: TestResult) => {
-      setResults((prev) => [...prev, result]);
-    };
-
-    const tests = [
-      // 1. init
-      {
-        name: 'init',
-        test: async () => {
-          const result = await client.init();
-          return {
-            method: 'init',
-            status: 'success' as const,
-            message: '✅ init() - Returns AbiState with counters and users',
-            details: {
-              counters: (result as any).counters,
-              userCount: (result as any).users.length,
-            },
-          };
+                // 2. echo_bool
+        {
+          name: 'echoBool',
+          test: async () => {
+            const result = await client.echoBool({ b: true });
+            return {
+              method: 'echoBool',
+              status: 'success' as const,
+              message: '✅ echoBool() - Echoes boolean value',
+              details: { input: true, output: result },
+            };
+          },
         },
-      },
 
-      // 2. noop
-      {
-        name: 'noop',
-        test: async () => {
-          const result = await client.noop();
-          return {
-            method: 'noop',
-            status: 'success' as const,
-            message: '✅ noop() - Returns void/undefined',
-            details: { result: result === undefined ? 'undefined' : result },
-          };
-        },
-      },
-
-      // 3. echo_bool
-      {
-        name: 'echoBool',
-        test: async () => {
-          const result = await client.echoBool({ b: true });
-          return {
-            method: 'echoBool',
-            status: 'success' as const,
-            message: '✅ echoBool() - Echoes boolean value',
-            details: { input: true, output: result },
-          };
-        },
-      },
-
-      // 4. echo_i32
+        // 3. echo_i32
       {
         name: 'echoI32',
         test: async () => {
@@ -295,7 +295,7 @@ function App() {
         name: 'optRecord',
         test: async () => {
           const person = {
-            id: hexToBytes('01'.repeat(32)), // 32 bytes of 0x01
+            id: Array.from(hexToBytes('01'.repeat(32))), // 32 bytes of 0x01
             name: 'Test Person',
             age: 30,
           };
@@ -316,7 +316,7 @@ function App() {
         test: async () => {
           const idHex = '03'.repeat(32);
           const idBytes = hexToBytes(idHex);
-          const result1 = await client.optId({ x: idBytes });
+          const result1 = await client.optId({ x: Array.from(idBytes) });
           const result2 = await client.optId({ x: null });
           return {
             method: 'optId',
@@ -362,12 +362,12 @@ function App() {
         name: 'listRecords',
         test: async () => {
           const person1 = {
-            id: hexToBytes('07'.repeat(32)), // 32 bytes of 0x07
+            id: Array.from(hexToBytes('07'.repeat(32))), // 32 bytes of 0x07
             name: 'List Person 1',
             age: 40,
           };
           const person2 = {
-            id: hexToBytes('08'.repeat(32)), // 32 bytes of 0x08
+            id: Array.from(hexToBytes('08'.repeat(32))), // 32 bytes of 0x08
             name: 'List Person 2',
             age: 45,
           };
@@ -385,7 +385,10 @@ function App() {
       {
         name: 'listIds',
         test: async () => {
-          const ids = [hexToBytes('09'.repeat(32)), hexToBytes('0A'.repeat(32))]; // 32 bytes each
+          const ids = [
+            Array.from(hexToBytes('09'.repeat(32))),
+            Array.from(hexToBytes('0A'.repeat(32))),
+          ]; // 32 bytes each
           const result = await client.listIds({ xs: ids });
           return {
             method: 'listIds',
@@ -432,7 +435,7 @@ function App() {
         name: 'mapRecord',
         test: async () => {
           const person = {
-            id: hexToBytes('06'.repeat(32)), // 32 bytes of 0x06
+            id: Array.from(hexToBytes('06'.repeat(32))), // 32 bytes of 0x06
             name: 'Map Person',
             age: 35,
           };
@@ -453,7 +456,7 @@ function App() {
         name: 'makePerson',
         test: async () => {
           const person = {
-            id: hexToBytes('04'.repeat(32)), // 32 bytes of 0x04
+            id: Array.from(hexToBytes('04'.repeat(32))), // 32 bytes of 0x04
             name: 'John Doe',
             age: 25,
           };
@@ -473,7 +476,7 @@ function App() {
         test: async () => {
           const profile = {
             bio: 'Product Manager',
-            avatar: hexToBytes('05'.repeat(32)), // 32 bytes of 0x05
+            avatar: Array.from(hexToBytes('05'.repeat(32))), // 32 bytes of 0x05
             nicknames: ['Jane', 'JS'],
           };
           const result = await client.profileRoundtrip({ p: profile });
@@ -574,24 +577,24 @@ function App() {
       },
     ];
 
-    // Run all tests
-    for (const test of tests) {
-      try {
-        const result = await test.test();
-        addResult(result);
-      } catch (error) {
-        addResult({
-          method: test.name,
-          status: 'error',
-          message: `❌ ${test.name}() - Failed with error`,
-          details: {
-            error: error instanceof Error ? error.message : String(error),
-          },
-        });
+          // Run all tests independently
+      for (const test of tests) {
+        try {
+          const result = await test.test();
+          addResult(result);
+        } catch (error) {
+          addResult({
+            method: test.name,
+            status: 'error',
+            message: `❌ ${test.name}() - Failed with error`,
+            details: {
+              error: error instanceof Error ? error.message : String(error),
+            },
+          });
+        }
       }
-    }
 
-    setIsRunning(false);
+      setIsRunning(false);
   };
 
   const clearResults = () => {

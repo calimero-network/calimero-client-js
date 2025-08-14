@@ -152,9 +152,45 @@ function generateMethod(
       `  public async ${methodName}(params: { ${paramsTypeFields.join('; ')} }): Promise<${nullableReturnType}> {`,
     );
 
-    lines.push(
-      `    const response = await this.app.execute(this.context, '${method.name}', params);`,
-    );
+    // Pass parameters to the WASM module based on count
+    if (method.params.length === 0) {
+      lines.push(
+        `    const response = await this.app.execute(this.context, '${method.name}', {});`,
+      );
+    } else if (method.params.length === 1) {
+      // For single parameter methods, pass the value directly
+      const paramName = formatIdentifier(method.params[0].name);
+      
+      if ('$ref' in method.params[0].type && method.params[0].type.$ref === 'Action') {
+        // Special handling for Action parameters - convert the Action variant
+        lines.push(`    // Convert Action variant to WASM format`);
+        lines.push(`    let convertedParam;`);
+        lines.push(`    if (typeof params.${paramName} === 'string') {`);
+        lines.push(`      convertedParam = params.${paramName};`);
+        lines.push(`    } else if (params.${paramName} && typeof params.${paramName} === 'object' && 'name' in params.${paramName}) {`);
+        lines.push(`      if ('payload' in params.${paramName}) {`);
+        lines.push(`        convertedParam = { [params.${paramName}.name]: params.${paramName}.payload };`);
+        lines.push(`      } else {`);
+        lines.push(`        convertedParam = params.${paramName}.name;`);
+        lines.push(`      }`);
+        lines.push(`    } else {`);
+        lines.push(`      convertedParam = params.${paramName};`);
+        lines.push(`    }`);
+        lines.push(
+          `    const response = await this.app.execute(this.context, '${method.name}', convertedParam);`,
+        );
+      } else {
+        lines.push(
+          `    const response = await this.app.execute(this.context, '${method.name}', params.${paramName});`,
+        );
+      }
+    } else {
+      // For multiple parameters, pass as array
+      const paramNames = method.params.map(p => `params.${formatIdentifier(p.name)}`);
+      lines.push(
+        `    const response = await this.app.execute(this.context, '${method.name}', [${paramNames.join(', ')}]);`,
+      );
+    }
   }
 
   // Add response handling

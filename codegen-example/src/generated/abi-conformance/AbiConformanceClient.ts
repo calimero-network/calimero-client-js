@@ -142,7 +142,7 @@ export class AbiConformanceClient {
    * echo_bytes
    */
   public async echoBytes(params: { b: Uint8Array }): Promise<Uint8Array> {
-    const response = await this.app.execute(this.context, 'echo_bytes', params);
+    const response = await this.app.execute(this.context, 'echo_bytes', { b: Array.from(params.b) });
     if (response.success) {
       return response.result as Uint8Array;
     } else {
@@ -310,7 +310,16 @@ export class AbiConformanceClient {
    * act
    */
   public async act(params: { a: Types.ActionPayload }): Promise<number> {
-    const response = await this.app.execute(this.context, 'act', params);
+    // Convert Action variant to WASM format
+    const convertedParams = { ...params };
+    if (convertedParams.a && typeof convertedParams.a === 'object' && 'name' in convertedParams.a) {
+      if ('payload' in convertedParams.a) {
+        convertedParams.a = { [convertedParams.a.name]: convertedParams.a.payload };
+      } else {
+        convertedParams.a = convertedParams.a.name;
+      }
+    }
+    const response = await this.app.execute(this.context, 'act', convertedParams);
     if (response.success) {
       return response.result as number;
     } else {
@@ -322,7 +331,7 @@ export class AbiConformanceClient {
    * roundtrip_id
    */
   public async roundtripId(params: { x: Types.UserId32 }): Promise<Types.UserId32> {
-    const response = await this.app.execute(this.context, 'roundtrip_id', params);
+    const response = await this.app.execute(this.context, 'roundtrip_id', { x: Array.from(params.x) });
     if (response.success) {
       return response.result as Types.UserId32;
     } else {
@@ -334,7 +343,7 @@ export class AbiConformanceClient {
    * roundtrip_hash
    */
   public async roundtripHash(params: { h: Types.Hash64 }): Promise<Types.Hash64> {
-    const response = await this.app.execute(this.context, 'roundtrip_hash', params);
+    const response = await this.app.execute(this.context, 'roundtrip_hash', { h: Array.from(params.h)});
     if (response.success) {
       return response.result as Types.Hash64;
     } else {
