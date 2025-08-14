@@ -1,2 +1,2 @@
-export { AbiConformanceClient } from './AbiConformanceClient';
+export { AbiConformanceClient, CalimeroBytes } from './AbiConformanceClient';
 export * from './types';

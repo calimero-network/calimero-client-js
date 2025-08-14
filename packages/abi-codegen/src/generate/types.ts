@@ -19,6 +19,10 @@ export function generateTypes(manifest: AbiManifest): string {
   lines.push(generateFileBanner().trim());
   lines.push('');
 
+  // Import CalimeroBytes from the client file
+  lines.push('import { CalimeroBytes } from "./AbiConformanceClient.js";');
+  lines.push('');
+
   // Generate type definitions
   for (const [typeName, typeDef] of Object.entries(manifest.types)) {
     lines.push(
@@ -150,7 +154,7 @@ function generateTypeRef(
     case 'unit':
       return 'void';
     case 'bytes':
-      return 'Uint8Array';
+      return 'CalimeroBytes';
     case 'list':
       const itemType = generateTypeRef(typeRef.items, manifest, forUserApi);
       return `${itemType}[]`;

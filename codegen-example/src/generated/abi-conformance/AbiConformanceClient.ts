@@ -5,9 +5,164 @@ import {
   Context,
 } from '@calimero-network/calimero-client';
 
-import * as Types from "./types.js";
+// Generated types
 
-export * from "./types.js";
+export interface AbiState {
+  counters: Record<string, number>;
+  users: UserId32[];
+}
+
+export type ActionPayload =
+  | { name: 'Ping' }
+  | { name: 'SetName'; payload: string }
+  | { name: 'Update'; payload: UpdatePayload }
+
+export const Action = {
+  Ping: (): ActionPayload => ({ name: 'Ping' }),
+  SetName: (setname: string): ActionPayload => ({ name: 'SetName', payload: setname }),
+  Update: (update: UpdatePayload): ActionPayload => ({ name: 'Update', payload: update }),
+} as const;
+
+export type ConformanceErrorPayload =
+  | { name: 'BadInput' }
+  | { name: 'NotFound'; payload: string }
+
+export const ConformanceError = {
+  BadInput: (): ConformanceErrorPayload => ({ name: 'BadInput' }),
+  NotFound: (notfound: string): ConformanceErrorPayload => ({ name: 'NotFound', payload: notfound }),
+} as const;
+
+export type Hash64 = CalimeroBytes;
+
+export interface Person {
+  id: UserId32;
+  name: string;
+  age: number;
+}
+
+export interface Profile {
+  bio: string | null;
+  avatar: CalimeroBytes | null;
+  nicknames: string[];
+}
+
+export interface UpdatePayload {
+  age: number;
+}
+
+export type UserId32 = CalimeroBytes;
+
+
+export type NamedPayload = string;
+
+export type DataPayload = CalimeroBytes;
+
+
+
+export type AbiEvent =
+  | { name: "Ping" }
+  | { name: "Named"; payload: string }
+  | { name: "Data"; payload: CalimeroBytes }
+  | { name: "PersonUpdated"; payload: Person }
+  | { name: "ActionTaken"; payload: ActionPayload }
+;
+
+
+/**
+ * Utility class for handling byte conversions in Calimero
+ */
+export class CalimeroBytes {
+  private data: Uint8Array;
+
+  constructor(input: string | number[] | Uint8Array) {
+    if (typeof input === "string") {
+      // Hex string
+      this.data = new Uint8Array(
+        input.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []
+      );
+    } else if (Array.isArray(input)) {
+      // Number array
+      this.data = new Uint8Array(input);
+    } else {
+      // Uint8Array
+      this.data = input;
+    }
+  }
+
+  toArray(): number[] {
+    return Array.from(this.data);
+  }
+
+  toUint8Array(): Uint8Array {
+    return this.data;
+  }
+
+  static fromHex(hex: string): CalimeroBytes {
+    return new CalimeroBytes(hex);
+  }
+
+  static fromArray(arr: number[]): CalimeroBytes {
+    return new CalimeroBytes(arr);
+  }
+
+  static fromUint8Array(bytes: Uint8Array): CalimeroBytes {
+    return new CalimeroBytes(bytes);
+  }
+}
+
+/**
+ * Convert CalimeroBytes instances to arrays for WASM compatibility
+ */
+function convertCalimeroBytesForWasm(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (obj instanceof CalimeroBytes) {
+    return obj.toArray();
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertCalimeroBytesForWasm(item));
+  }
+
+  if (typeof obj === "object") {
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = convertCalimeroBytesForWasm(value);
+    }
+    return result;
+  }
+
+  return obj;
+}
+
+/**
+ * Convert arrays back to CalimeroBytes instances from WASM responses
+ */
+function convertWasmResultToCalimeroBytes(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj) && obj.every(item => typeof item === "number")) {
+    return new CalimeroBytes(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertWasmResultToCalimeroBytes(item));
+  }
+
+  if (typeof obj === "object") {
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = convertWasmResultToCalimeroBytes(value);
+    }
+    return result;
+  }
+
+  return obj;
+}
 
 export class AbiConformanceClient {
   private app: CalimeroApp;
@@ -21,10 +176,10 @@ export class AbiConformanceClient {
   /**
    * init
    */
-  public async init(): Promise<Types.AbiState> {
+  public async init(): Promise<AbiState> {
     const response = await this.app.execute(this.context, 'init', {});
     if (response.success) {
-      return response.result as Types.AbiState;
+      return convertWasmResultToCalimeroBytes(response.result) as AbiState;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -141,10 +296,10 @@ export class AbiConformanceClient {
   /**
    * echo_bytes
    */
-  public async echoBytes(params: { b: Uint8Array }): Promise<Uint8Array> {
-    const response = await this.app.execute(this.context, 'echo_bytes', { b: Array.from(params.b) });
+  public async echoBytes(params: { b: CalimeroBytes }): Promise<CalimeroBytes> {
+    const response = await this.app.execute(this.context, 'echo_bytes', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Uint8Array;
+      return convertWasmResultToCalimeroBytes(response.result) as CalimeroBytes;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -177,10 +332,10 @@ export class AbiConformanceClient {
   /**
    * opt_record
    */
-  public async optRecord(params: { p: Types.Person | null }): Promise<Types.Person | null> {
-    const response = await this.app.execute(this.context, 'opt_record', params);
+  public async optRecord(params: { p: Person | null }): Promise<Person | null> {
+    const response = await this.app.execute(this.context, 'opt_record', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.Person | null;
+      return convertWasmResultToCalimeroBytes(response.result) as Person | null;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -189,10 +344,10 @@ export class AbiConformanceClient {
   /**
    * opt_id
    */
-  public async optId(params: { x: Types.UserId32 | null }): Promise<Types.UserId32 | null> {
-    const response = await this.app.execute(this.context, 'opt_id', params);
+  public async optId(params: { x: UserId32 | null }): Promise<UserId32 | null> {
+    const response = await this.app.execute(this.context, 'opt_id', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.UserId32 | null;
+      return convertWasmResultToCalimeroBytes(response.result) as UserId32 | null;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -225,10 +380,10 @@ export class AbiConformanceClient {
   /**
    * list_records
    */
-  public async listRecords(params: { ps: Types.Person[] }): Promise<Types.Person[]> {
-    const response = await this.app.execute(this.context, 'list_records', params);
+  public async listRecords(params: { ps: Person[] }): Promise<Person[]> {
+    const response = await this.app.execute(this.context, 'list_records', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.Person[];
+      return convertWasmResultToCalimeroBytes(response.result) as Person[];
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -237,10 +392,10 @@ export class AbiConformanceClient {
   /**
    * list_ids
    */
-  public async listIds(params: { xs: Types.UserId32[] }): Promise<Types.UserId32[]> {
-    const response = await this.app.execute(this.context, 'list_ids', params);
+  public async listIds(params: { xs: UserId32[] }): Promise<UserId32[]> {
+    const response = await this.app.execute(this.context, 'list_ids', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.UserId32[];
+      return convertWasmResultToCalimeroBytes(response.result) as UserId32[];
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -273,10 +428,10 @@ export class AbiConformanceClient {
   /**
    * map_record
    */
-  public async mapRecord(params: { m: Record<string, Types.Person> }): Promise<Record<string, Types.Person>> {
-    const response = await this.app.execute(this.context, 'map_record', params);
+  public async mapRecord(params: { m: Record<string, Person> }): Promise<Record<string, Person>> {
+    const response = await this.app.execute(this.context, 'map_record', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Record<string, Types.Person>;
+      return convertWasmResultToCalimeroBytes(response.result) as Record<string, Person>;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -285,10 +440,10 @@ export class AbiConformanceClient {
   /**
    * make_person
    */
-  public async makePerson(params: { p: Types.Person }): Promise<Types.Person> {
-    const response = await this.app.execute(this.context, 'make_person', params);
+  public async makePerson(params: { p: Person }): Promise<Person> {
+    const response = await this.app.execute(this.context, 'make_person', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.Person;
+      return convertWasmResultToCalimeroBytes(response.result) as Person;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -297,10 +452,10 @@ export class AbiConformanceClient {
   /**
    * profile_roundtrip
    */
-  public async profileRoundtrip(params: { p: Types.Profile }): Promise<Types.Profile> {
-    const response = await this.app.execute(this.context, 'profile_roundtrip', params);
+  public async profileRoundtrip(params: { p: Profile }): Promise<Profile> {
+    const response = await this.app.execute(this.context, 'profile_roundtrip', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.Profile;
+      return convertWasmResultToCalimeroBytes(response.result) as Profile;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -309,9 +464,9 @@ export class AbiConformanceClient {
   /**
    * act
    */
-  public async act(params: { a: Types.ActionPayload }): Promise<number> {
+  public async act(params: { a: ActionPayload }): Promise<number> {
     // Convert Action variant to WASM format
-    const convertedParams = { ...params };
+    const convertedParams = { ...params } as any;
     if (convertedParams.a && typeof convertedParams.a === 'object' && 'name' in convertedParams.a) {
       if ('payload' in convertedParams.a) {
         convertedParams.a = { [convertedParams.a.name]: convertedParams.a.payload };
@@ -330,10 +485,10 @@ export class AbiConformanceClient {
   /**
    * roundtrip_id
    */
-  public async roundtripId(params: { x: Types.UserId32 }): Promise<Types.UserId32> {
-    const response = await this.app.execute(this.context, 'roundtrip_id', { x: Array.from(params.x) });
+  public async roundtripId(params: { x: UserId32 }): Promise<UserId32> {
+    const response = await this.app.execute(this.context, 'roundtrip_id', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.UserId32;
+      return convertWasmResultToCalimeroBytes(response.result) as UserId32;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -342,10 +497,10 @@ export class AbiConformanceClient {
   /**
    * roundtrip_hash
    */
-  public async roundtripHash(params: { h: Types.Hash64 }): Promise<Types.Hash64> {
-    const response = await this.app.execute(this.context, 'roundtrip_hash', { h: Array.from(params.h)});
+  public async roundtripHash(params: { h: Hash64 }): Promise<Hash64> {
+    const response = await this.app.execute(this.context, 'roundtrip_hash', convertCalimeroBytesForWasm(params));
     if (response.success) {
-      return response.result as Types.Hash64;
+      return convertWasmResultToCalimeroBytes(response.result) as Hash64;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
@@ -366,10 +521,10 @@ export class AbiConformanceClient {
   /**
    * find_person
    */
-  public async findPerson(params: { name: string }): Promise<Types.Person> {
+  public async findPerson(params: { name: string }): Promise<Person> {
     const response = await this.app.execute(this.context, 'find_person', params);
     if (response.success) {
-      return response.result as Types.Person;
+      return convertWasmResultToCalimeroBytes(response.result) as Person;
     } else {
       throw new Error(response.error || 'Execution failed');
     }
