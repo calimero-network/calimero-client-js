@@ -5,11 +5,13 @@ This example demonstrates the Calimero SDK's generated client with React hooks f
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Generate the client code:
+
    ```bash
    npm run regenerate:abi-conformance
    ```
@@ -19,6 +21,7 @@ This example demonstrates the Calimero SDK's generated client with React hooks f
 ## Development
 
 Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -55,6 +58,7 @@ npm run regenerate:abi-conformance
 ```
 
 This will:
+
 1. Build the abi-codegen package
 2. Generate the client from the ABI manifest
-3. Create the necessary export files 
+3. Create the necessary export files

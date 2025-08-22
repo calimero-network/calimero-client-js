@@ -13,8 +13,6 @@ import {
   AppMode,
 } from '@calimero-network/calimero-client';
 
-
-
 // Utility function for converting byte arrays to hex strings
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes)
