@@ -22,7 +22,8 @@ function bytesToHex(bytes: Uint8Array): string {
 
 // Calimero app configuration
 const calimeroConfig = {
-  clientApplicationId: import.meta.env.VITE_CALIMERO_CLIENT_APP_ID || 'YOUR_CLIENT_APP_ID',
+  clientApplicationId:
+    import.meta.env.VITE_CALIMERO_CLIENT_APP_ID || 'YOUR_CLIENT_APP_ID',
   mode: AppMode.MultiContext,
   applicationPath: import.meta.env.VITE_CALIMERO_APP_PATH || 'YOUR_APP_PATH',
 };

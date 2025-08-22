@@ -5,22 +5,26 @@ This example demonstrates the Calimero SDK's generated client with React hooks f
 ## Setup
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Configure environment variables**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Then edit `.env` and fill in your actual values:
+
    ```env
    VITE_CALIMERO_CLIENT_APP_ID=your_client_application_id_here
    VITE_CALIMERO_APP_PATH=your_application_path_here
    ```
 
 3. **Generate the client code**:
+
    ```bash
    npm run regenerate:abi-conformance
    ```

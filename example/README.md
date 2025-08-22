@@ -5,16 +5,19 @@ This example demonstrates basic usage of the Calimero SDK for context management
 ## Setup
 
 1. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Configure environment variables**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Then edit `.env` and fill in your actual values:
+
    ```env
    VITE_CALIMERO_CLIENT_APP_ID=your_client_application_id_here
    VITE_CALIMERO_APP_PATH=your_application_path_here
@@ -37,4 +40,4 @@ This example demonstrates basic usage of the Calimero SDK for context management
 - `VITE_CALIMERO_CLIENT_APP_ID`: Your Calimero client application ID
 - `VITE_CALIMERO_APP_PATH`: Path to your Calimero application WASM file
 
-**Note**: Never commit your actual `.env` file to version control. The `.env.example` file is provided as a template. 
+**Note**: Never commit your actual `.env` file to version control. The `.env.example` file is provided as a template.
