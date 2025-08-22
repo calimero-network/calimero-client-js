@@ -63,10 +63,10 @@ function App() {
     let client;
     try {
       // context = await app.createContext();
-      context= {
-        contextId: "44a5587LgLJntDLXjX5qbSxwEpaWXCxFtkmKqME5mXyV",
-        executorId: "5FU8fnDYh15HBKyXc5BRuxy6EQoWVEZAV6h5osqs87f3",
-        applicationId: "5xC9UMNuwh9ddCfXNnapiRuhBnqgLyz2rbu3C8yKXU5h"
+      context = {
+        contextId: '44a5587LgLJntDLXjX5qbSxwEpaWXCxFtkmKqME5mXyV',
+        executorId: '5FU8fnDYh15HBKyXc5BRuxy6EQoWVEZAV6h5osqs87f3',
+        applicationId: '5xC9UMNuwh9ddCfXNnapiRuhBnqgLyz2rbu3C8yKXU5h',
       };
       console.log('Context creation result:', context);
       client = new AbiConformanceClient(app, context);
@@ -339,9 +339,9 @@ function App() {
             method: 'optId',
             status: 'success' as const,
             message: '✅ optId() - Optional ID',
-            details: { 
-              withValue: result1 ? bytesToHex(result1.toUint8Array()) : null, 
-              withNull: result2 
+            details: {
+              withValue: result1 ? bytesToHex(result1.toUint8Array()) : null,
+              withNull: result2,
             },
           };
         },
@@ -396,11 +396,11 @@ function App() {
             method: 'listRecords',
             status: 'success' as const,
             message: '✅ listRecords() - List of records',
-            details: { 
-              output: result.map(person => ({ 
-                ...person, 
-                id: bytesToHex(person.id.toUint8Array()) 
-              }))
+            details: {
+              output: result.map((person) => ({
+                ...person,
+                id: bytesToHex(person.id.toUint8Array()),
+              })),
             },
           };
         },
@@ -419,7 +419,9 @@ function App() {
             method: 'listIds',
             status: 'success' as const,
             message: '✅ listIds() - List of IDs',
-            details: { output: result.map(id => bytesToHex(id.toUint8Array())) },
+            details: {
+              output: result.map((id) => bytesToHex(id.toUint8Array())),
+            },
           };
         },
       },
@@ -471,13 +473,13 @@ function App() {
             method: 'mapRecord',
             status: 'success' as const,
             message: '✅ mapRecord() - Map of records',
-            details: { 
+            details: {
               output: Object.fromEntries(
                 Object.entries(result).map(([key, person]) => [
-                  key, 
-                  { ...person, id: bytesToHex(person.id.toUint8Array()) }
-                ])
-              )
+                  key,
+                  { ...person, id: bytesToHex(person.id.toUint8Array()) },
+                ]),
+              ),
             },
           };
         },
@@ -497,9 +499,9 @@ function App() {
             method: 'makePerson',
             status: 'success' as const,
             message: '✅ makePerson() - Create a person record',
-            details: { 
-              input: { ...person, id: bytesToHex(person.id.toUint8Array()) }, 
-              output: { ...result, id: bytesToHex(result.id.toUint8Array()) }
+            details: {
+              input: { ...person, id: bytesToHex(person.id.toUint8Array()) },
+              output: { ...result, id: bytesToHex(result.id.toUint8Array()) },
             },
           };
         },
@@ -519,15 +521,19 @@ function App() {
             method: 'profileRoundtrip',
             status: 'success' as const,
             message: '✅ profileRoundtrip() - Profile roundtrip',
-            details: { 
-              input: { 
-                ...profile, 
-                avatar: profile.avatar ? bytesToHex(profile.avatar.toUint8Array()) : null 
-              }, 
-              output: { 
-                ...result, 
-                avatar: result.avatar ? bytesToHex(result.avatar.toUint8Array()) : null 
-              }
+            details: {
+              input: {
+                ...profile,
+                avatar: profile.avatar
+                  ? bytesToHex(profile.avatar.toUint8Array())
+                  : null,
+              },
+              output: {
+                ...result,
+                avatar: result.avatar
+                  ? bytesToHex(result.avatar.toUint8Array())
+                  : null,
+              },
             },
           };
         },
@@ -592,16 +598,16 @@ function App() {
             };
           } catch (error) {
             // Expected error due to flag: false
-            // Note: Error handling is currently suboptimal due to ExecutionError(Vec<u8>) 
+            // Note: Error handling is currently suboptimal due to ExecutionError(Vec<u8>)
             // being string-wrapped. See: https://github.com/calimero-network/core/issues/1394
             return {
               method: 'mayFail',
               status: 'success' as const,
               message: '✅ mayFail() - Correctly triggered expected error',
-              details: { 
-                input: false, 
+              details: {
+                input: false,
                 error: error instanceof Error ? error.message : String(error),
-                note: 'This error is expected when flag=false. Error format needs improvement per issue #1394'
+                note: 'This error is expected when flag=false. Error format needs improvement per issue #1394',
               },
             };
           }
@@ -632,26 +638,26 @@ function App() {
               method: 'findPerson',
               status: 'success' as const,
               message: '✅ findPerson() - Find person by name',
-              details: { 
-                input: 'Test Person', 
-                output: { 
-                  ...result, 
-                  id: bytesToHex(result.id.toUint8Array()) 
-                }
+              details: {
+                input: 'Test Person',
+                output: {
+                  ...result,
+                  id: bytesToHex(result.id.toUint8Array()),
+                },
               },
             };
           } catch (error) {
             // This might fail if the person doesn't exist, which is expected
-            // Note: Error handling is currently suboptimal due to ExecutionError(Vec<u8>) 
+            // Note: Error handling is currently suboptimal due to ExecutionError(Vec<u8>)
             // being string-wrapped. See: https://github.com/calimero-network/core/issues/1394
             return {
               method: 'findPerson',
               status: 'success' as const,
               message: '✅ findPerson() - Correctly handled missing person',
-              details: { 
-                input: 'Test Person', 
+              details: {
+                input: 'Test Person',
                 error: error instanceof Error ? error.message : String(error),
-                note: 'This error is expected if the person does not exist. Error format needs improvement per issue #1394'
+                note: 'This error is expected if the person does not exist. Error format needs improvement per issue #1394',
               },
             };
           }
