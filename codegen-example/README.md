@@ -4,14 +4,23 @@ This example demonstrates the Calimero SDK's generated client with React hooks f
 
 ## Setup
 
-1. Install dependencies:
-
+1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. Generate the client code:
+2. **Configure environment variables**:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Then edit `.env` and fill in your actual values:
+   ```env
+   VITE_CALIMERO_CLIENT_APP_ID=your_client_application_id_here
+   VITE_CALIMERO_APP_PATH=your_application_path_here
+   ```
 
+3. **Generate the client code**:
    ```bash
    npm run regenerate:abi-conformance
    ```
@@ -62,3 +71,10 @@ This will:
 1. Build the abi-codegen package
 2. Generate the client from the ABI manifest
 3. Create the necessary export files
+
+## Environment Variables
+
+- `VITE_CALIMERO_CLIENT_APP_ID`: Your Calimero client application ID
+- `VITE_CALIMERO_APP_PATH`: Path to your Calimero application WASM file
+
+**Note**: Never commit your actual `.env` file to version control. The `.env.example` file is provided as a template.

@@ -229,9 +229,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <CalimeroProvider
-      clientApplicationId="bk13KY5TSTjmp3cptTcmiv26upEPRnhs28pZMx2aByX"
+      clientApplicationId={import.meta.env.VITE_CALIMERO_CLIENT_APP_ID || "YOUR_CLIENT_APP_ID"}
       mode={AppMode.MultiContext}
-      applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/b092670d7dacc612ec24701c9bbc8001.wasm"
+      applicationPath={import.meta.env.VITE_CALIMERO_APP_PATH || "YOUR_APP_PATH"}
     >
       <AppContent />
     </CalimeroProvider>

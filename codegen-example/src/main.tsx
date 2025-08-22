@@ -22,10 +22,9 @@ function bytesToHex(bytes: Uint8Array): string {
 
 // Calimero app configuration
 const calimeroConfig = {
-  clientApplicationId: 'AXGpYba3K1Ki8SviTzgaUTbd9urRVZGuzyBXuPkb6heo',
+  clientApplicationId: import.meta.env.VITE_CALIMERO_CLIENT_APP_ID || 'YOUR_CLIENT_APP_ID',
   mode: AppMode.MultiContext,
-  applicationPath:
-    'https://calimero-only-peers-dev.s3.amazonaws.com/uploads/f865bc661343c9313fb55ea39554ecc3.wasm',
+  applicationPath: import.meta.env.VITE_CALIMERO_APP_PATH || 'YOUR_APP_PATH',
 };
 
 interface TestResult {
