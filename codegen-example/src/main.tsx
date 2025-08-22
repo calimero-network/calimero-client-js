@@ -13,7 +13,7 @@ import {
   AppMode,
 } from '@calimero-network/calimero-client';
 
-import './EventLog.css';
+
 
 // Utility function for converting byte arrays to hex strings
 function bytesToHex(bytes: Uint8Array): string {
