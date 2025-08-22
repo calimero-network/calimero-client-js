@@ -1,4 +1,10 @@
-import { AbiManifest, AbiMethod, AbiTypeRef, AbiTypeDef, AbiEvent } from '../model.js';
+import {
+  AbiManifest,
+  AbiMethod,
+  AbiTypeRef,
+  AbiTypeDef,
+  AbiEvent,
+} from '../model.js';
 import { formatIdentifier, generateFileBanner, toCamelCase } from './emit.js';
 
 /**
@@ -11,7 +17,7 @@ class CalimeroBytes {
     if (typeof input === 'string') {
       // Hex string
       this.data = new Uint8Array(
-        input.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []
+        input.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [],
       );
     } else if (Array.isArray(input)) {
       // Number array
@@ -56,7 +62,7 @@ function convertCalimeroBytesForWasm(obj: any): any {
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => convertCalimeroBytesForWasm(item));
+    return obj.map((item) => convertCalimeroBytesForWasm(item));
   }
 
   if (typeof obj === 'object') {
@@ -78,12 +84,12 @@ function convertWasmResultToCalimeroBytes(obj: any): any {
     return obj;
   }
 
-  if (Array.isArray(obj) && obj.every(item => typeof item === 'number')) {
+  if (Array.isArray(obj) && obj.every((item) => typeof item === 'number')) {
     return new CalimeroBytes(obj);
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => convertWasmResultToCalimeroBytes(item));
+    return obj.map((item) => convertWasmResultToCalimeroBytes(item));
   }
 
   if (typeof obj === 'object') {
@@ -124,10 +130,12 @@ export function generateClient(
   // Generate types inline
   lines.push('// Generated types');
   lines.push('');
-  
+
   // Generate type definitions
   for (const [typeName, typeDef] of Object.entries(manifest.types)) {
-    lines.push(...generateTypeDefinition(typeName, typeDef as AbiTypeDef, manifest));
+    lines.push(
+      ...generateTypeDefinition(typeName, typeDef as AbiTypeDef, manifest),
+    );
     lines.push('');
   }
 
@@ -164,7 +172,9 @@ export function generateClient(
   lines.push('    if (typeof input === "string") {');
   lines.push('      // Hex string');
   lines.push('      this.data = new Uint8Array(');
-  lines.push('        input.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []');
+  lines.push(
+    '        input.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []',
+  );
   lines.push('      );');
   lines.push('    } else if (Array.isArray(input)) {');
   lines.push('      // Number array');
@@ -199,7 +209,9 @@ export function generateClient(
 
   // Add utility function for CalimeroBytes conversion
   lines.push('/**');
-  lines.push(' * Convert CalimeroBytes instances to arrays for WASM compatibility');
+  lines.push(
+    ' * Convert CalimeroBytes instances to arrays for WASM compatibility',
+  );
   lines.push(' */');
   lines.push('function convertCalimeroBytesForWasm(obj: any): any {');
   lines.push('  if (obj === null || obj === undefined) {');
@@ -228,19 +240,25 @@ export function generateClient(
 
   // Add utility function for converting WASM results back to CalimeroBytes
   lines.push('/**');
-  lines.push(' * Convert arrays back to CalimeroBytes instances from WASM responses');
+  lines.push(
+    ' * Convert arrays back to CalimeroBytes instances from WASM responses',
+  );
   lines.push(' */');
   lines.push('function convertWasmResultToCalimeroBytes(obj: any): any {');
   lines.push('  if (obj === null || obj === undefined) {');
   lines.push('    return obj;');
   lines.push('  }');
   lines.push('');
-  lines.push('  if (Array.isArray(obj) && obj.every(item => typeof item === "number")) {');
+  lines.push(
+    '  if (Array.isArray(obj) && obj.every(item => typeof item === "number")) {',
+  );
   lines.push('    return new CalimeroBytes(obj);');
   lines.push('  }');
   lines.push('');
   lines.push('  if (Array.isArray(obj)) {');
-  lines.push('    return obj.map(item => convertWasmResultToCalimeroBytes(item));');
+  lines.push(
+    '    return obj.map(item => convertWasmResultToCalimeroBytes(item));',
+  );
   lines.push('  }');
   lines.push('');
   lines.push('  if (typeof obj === "object") {');
@@ -295,12 +313,18 @@ function isBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
       if (typeDef.kind === 'bytes') {
         return true;
       }
-      if (typeDef.kind === 'alias' && 'kind' in typeDef.target && typeDef.target.kind === 'bytes') {
+      if (
+        typeDef.kind === 'alias' &&
+        'kind' in typeDef.target &&
+        typeDef.target.kind === 'bytes'
+      ) {
         return true;
       }
       if (typeDef.kind === 'record' && 'fields' in typeDef) {
         // Check if any field in the record is a bytes type
-        return typeDef.fields.some(field => isBytesType(field.type, manifest));
+        return typeDef.fields.some((field) =>
+          isBytesType(field.type, manifest),
+        );
       }
     }
   }
@@ -321,8 +345,11 @@ function isBytesType(typeRef: AbiTypeRef, manifest: AbiManifest): boolean {
 /**
  * Check if a method has any CalimeroBytes parameters
  */
-function hasCalimeroBytesParams(method: AbiMethod, manifest: AbiManifest): boolean {
-  return method.params.some(param => isBytesType(param.type, manifest));
+function hasCalimeroBytesParams(
+  method: AbiMethod,
+  manifest: AbiManifest,
+): boolean {
+  return method.params.some((param) => isBytesType(param.type, manifest));
 }
 
 /**
@@ -394,7 +421,10 @@ function generateTypeDefinition(
 /**
  * Generate error types for a method
  */
-function generateMethodErrorTypes(method: AbiMethod, manifest: AbiManifest): string[] {
+function generateMethodErrorTypes(
+  method: AbiMethod,
+  manifest: AbiManifest,
+): string[] {
   const lines: string[] = [];
   const methodName = formatIdentifier(method.name);
 
@@ -427,7 +457,10 @@ function generateMethodErrorTypes(method: AbiMethod, manifest: AbiManifest): str
 /**
  * Generate event payload type
  */
-function generateEventPayloadType(event: AbiEvent, manifest: AbiManifest): string[] {
+function generateEventPayloadType(
+  event: AbiEvent,
+  manifest: AbiManifest,
+): string[] {
   const lines: string[] = [];
   const eventName = formatIdentifier(event.name);
 
@@ -447,7 +480,10 @@ function generateEventPayloadType(event: AbiEvent, manifest: AbiManifest): strin
 /**
  * Generate union type for all events
  */
-function generateAbiEventUnion(events: AbiEvent[], manifest: AbiManifest): string[] {
+function generateAbiEventUnion(
+  events: AbiEvent[],
+  manifest: AbiManifest,
+): string[] {
   const lines: string[] = [];
 
   lines.push('export type AbiEvent =');
@@ -456,7 +492,8 @@ function generateAbiEventUnion(events: AbiEvent[], manifest: AbiManifest): strin
     if (event.payload) {
       const payloadType = generateTypeRef(event.payload, manifest);
       // Handle Action type specially to avoid circular reference
-      const finalPayloadType = payloadType === 'Action' ? 'ActionPayload' : payloadType;
+      const finalPayloadType =
+        payloadType === 'Action' ? 'ActionPayload' : payloadType;
       return `  | { name: "${event.name}"; payload: ${finalPayloadType} }`;
     } else {
       return `  | { name: "${event.name}" }`;
@@ -557,14 +594,20 @@ function generateMethod(
         // Special handling for Action parameters - convert the Action variant
         lines.push(`    // Convert Action variant to WASM format`);
         lines.push(`    const convertedParams = { ...params } as any;`);
-        lines.push(`    if (convertedParams.${paramName} && typeof convertedParams.${paramName} === 'object' && 'name' in convertedParams.${paramName}) {`);
+        lines.push(
+          `    if (convertedParams.${paramName} && typeof convertedParams.${paramName} === 'object' && 'name' in convertedParams.${paramName}) {`,
+        );
         lines.push(`      if ('payload' in convertedParams.${paramName}) {`);
-        lines.push(`        convertedParams.${paramName} = { [convertedParams.${paramName}.name]: convertedParams.${paramName}.payload };`);
+        lines.push(
+          `        convertedParams.${paramName} = { [convertedParams.${paramName}.name]: convertedParams.${paramName}.payload };`,
+        );
         lines.push(`      } else {`);
-        lines.push(`        convertedParams.${paramName} = convertedParams.${paramName}.name;`);
+        lines.push(
+          `        convertedParams.${paramName} = convertedParams.${paramName}.name;`,
+        );
         lines.push(`      }`);
         lines.push(`    }`);
-        
+
         // Only apply CalimeroBytes conversion if needed
         if (hasCalimeroBytesParams(method, manifest)) {
           lines.push(
@@ -606,7 +649,9 @@ function generateMethod(
   if (method.returns) {
     // Check if return type is a bytes type that needs conversion
     if (isBytesType(method.returns, manifest)) {
-      lines.push(`      return convertWasmResultToCalimeroBytes(response.result) as ${nullableReturnType};`);
+      lines.push(
+        `      return convertWasmResultToCalimeroBytes(response.result) as ${nullableReturnType};`,
+      );
     } else {
       lines.push(`      return response.result as ${nullableReturnType};`);
     }
