@@ -43,6 +43,7 @@ export interface BaseTokenRequest {
   timestamp: number;
   permissions?: string[];
   provider_data: any; // This will be typed based on the auth method
+  target_node_url?: string;
 }
 
 export interface TokenResponse {
@@ -72,6 +73,7 @@ export interface GenerateClientKeyRequest {
   context_id: string;
   context_identity: string;
   permissions?: string[];
+  target_node_url: string;
 }
 
 export interface AuthApi {

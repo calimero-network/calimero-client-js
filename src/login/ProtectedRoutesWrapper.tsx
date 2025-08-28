@@ -214,9 +214,6 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       if (!error) {
         const contextId = getContextId();
         const executorPublicKey = getExecutorPublicKey();
-
-        console.log('contextId', contextId);
-        console.log('executorPublicKey', executorPublicKey);
         if (contextId && executorPublicKey) {
           await fetchContextApplication(); // This will set both isAuthenticated and isInitialized
         }
@@ -229,9 +226,6 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       if (authMode === false && !error) {
         const contextId = getContextId();
         const executorPublicKey = getExecutorPublicKey();
-
-        console.log('contextId', contextId);
-        console.log('executorPublicKey', executorPublicKey);
 
         if (contextId && executorPublicKey) {
           await fetchContextApplication();
