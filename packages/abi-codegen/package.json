@@ -1,0 +1,62 @@
+{
+  "name": "@calimero/abi-codegen",
+  "version": "0.1.0",
+  "description": "WASM-ABI v1 parser and code generator for Calimero",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./parse": {
+      "import": "./dist/parse.js",
+      "types": "./dist/parse.d.ts"
+    },
+    "./generate/types": {
+      "import": "./dist/generate/types.js",
+      "types": "./dist/generate/types.d.ts"
+    },
+    "./generate/client": {
+      "import": "./dist/generate/client.js",
+      "types": "./dist/generate/client.d.ts"
+    },
+    "./generate/emit": {
+      "import": "./dist/generate/emit.js",
+      "types": "./dist/generate/emit.d.ts"
+    }
+  },
+  "bin": {
+    "calimero-abi-codegen": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --reporter=dot",
+    "codegen:test": "vitest run --reporter=dot __tests__/codegen.spec.ts",
+    "validate:abi": "node dist/cli.js --validate -i __fixtures__/abi_conformance.json",
+    "prepack": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.34",
+    "typescript": "^4.9.5",
+    "vitest": "^1.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "calimero",
+    "wasm",
+    "abi",
+    "codegen"
+  ],
+  "license": "MIT",
+  "author": "Calimero Ltd"
+}
