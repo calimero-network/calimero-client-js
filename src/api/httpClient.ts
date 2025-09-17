@@ -78,7 +78,7 @@ export class AxiosHttpClient implements HttpClient {
 
   private isRefreshRequest(config: any): boolean {
     const baseUrl = getAppEndpointKey();
-    return config?.url === `${baseUrl}/public/refresh`;
+    return config?.url === new URL('public/refresh', baseUrl).toString();
   }
 
   private processQueue(error: Error | null, token: string | null = null) {

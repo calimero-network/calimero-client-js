@@ -10,18 +10,21 @@ import {
 } from '../adminApi';
 import { HttpClient } from '../httpClient';
 import { getAuthEndpointURL } from '../../storage';
+import { BaseApiDataSource } from './BaseApiDataSource';
 
-export class AdminApiDataSource implements AdminApi {
-  constructor(private client: HttpClient) {}
+export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
+  constructor(private client: HttpClient) {
+    super();
+  }
 
-  private get baseUrl(): string {
+  private get baseUrl(): string | null {
     return getAuthEndpointURL();
   }
 
   async getRootKeys(): ApiResponse<RootKey[]> {
     try {
       const response = await this.client.get<RootKey[]>(
-        new URL('admin/keys', this.baseUrl).toString(),
+        this.buildUrl('admin/keys', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -33,7 +36,7 @@ export class AdminApiDataSource implements AdminApi {
   async getClientKeys(): ApiResponse<ClientKey[]> {
     try {
       const response = await this.client.get<ClientKey[]>(
-        `${this.baseUrl}/admin/keys/clients`,
+        this.buildUrl('admin/keys/clients', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -60,10 +63,7 @@ export class AdminApiDataSource implements AdminApi {
   async revokeRootKey(keyId: string): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        new URL(
-          `admin/keys/${new URL(`admin/keys/${keyId}`, this.baseUrl).toString()}`,
-          this.baseUrl,
-        ).toString(),
+        this.buildUrl(`admin/keys/${keyId}`, this.baseUrl),
       );
       return response;
     } catch (error) {

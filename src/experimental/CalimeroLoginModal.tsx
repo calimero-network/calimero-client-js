@@ -287,7 +287,9 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
 
         if (response.ok || response.status === 401) {
           setLoading(false);
-          onConnect(baseUrl);
+          // Normalize URL by removing trailing slashes before storing
+          const normalizedUrl = baseUrl.replace(/\/+$/, '');
+          onConnect(normalizedUrl);
         } else {
           throw new Error(
             `Network response was not ok: ${response.statusText}`,
