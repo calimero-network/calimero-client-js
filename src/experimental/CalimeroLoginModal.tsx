@@ -209,29 +209,30 @@ const isValidUrl = (urlString: string): boolean => {
 
   try {
     // Add protocol if missing
-    const urlToTest = urlString.startsWith('http://') || urlString.startsWith('https://') 
-      ? urlString 
-      : `https://${urlString}`;
-    
+    const urlToTest =
+      urlString.startsWith('http://') || urlString.startsWith('https://')
+        ? urlString
+        : `https://${urlString}`;
+
     const url = new URL(urlToTest);
-    
+
     // Check if it's a valid HTTP/HTTPS URL with a proper hostname
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return false;
     }
-    
+
     if (!url.hostname || url.hostname === '') {
       return false;
     }
-    
+
     // Check for valid hostname patterns: localhost, IP address, or domain name
     const hostname = url.hostname;
-    
+
     // Allow localhost
     if (hostname === 'localhost') {
       return true;
     }
-    
+
     // Check for valid IP address (IPv4)
     const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (ipv4Regex.test(hostname)) {
@@ -239,11 +240,11 @@ const isValidUrl = (urlString: string): boolean => {
       const octets = hostname.split('.').map(Number);
       return octets.every((octet: number) => octet >= 0 && octet <= 255);
     }
-    
+
     // Check for valid domain name (valid characters, can be single word or multi-part)
-    const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    const domainRegex =
+      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return domainRegex.test(hostname);
-    
   } catch {
     return false;
   }
@@ -280,7 +281,9 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       // Ensure base URL ends with exactly one slash
 
       try {
-        const response = await fetch(new URL('admin-api/is-authed', baseUrl).toString());
+        const response = await fetch(
+          new URL('admin-api/is-authed', baseUrl).toString(),
+        );
 
         if (response.ok || response.status === 401) {
           setLoading(false);

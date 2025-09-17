@@ -60,7 +60,10 @@ export class AdminApiDataSource implements AdminApi {
   async revokeRootKey(keyId: string): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        new URL(`admin/keys/${new URL(`admin/keys/${keyId}`, this.baseUrl).toString()}`, this.baseUrl).toString(),
+        new URL(
+          `admin/keys/${new URL(`admin/keys/${keyId}`, this.baseUrl).toString()}`,
+          this.baseUrl,
+        ).toString(),
       );
       return response;
     } catch (error) {
@@ -75,7 +78,10 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        new URL(`admin/keys/${rootKeyId}/clients/${clientId}`, this.baseUrl).toString(),
+        new URL(
+          `admin/keys/${rootKeyId}/clients/${clientId}`,
+          this.baseUrl,
+        ).toString(),
       );
       return response;
     } catch (error) {
