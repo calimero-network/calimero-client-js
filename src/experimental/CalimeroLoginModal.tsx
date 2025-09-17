@@ -240,9 +240,9 @@ const isValidUrl = (urlString: string): boolean => {
       return octets.every(octet => octet >= 0 && octet <= 255);
     }
     
-    // Check for valid domain name (at least one dot, valid characters)
+    // Check for valid domain name (valid characters, can be single word or multi-part)
     const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    return domainRegex.test(hostname) && hostname.includes('.');
+    return domainRegex.test(hostname);
     
   } catch {
     return false;
@@ -279,7 +279,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       const finalUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
 
       try {
-        const response = await fetch(`${finalUrl}/admin-api/is-authed`);
+        const response = await fetch(new URL('/admin-api/is-authed', finalUrl).href);
 
         if (response.ok || response.status === 401) {
           setLoading(false);
