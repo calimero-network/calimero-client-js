@@ -285,7 +285,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
 
         if (response.ok || response.status === 401) {
           setLoading(false);
-          onConnect(finalUrl);
+          onConnect(normalizedBaseUrl);
         } else {
           throw new Error(
             `Network response was not ok: ${response.statusText}`,
