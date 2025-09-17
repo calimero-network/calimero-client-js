@@ -26,7 +26,7 @@ export class ExperimentalWebSocket {
     } else {
       wsUrl = `wss://${baseUrl}`;
     }
-    return `${wsUrl}/ws`;
+    return new URL('ws', wsUrl).toString();
   }
 
   private connect(): void {

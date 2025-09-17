@@ -187,7 +187,7 @@ export class JsonRpcClient implements RpcClient {
     const baseUrl = getAppEndpointKey();
     try {
       const response = await this.httpClient.post<JsonRpcResponse<Result>>(
-        `${baseUrl}${this.path}`,
+        new URL(this.path, baseUrl).toString(),
         data,
         config?.headers ? [config.headers] : undefined,
         true, // Set isJsonRpc flag to true

@@ -9,11 +9,14 @@ import {
   RawBlobListResponseData,
 } from '../blobApi';
 import { getAppEndpointKey } from '../../storage';
+import { BaseApiDataSource } from './BaseApiDataSource';
 
-export class BlobApiDataSource implements BlobApi {
-  constructor(private client: HttpClient) {}
+export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
+  constructor(private client: HttpClient) {
+    super();
+  }
 
-  private get baseUrl(): string {
+  private get baseUrl(): string | null {
     return getAppEndpointKey();
   }
 
@@ -25,7 +28,7 @@ export class BlobApiDataSource implements BlobApi {
     try {
       const fileArrayBuffer = await file.arrayBuffer();
 
-      let url = new URL('admin-api/blobs', this.baseUrl).toString();
+      let url = this.buildUrl('admin-api/blobs', this.baseUrl).toString();
       const params = new URLSearchParams();
       if (expectedHash) {
         params.append('hash', expectedHash);
@@ -73,7 +76,10 @@ export class BlobApiDataSource implements BlobApi {
   }
 
   async downloadBlob(blobId: string, contextId: string): Promise<Blob> {
-    let url = new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString();
+    let url = this.buildUrl(
+      `admin-api/blobs/${blobId}`,
+      this.baseUrl,
+    ).toString();
 
     const params = new URLSearchParams();
     params.append('context_id', contextId);
@@ -98,7 +104,7 @@ export class BlobApiDataSource implements BlobApi {
     try {
       // Use HttpClient HEAD method that now returns headers
       const response = await this.client.head(
-        new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString(),
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
       );
 
       if (response.error) {
@@ -142,7 +148,7 @@ export class BlobApiDataSource implements BlobApi {
   async listBlobs(): ApiResponse<BlobListResponseData> {
     try {
       const response = await this.client.get<RawBlobListResponseData>(
-        new URL('admin-api/blobs', this.baseUrl).toString(),
+        this.buildUrl('admin-api/blobs', this.baseUrl),
       );
 
       if (response.data) {
@@ -182,7 +188,7 @@ export class BlobApiDataSource implements BlobApi {
   async deleteBlob(blobId: string): ApiResponse<void> {
     try {
       const response = await this.client.delete<void>(
-        new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString(),
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
       );
       return response;
     } catch (error) {

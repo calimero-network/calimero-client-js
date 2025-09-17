@@ -30,7 +30,7 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
   private callbacks: Map<string, Array<(event: NodeEvent) => void>>;
 
   public constructor(baseUrl: string, path: string) {
-    this.url = `${baseUrl}${path}`;
+    this.url = new URL(path, baseUrl).toString();
     this.connections = new Map();
     this.callbacks = new Map();
   }

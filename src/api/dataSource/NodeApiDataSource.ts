@@ -22,11 +22,14 @@ import {
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
+import { BaseApiDataSource } from './BaseApiDataSource';
 
-export class NodeApiDataSource implements NodeApi {
-  constructor(private client: HttpClient) {}
+export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
+  constructor(private client: HttpClient) {
+    super();
+  }
 
-  private get baseUrl(): string {
+  private get baseUrl(): string | null {
     return getAppEndpointKey();
   }
 
@@ -39,7 +42,7 @@ export class NodeApiDataSource implements NodeApi {
   async getContext(contextId: string): ApiResponse<Context> {
     try {
       return this.client.get<Context>(
-        new URL(`admin-api/contexts/${contextId}`, this.baseUrl).toString(),
+        this.buildUrl(`admin-api/contexts/${contextId}`, this.baseUrl),
       );
     } catch (error) {
       console.error('Error fetching context:', error);
@@ -53,7 +56,7 @@ export class NodeApiDataSource implements NodeApi {
   async getContexts(): ApiResponse<GetContextsResponse> {
     try {
       const response = await this.client.get<GetContextsResponse>(
-        new URL('admin-api/contexts', this.baseUrl).toString(),
+        this.buildUrl('admin-api/contexts', this.baseUrl),
       );
       return response;
     } catch (error) {
