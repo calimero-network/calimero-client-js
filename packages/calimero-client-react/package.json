@@ -54,7 +54,7 @@
   },
   "scripts": {
     "build": "tsc && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
-    "test": "jest test",
+    "test": "jest test --passWithNoTests",
     "lint": "eslint . --ext .ts,.tsx src",
     "dev": "concurrently \"pnpm compile -w\" \"pnpm bundle:watch\"",
     "compile": "tsc -p ./tsconfig.json",
@@ -88,7 +88,12 @@
   "files": [
     "lib"
   ],
-  "keywords": ["calimero", "react", "p2p", "blockchain"],
+  "keywords": [
+    "calimero",
+    "react",
+    "p2p",
+    "blockchain"
+  ],
   "license": "(MIT)",
   "author": "Calimero Ltd",
   "publishConfig": {
