@@ -7,11 +7,7 @@
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
   "private": true,
-  "dependencies": {
-    "axios": "^1.7.4",
-    "jwt-decode": "^4.0.0",
-    "near-api-js": "^3.0.4"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -40,7 +36,7 @@
     "typescript-eslint": "^7.13.0"
   },
   "scripts": {
-    "build": "echo 'Mero.js package not yet implemented'",
+    "build": "tsc && esbuild src/index.ts --bundle --platform=neutral --target=es2020 --format=esm --outfile=lib/index.mjs && esbuild src/index.ts --bundle --platform=neutral --target=es2020 --format=cjs --outfile=lib/index.js",
     "test": "echo 'Mero.js package not yet implemented'",
     "lint": "echo 'Mero.js package not yet implemented'",
     "lint:fix": "echo 'Mero.js package not yet implemented'",

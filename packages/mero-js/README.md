@@ -1,0 +1,233 @@
+# Mero.js - Pure JavaScript SDK for Calimero
+
+A lightweight, universal JavaScript SDK for Calimero that works in both browser and Node.js environments using Web Standards.
+
+## Features
+
+- 🌐 **Web Standards First**: Built on `fetch`, `AbortController`, and other Web APIs
+- 🔄 **Universal**: Works in browsers, Node.js, and edge runtimes
+- 📦 **Lightweight**: No heavy dependencies like Axios (~50kb smaller)
+- 🔧 **Dependency Injection**: Flexible and testable architecture
+- ⚡ **Modern**: ES2020+ with TypeScript support
+- 🛡️ **Type Safe**: Full TypeScript definitions
+
+## Installation
+
+```bash
+npm install @calimero-network/mero-js
+```
+
+## Quick Start
+
+### Browser Usage
+
+```typescript
+import { createBrowserHttpClient } from '@calimero-network/mero-js';
+
+const httpClient = createBrowserHttpClient({
+  baseUrl: 'https://api.calimero.network',
+  getAuthToken: async () => localStorage.getItem('access_token'),
+  onTokenRefresh: async (newToken) =>
+    localStorage.setItem('access_token', newToken),
+});
+
+// Make requests
+const response = await httpClient.get<{ message: string }>('/api/hello');
+if (response.data) {
+  console.log(response.data.message);
+}
+```
+
+### Node.js Usage
+
+```typescript
+import { createNodeHttpClient } from '@calimero-network/mero-js';
+// For Node.js < 18, install undici: npm install undici
+import { fetch as undiciFetch } from 'undici';
+
+const httpClient = createNodeHttpClient({
+  baseUrl: 'https://api.calimero.network',
+  fetch: undiciFetch, // Required for Node.js < 18
+  getAuthToken: async () => process.env.ACCESS_TOKEN,
+});
+
+const response = await httpClient.get<{ message: string }>('/api/hello');
+```
+
+### Universal Usage
+
+```typescript
+import { createUniversalHttpClient } from '@calimero-network/mero-js';
+
+const httpClient = createUniversalHttpClient({
+  baseUrl: 'https://api.calimero.network',
+  getAuthToken: async () => {
+    return typeof window !== 'undefined'
+      ? localStorage.getItem('access_token')
+      : process.env.ACCESS_TOKEN;
+  },
+});
+```
+
+## API Reference
+
+### Factory Functions
+
+#### `createBrowserHttpClient(options)`
+
+Creates an HTTP client optimized for browser environments.
+
+#### `createNodeHttpClient(options)`
+
+Creates an HTTP client for Node.js environments.
+
+#### `createUniversalHttpClient(options)`
+
+Creates an HTTP client that works in both browser and Node.js.
+
+### Options
+
+```typescript
+interface HttpClientOptions {
+  baseUrl: string; // Base URL for all requests
+  fetch?: typeof fetch; // Custom fetch implementation (Node.js)
+  getAuthToken?: () => Promise<string | undefined>; // Token getter
+  onTokenRefresh?: (token: string) => Promise<void>; // Token refresh callback
+  defaultHeaders?: Record<string, string>; // Default headers
+  timeoutMs?: number; // Request timeout (default: 30000)
+}
+```
+
+### HTTP Methods
+
+```typescript
+// GET request
+const response = await httpClient.get<T>('/api/endpoint', init?);
+
+// POST request
+const response = await httpClient.post<T>('/api/endpoint', body?, init?);
+
+// PUT request
+const response = await httpClient.put<T>('/api/endpoint', body?, init?);
+
+// DELETE request
+const response = await httpClient.delete<T>('/api/endpoint', init?);
+
+// PATCH request
+const response = await httpClient.patch<T>('/api/endpoint', body?, init?);
+
+// HEAD request
+const response = await httpClient.head<T>('/api/endpoint', init?);
+
+// Generic request
+const response = await httpClient.request<T>('/api/endpoint', init?);
+```
+
+### Response Format
+
+All methods return a `ResponseData<T>` object:
+
+```typescript
+type ResponseData<T> =
+  | { data: T; error: null } // Success
+  | { data: null; error: ErrorResponse }; // Error
+
+interface ErrorResponse {
+  code?: number;
+  message: string;
+}
+```
+
+## Advanced Usage
+
+### Custom Transport
+
+```typescript
+import { createHttpClient, Transport } from '@calimero-network/mero-js';
+
+const transport: Transport = {
+  fetch: customFetch,
+  baseUrl: 'https://api.example.com',
+  getAuthToken: async () => 'your-token',
+  timeoutMs: 5000,
+};
+
+const httpClient = createHttpClient(transport);
+```
+
+### Error Handling
+
+```typescript
+try {
+  const response = await httpClient.get('/api/data');
+
+  if (response.data) {
+    // Success
+    console.log(response.data);
+  } else {
+    // API Error
+    console.error('API Error:', response.error.message);
+  }
+} catch (error) {
+  // Network or other errors
+  console.error('Request failed:', error);
+}
+```
+
+### Custom Headers
+
+```typescript
+const response = await httpClient.post('/api/data', body, {
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Custom-Header': 'value',
+  },
+});
+```
+
+## Migration from Axios
+
+If you're migrating from an Axios-based client:
+
+1. **Replace imports**: Use the factory functions instead of direct class instantiation
+2. **Update method signatures**: Methods now use `RequestInit` instead of custom options
+3. **Handle responses**: Use the `ResponseData<T>` format instead of Axios response objects
+4. **Token management**: Use the `getAuthToken` and `onTokenRefresh` callbacks
+
+## Browser Support
+
+- Modern browsers with `fetch` support (Chrome 42+, Firefox 39+, Safari 10.1+)
+- Node.js 18+ (native fetch) or Node.js 16+ with `undici`
+
+## Bundle Sizes
+
+- **ESM**: ~9.4kb (gzipped: ~3.2kb)
+- **CJS**: ~10.5kb (gzipped: ~3.6kb)
+
+## Examples
+
+See the `examples/` directory for complete usage examples:
+
+- `browser-example.ts` - Browser-specific usage
+- `node-example.ts` - Node.js-specific usage
+- `universal-example.ts` - Universal usage
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build
+pnpm build
+
+# Test
+pnpm test
+
+# Lint
+pnpm lint
+```
+
+## License
+
+MIT
