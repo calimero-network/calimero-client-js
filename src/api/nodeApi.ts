@@ -113,9 +113,7 @@ export interface NodeApi {
     inviterPublicKey: string,
     inviteePublicKey: string,
   ): ApiResponse<string>;
-  joinContext(
-    invitationPayload: string,
-  ): ApiResponse<JoinContextResponse>;
+  joinContext(invitationPayload: string): ApiResponse<JoinContextResponse>;
 
   // Application Management
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;

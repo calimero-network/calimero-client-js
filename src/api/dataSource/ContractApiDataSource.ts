@@ -30,7 +30,10 @@ export class ContractApiDataSource implements ContractApi {
   async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
     try {
       return await this.client.post<Proposal[]>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals`,
+          this.baseUrl,
+        ).toString(),
         request,
       );
     } catch (error) {
@@ -44,7 +47,10 @@ export class ContractApiDataSource implements ContractApi {
   async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
     try {
       return await this.client.get<string[]>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
+          this.baseUrl,
+        ).toString(),
       );
     } catch (error) {
       return {
@@ -59,7 +65,10 @@ export class ContractApiDataSource implements ContractApi {
   ): ApiResponse<ProposalApprovalCount> {
     try {
       return await this.client.get<ProposalApprovalCount>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
+          this.baseUrl,
+        ).toString(),
       );
     } catch (error) {
       return {
@@ -72,7 +81,10 @@ export class ContractApiDataSource implements ContractApi {
   async getNumOfProposals(): ApiResponse<number> {
     try {
       return await this.client.get<number>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals/count`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals/count`,
+          this.baseUrl,
+        ).toString(),
       );
     } catch (error) {
       return {
@@ -85,7 +97,10 @@ export class ContractApiDataSource implements ContractApi {
   async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
     try {
       return await this.client.get<Proposal>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
+          this.baseUrl,
+        ).toString(),
       );
     } catch (error) {
       return {
@@ -98,7 +113,10 @@ export class ContractApiDataSource implements ContractApi {
   async getContextValue(key: string): ApiResponse<StorageEntry> {
     try {
       return await this.client.post<StorageEntry>(
-        new URL(`admin-api/contexts/${this.contextId}`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}`,
+          this.baseUrl,
+        ).toString(),
         {
           key,
         },
@@ -117,7 +135,10 @@ export class ContractApiDataSource implements ContractApi {
   ): ApiResponse<ContextStorageEntry[]> {
     try {
       return await this.client.post<ContextStorageEntry[]>(
-        new URL(`admin-api/contexts/${this.contextId}/proposals/context-storage-entries`, this.baseUrl).toString(),
+        new URL(
+          `admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
+          this.baseUrl,
+        ).toString(),
         {
           offset,
           limit,

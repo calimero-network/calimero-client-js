@@ -40,7 +40,7 @@ export class AuthApiDataSource implements AuthApi {
       loginUrl.searchParams.set(APPLICATION_ID, request.applicationId);
       loginUrl.searchParams.set('application-path', request.applicationPath);
       loginUrl.searchParams.set(APP_URL, originalAppUrl);
-      
+
       window.location.href = loginUrl.href;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
