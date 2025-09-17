@@ -13,6 +13,8 @@ export function createBrowserHttpClient(options: {
   onTokenRefresh?: (newToken: string) => Promise<void>;
   defaultHeaders?: Record<string, string>;
   timeoutMs?: number;
+  credentials?: RequestCredentials;
+  defaultAbortSignal?: AbortSignal;
 }): HttpClient {
   const transport: Transport = {
     fetch: globalThis.fetch,
@@ -21,6 +23,8 @@ export function createBrowserHttpClient(options: {
     onTokenRefresh: options.onTokenRefresh,
     defaultHeaders: options.defaultHeaders,
     timeoutMs: options.timeoutMs,
+    credentials: options.credentials ?? 'same-origin',
+    defaultAbortSignal: options.defaultAbortSignal,
   };
 
   return createHttpClient(transport);
@@ -34,6 +38,8 @@ export function createNodeHttpClient(options: {
   onTokenRefresh?: (newToken: string) => Promise<void>;
   defaultHeaders?: Record<string, string>;
   timeoutMs?: number;
+  credentials?: RequestCredentials;
+  defaultAbortSignal?: AbortSignal;
 }): HttpClient {
   // Use provided fetch or try to use global fetch (Node 18+)
   const fetchImpl = options.fetch ?? globalThis.fetch;
@@ -52,6 +58,8 @@ export function createNodeHttpClient(options: {
     onTokenRefresh: options.onTokenRefresh,
     defaultHeaders: options.defaultHeaders,
     timeoutMs: options.timeoutMs,
+    credentials: options.credentials, // Node.js doesn't have default credentials
+    defaultAbortSignal: options.defaultAbortSignal,
   };
 
   return createHttpClient(transport);
@@ -65,6 +73,8 @@ export function createUniversalHttpClient(options: {
   onTokenRefresh?: (newToken: string) => Promise<void>;
   defaultHeaders?: Record<string, string>;
   timeoutMs?: number;
+  credentials?: RequestCredentials;
+  defaultAbortSignal?: AbortSignal;
 }): HttpClient {
   // Try to detect environment and use appropriate factory
   if (typeof window !== 'undefined') {

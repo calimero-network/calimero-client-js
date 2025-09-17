@@ -13,28 +13,38 @@ export interface Transport {
   getAuthToken?: () => Promise<string | undefined>;
   onTokenRefresh?: (newToken: string) => Promise<void>;
   timeoutMs?: number;
+  credentials?: RequestCredentials;
+  defaultAbortSignal?: AbortSignal;
+}
+
+// Response parsing options
+export type ResponseParser = 'json' | 'text' | 'blob' | 'arrayBuffer' | 'response';
+
+export interface RequestOptions extends RequestInit {
+  parse?: ResponseParser;
+  timeoutMs?: number;
 }
 
 export interface HttpClient {
-  get<T>(path: string, init?: RequestInit): Promise<ResponseData<T>>;
+  get<T>(path: string, init?: RequestOptions): Promise<ResponseData<T>>;
   post<T>(
     path: string,
     body?: unknown,
-    init?: RequestInit,
+    init?: RequestOptions,
   ): Promise<ResponseData<T>>;
   put<T>(
     path: string,
     body?: unknown,
-    init?: RequestInit,
+    init?: RequestOptions,
   ): Promise<ResponseData<T>>;
-  delete<T>(path: string, init?: RequestInit): Promise<ResponseData<T>>;
+  delete<T>(path: string, init?: RequestOptions): Promise<ResponseData<T>>;
   patch<T>(
     path: string,
     body?: unknown,
-    init?: RequestInit,
+    init?: RequestOptions,
   ): Promise<ResponseData<T>>;
-  head<T>(path: string, init?: RequestInit): Promise<ResponseData<T>>;
-  request<T>(path: string, init?: RequestInit): Promise<ResponseData<T>>;
+  head<T>(path: string, init?: RequestOptions): Promise<ResponseData<T>>;
+  request<T>(path: string, init?: RequestOptions): Promise<ResponseData<T>>;
 }
 
 // Legacy compatibility types (for gradual migration)

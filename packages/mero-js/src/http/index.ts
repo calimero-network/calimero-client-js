@@ -12,5 +12,9 @@ export {
   createUniversalHttpClient,
 } from './factory';
 
+// Retry functionality
+export { withRetry, createRetryableMethod } from './retry';
+export type { RetryOptions } from './retry';
+
 // Legacy Axios client (commented out during Web Standards migration)
 // export { AxiosHttpClient } from './axios-client';

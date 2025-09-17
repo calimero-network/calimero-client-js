@@ -95,6 +95,8 @@ interface HttpClientOptions {
   onTokenRefresh?: (token: string) => Promise<void>; // Token refresh callback
   defaultHeaders?: Record<string, string>; // Default headers
   timeoutMs?: number; // Request timeout (default: 30000)
+  credentials?: RequestCredentials; // CORS credentials (default: 'same-origin' for browser)
+  defaultAbortSignal?: AbortSignal; // Default abort signal for all requests
 }
 ```
 
@@ -121,6 +123,15 @@ const response = await httpClient.head<T>('/api/endpoint', init?);
 
 // Generic request
 const response = await httpClient.request<T>('/api/endpoint', init?);
+```
+
+### Request Options
+
+```typescript
+interface RequestOptions extends RequestInit {
+  parse?: 'json' | 'text' | 'blob' | 'arrayBuffer' | 'response';
+  timeoutMs?: number;
+}
 ```
 
 ### Response Format
@@ -182,6 +193,75 @@ const response = await httpClient.post('/api/data', body, {
     'Content-Type': 'application/json',
     'X-Custom-Header': 'value',
   },
+});
+```
+
+### Request Cancellation
+
+```typescript
+const abortController = new AbortController();
+
+// Cancel request after 5 seconds
+setTimeout(() => abortController.abort(), 5000);
+
+const response = await httpClient.get('/api/slow-endpoint', {
+  signal: abortController.signal,
+});
+```
+
+### FormData Support
+
+```typescript
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+formData.append('name', 'John Doe');
+
+const response = await httpClient.post('/api/upload', formData);
+// Content-Type is automatically set to multipart/form-data
+```
+
+### Response Parsing
+
+```typescript
+// Explicit parsing
+const jsonResponse = await httpClient.get('/api/data', { parse: 'json' });
+const textResponse = await httpClient.get('/api/text', { parse: 'text' });
+const blobResponse = await httpClient.get('/api/file', { parse: 'blob' });
+
+// Auto-detection based on Content-Type (default)
+const autoResponse = await httpClient.get('/api/data');
+```
+
+### Retry with Exponential Backoff
+
+```typescript
+import { withRetry } from '@calimero-network/mero-js';
+
+const response = await withRetry(
+  () => httpClient.get('/api/unreliable-endpoint'),
+  {
+    attempts: 3,
+    baseDelayMs: 1000,
+    backoffFactor: 2,
+    retryCondition: (error, attempt) => {
+      // Custom retry logic
+      return error.status >= 500;
+    }
+  }
+);
+```
+
+### CORS and Credentials
+
+```typescript
+const httpClient = createBrowserHttpClient({
+  baseUrl: 'https://api.example.com',
+  credentials: 'include', // Include cookies in CORS requests
+});
+
+// For APIs that require credentials
+const response = await httpClient.get('/api/protected', {
+  credentials: 'include',
 });
 ```
 

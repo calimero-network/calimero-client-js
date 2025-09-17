@@ -1,5 +1,5 @@
 import { ResponseData, ErrorResponse } from '../types/api-response';
-import { HttpClient, Transport } from './types';
+import { HttpClient, Transport, RequestOptions, ResponseParser } from './types';
 
 // Custom error class for HTTP errors
 export class HTTPError extends Error {
@@ -67,9 +67,10 @@ export class WebHttpClient implements HttpClient {
 
   private async makeRequest<T>(
     path: string,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const url = `${this.transport.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+    // Use URL constructor for proper URL handling
+    const url = new URL(path, this.transport.baseUrl).toString();
 
     // Merge headers
     const headers: Record<string, string> = {
@@ -91,8 +92,8 @@ export class WebHttpClient implements HttpClient {
       }
     }
 
-    // Add auth token if available
-    if (this.transport.getAuthToken) {
+    // Add auth token if available (respect user-provided Authorization header)
+    if (this.transport.getAuthToken && !headers['Authorization']) {
       try {
         const token = await this.transport.getAuthToken();
         if (token) {
@@ -104,17 +105,33 @@ export class WebHttpClient implements HttpClient {
       }
     }
 
-    // Create abort controller for timeout
+    // Handle AbortSignal - merge user signal with timeout signal
+    const userSignal = init.signal || this.transport.defaultAbortSignal;
+    const timeoutMs = init.timeoutMs ?? this.transport.timeoutMs;
+    
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
       abortController.abort();
-    }, this.transport.timeoutMs);
+    }, timeoutMs);
+
+    // Create combined signal if user provided one
+    let combinedSignal: AbortSignal;
+    if (userSignal) {
+      // Create a combined signal that aborts when either signal aborts
+      const fallbackController = new AbortController();
+      userSignal.addEventListener('abort', () => fallbackController.abort());
+      abortController.signal.addEventListener('abort', () => fallbackController.abort());
+      combinedSignal = fallbackController.signal;
+    } else {
+      combinedSignal = abortController.signal;
+    }
 
     try {
       const response = await this.transport.fetch(url, {
         ...init,
         headers,
-        signal: abortController.signal,
+        signal: combinedSignal,
+        credentials: init.credentials ?? this.transport.credentials ?? 'same-origin',
       });
 
       clearTimeout(timeoutId);
@@ -185,54 +202,14 @@ export class WebHttpClient implements HttpClient {
         };
       }
 
-      // Handle successful responses
-      const contentType = response.headers.get('content-type');
-
-      // Handle different response types
-      if (contentType?.includes('application/json')) {
-        const data = await safeJson<T>(response);
-        return {
-          data: data as T,
-          error: null,
-        };
-      }
-
-      if (contentType?.includes('text/')) {
-        const text = await response.text();
-        return {
-          data: text as T,
-          error: null,
-        };
-      }
-
-      // Handle binary responses
-      if (
-        contentType?.includes('application/octet-stream') ||
-        contentType?.includes('image/') ||
-        contentType?.includes('video/') ||
-        contentType?.includes('audio/')
-      ) {
-        const arrayBuffer = await response.arrayBuffer();
-        return {
-          data: arrayBuffer as T,
-          error: null,
-        };
-      }
-
-      // Default: try to parse as JSON, fallback to text
-      try {
-        const data = await response.json();
-        return {
-          data: data as T,
-          error: null,
-        };
-      } catch {
-        const text = await response.text();
-        return {
-          data: text as T,
-          error: null,
-        };
-      }
+      // Handle successful responses with enhanced parsing
+      const parseMode = init.parse || this.detectParseMode(response);
+      const data = await this.parseResponse<T>(response, parseMode);
+      
+      return {
+        data,
+        error: null,
+      };
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -263,9 +240,55 @@ export class WebHttpClient implements HttpClient {
     }
   }
 
+  private detectParseMode(response: Response): ResponseParser {
+    const contentType = response.headers.get('content-type')?.toLowerCase() || '';
+    
+    if (contentType.includes('application/json')) {
+      return 'json';
+    }
+    if (contentType.includes('text/')) {
+      return 'text';
+    }
+    if (contentType.includes('application/octet-stream') || 
+        contentType.includes('image/') || 
+        contentType.includes('video/') || 
+        contentType.includes('audio/')) {
+      return 'arrayBuffer';
+    }
+    
+    // Default to JSON for most APIs
+    return 'json';
+  }
+
+  private async parseResponse<T>(response: Response, parseMode: ResponseParser): Promise<T> {
+    switch (parseMode) {
+      case 'json':
+        try {
+          return await response.json() as T;
+        } catch (error) {
+          throw new Error(`Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      case 'text':
+        return await response.text() as T;
+      case 'blob':
+        return await response.blob() as T;
+      case 'arrayBuffer':
+        return await response.arrayBuffer() as T;
+      case 'response':
+        return response as T;
+      default:
+        // Fallback to JSON with error handling
+        try {
+          return await response.json() as T;
+        } catch {
+          return await response.text() as T;
+        }
+    }
+  }
+
   private async handleTokenRefresh<T>(
     path: string,
-    init: RequestInit,
+    init: RequestOptions,
   ): Promise<ResponseData<T>> {
     // If refresh is already in progress, queue this request
     if (this.isRefreshing) {
@@ -323,49 +346,54 @@ export class WebHttpClient implements HttpClient {
   }
 
   // HTTP method implementations
-  async get<T>(path: string, init: RequestInit = {}): Promise<ResponseData<T>> {
+  async get<T>(path: string, init: RequestOptions = {}): Promise<ResponseData<T>> {
     return this.makeRequest<T>(path, { ...init, method: 'GET' });
   }
 
   async post<T>(
     path: string,
     body?: unknown,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    };
+    // Don't set Content-Type for FormData - let the browser handle it
+    const headers = body instanceof FormData 
+      ? { ...(init.headers ?? {}) }
+      : {
+          'Content-Type': 'application/json',
+          ...(init.headers ?? {}),
+        };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'POST',
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
     });
   }
 
   async put<T>(
     path: string,
     body?: unknown,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    };
+    const headers = body instanceof FormData 
+      ? { ...(init.headers ?? {}) }
+      : {
+          'Content-Type': 'application/json',
+          ...(init.headers ?? {}),
+        };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'PUT',
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
     });
   }
 
   async delete<T>(
     path: string,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
     return this.makeRequest<T>(path, { ...init, method: 'DELETE' });
   }
@@ -373,24 +401,26 @@ export class WebHttpClient implements HttpClient {
   async patch<T>(
     path: string,
     body?: unknown,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    };
+    const headers = body instanceof FormData 
+      ? { ...(init.headers ?? {}) }
+      : {
+          'Content-Type': 'application/json',
+          ...(init.headers ?? {}),
+        };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'PATCH',
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
     });
   }
 
   async head<T>(
     path: string,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
     const response = await this.makeRequest<T>(path, {
       ...init,
@@ -415,7 +445,7 @@ export class WebHttpClient implements HttpClient {
   // Generic request method (alias for the private makeRequest method)
   async request<T>(
     path: string,
-    init: RequestInit = {},
+    init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
     return this.makeRequest<T>(path, init);
   }
