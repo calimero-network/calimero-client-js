@@ -278,14 +278,13 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       setError(null);
       const baseUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
       // Ensure base URL ends with exactly one slash
-      const normalizedBaseUrl = baseUrl.replace(/\/+$/, '/');
 
       try {
-        const response = await fetch(new URL('admin-api/is-authed', normalizedBaseUrl).href);
+        const response = await fetch(new URL('admin-api/is-authed', baseUrl));
 
         if (response.ok || response.status === 401) {
           setLoading(false);
-          onConnect(normalizedBaseUrl);
+          onConnect(baseUrl);
         } else {
           throw new Error(
             `Network response was not ok: ${response.statusText}`,

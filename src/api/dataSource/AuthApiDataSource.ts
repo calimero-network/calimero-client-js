@@ -34,7 +34,14 @@ export class AuthApiDataSource implements AuthApi {
       // Get the original application URL from localStorage, fallback to callbackUrl if not available
       const originalAppUrl = getAppEndpointKey() || request.callbackUrl;
 
-      window.location.href = `${request.url}/auth/login?callback-url=${encodeURIComponent(request.callbackUrl)}&permissions=${encodeURIComponent(request.permissions.join(','))}&${APPLICATION_ID}=${encodeURIComponent(request.applicationId)}&application-path=${encodeURIComponent(request.applicationPath)}&${APP_URL}=${encodeURIComponent(originalAppUrl)}`;
+      const loginUrl = new URL('auth/login', request.url);
+      loginUrl.searchParams.set('callback-url', request.callbackUrl);
+      loginUrl.searchParams.set('permissions', request.permissions.join(','));
+      loginUrl.searchParams.set(APPLICATION_ID, request.applicationId);
+      loginUrl.searchParams.set('application-path', request.applicationPath);
+      loginUrl.searchParams.set(APP_URL, originalAppUrl);
+      
+      window.location.href = loginUrl.href;
       return { data: null }; // The response doesn't matter as we're redirecting
     } catch (error) {
       console.error('Error during login redirect:', error);
