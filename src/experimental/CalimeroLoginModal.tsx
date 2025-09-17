@@ -213,7 +213,7 @@ const isValidUrl = (urlString: string): boolean => {
       ? urlString 
       : `https://${urlString}`;
     
-    const url = new URL(urlToTest);
+    const url = new URL(urlToTest).toString();
     
     // Check if it's a valid HTTP/HTTPS URL with a proper hostname
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
@@ -280,7 +280,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       // Ensure base URL ends with exactly one slash
 
       try {
-        const response = await fetch(new URL('admin-api/is-authed', baseUrl));
+        const response = await fetch(new URL('admin-api/is-authed', baseUrl).toString());
 
         if (response.ok || response.status === 401) {
           setLoading(false);

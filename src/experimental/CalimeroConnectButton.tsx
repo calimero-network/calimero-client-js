@@ -121,8 +121,7 @@ const CalimeroConnectButton: React.FC = () => {
 
   const dashboardUrl = useMemo(() => {
     if (!isAuthenticated || !appUrl) return '#';
-    const baseUrl = appUrl.endsWith('/') ? appUrl : `${appUrl}/`;
-    return `${baseUrl}admin-dashboard/`;
+    return new URL('admin-dashboard/', appUrl).toString();
   }, [isAuthenticated, appUrl]);
 
   if (isAuthenticated) {

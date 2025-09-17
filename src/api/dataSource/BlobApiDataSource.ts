@@ -25,7 +25,7 @@ export class BlobApiDataSource implements BlobApi {
     try {
       const fileArrayBuffer = await file.arrayBuffer();
 
-      let url = `${this.baseUrl}/admin-api/blobs`;
+      let url = new URL('admin-api/blobs', this.baseUrl).toString();
       const params = new URLSearchParams();
       if (expectedHash) {
         params.append('hash', expectedHash);
@@ -73,7 +73,7 @@ export class BlobApiDataSource implements BlobApi {
   }
 
   async downloadBlob(blobId: string, contextId: string): Promise<Blob> {
-    let url = `${this.baseUrl}/admin-api/blobs/${blobId}`;
+    let url = new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString();
 
     const params = new URLSearchParams();
     params.append('context_id', contextId);
@@ -98,7 +98,7 @@ export class BlobApiDataSource implements BlobApi {
     try {
       // Use HttpClient HEAD method that now returns headers
       const response = await this.client.head(
-        `${this.baseUrl}/admin-api/blobs/${blobId}`,
+        new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString(),
       );
 
       if (response.error) {
@@ -142,7 +142,7 @@ export class BlobApiDataSource implements BlobApi {
   async listBlobs(): ApiResponse<BlobListResponseData> {
     try {
       const response = await this.client.get<RawBlobListResponseData>(
-        `${this.baseUrl}/admin-api/blobs`,
+        new URL('admin-api/blobs', this.baseUrl).toString(),
       );
 
       if (response.data) {
@@ -182,7 +182,7 @@ export class BlobApiDataSource implements BlobApi {
   async deleteBlob(blobId: string): ApiResponse<void> {
     try {
       const response = await this.client.delete<void>(
-        `${this.baseUrl}/admin-api/blobs/${blobId}`,
+        new URL(`admin-api/blobs/${blobId}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {

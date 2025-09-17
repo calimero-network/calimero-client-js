@@ -21,7 +21,7 @@ export class AdminApiDataSource implements AdminApi {
   async getRootKeys(): ApiResponse<RootKey[]> {
     try {
       const response = await this.client.get<RootKey[]>(
-        `${this.baseUrl}/admin/keys`,
+        new URL('admin/keys', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -47,7 +47,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.post<RootKeyResponse>(
-        `${this.baseUrl}/admin/keys`,
+        new URL('admin/keys', this.baseUrl).toString(),
         rootKeyRequest,
       );
       return response;
@@ -60,7 +60,7 @@ export class AdminApiDataSource implements AdminApi {
   async revokeRootKey(keyId: string): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        `${this.baseUrl}/admin/keys/${keyId}`,
+        new URL(`admin/keys/${new URL(`admin/keys/${keyId}`, this.baseUrl).toString()}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -75,7 +75,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        `${this.baseUrl}/admin/keys/${rootKeyId}/clients/${clientId}`,
+        new URL(`admin/keys/${rootKeyId}/clients/${clientId}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -90,7 +90,7 @@ export class AdminApiDataSource implements AdminApi {
   ): ApiResponse<PermissionResponse> {
     try {
       const response = await this.client.put<PermissionResponse>(
-        `${this.baseUrl}/admin/keys/${keyId}/permissions`,
+        new URL(`admin/keys/${keyId}/permissions`, this.baseUrl).toString(),
         request,
       );
       return response;

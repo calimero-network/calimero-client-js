@@ -45,7 +45,7 @@ const initialState: SetupState = {
 
 const validateUrl = (url: string): boolean => {
   try {
-    new URL(url);
+    new URL(url).toString();
     return true;
   } catch {
     return false;

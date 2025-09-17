@@ -30,7 +30,7 @@ export class ContractApiDataSource implements ContractApi {
   async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
     try {
       return await this.client.post<Proposal[]>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals`, this.baseUrl).toString(),
         request,
       );
     } catch (error) {
@@ -44,7 +44,7 @@ export class ContractApiDataSource implements ContractApi {
   async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
     try {
       return await this.client.get<string[]>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`, this.baseUrl).toString(),
       );
     } catch (error) {
       return {
@@ -59,7 +59,7 @@ export class ContractApiDataSource implements ContractApi {
   ): ApiResponse<ProposalApprovalCount> {
     try {
       return await this.client.get<ProposalApprovalCount>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`, this.baseUrl).toString(),
       );
     } catch (error) {
       return {
@@ -72,7 +72,7 @@ export class ContractApiDataSource implements ContractApi {
   async getNumOfProposals(): ApiResponse<number> {
     try {
       return await this.client.get<number>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/count`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals/count`, this.baseUrl).toString(),
       );
     } catch (error) {
       return {
@@ -85,7 +85,7 @@ export class ContractApiDataSource implements ContractApi {
   async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
     try {
       return await this.client.get<Proposal>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals/${proposalId}`, this.baseUrl).toString(),
       );
     } catch (error) {
       return {
@@ -98,7 +98,7 @@ export class ContractApiDataSource implements ContractApi {
   async getContextValue(key: string): ApiResponse<StorageEntry> {
     try {
       return await this.client.post<StorageEntry>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}`,
+        new URL(`admin-api/contexts/${this.contextId}`, this.baseUrl).toString(),
         {
           key,
         },
@@ -117,7 +117,7 @@ export class ContractApiDataSource implements ContractApi {
   ): ApiResponse<ContextStorageEntry[]> {
     try {
       return await this.client.post<ContextStorageEntry[]>(
-        `${this.baseUrl}/admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
+        new URL(`admin-api/contexts/${this.contextId}/proposals/context-storage-entries`, this.baseUrl).toString(),
         {
           offset,
           limit,
