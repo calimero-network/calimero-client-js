@@ -202,8 +202,52 @@ const CloseIconButton = styled.button`
   }
 `;
 
-const URL_REGEX =
-  /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|localhost|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i;
+const isValidUrl = (urlString: string): boolean => {
+  if (!urlString || urlString.trim() === '') {
+    return false;
+  }
+
+  try {
+    // Add protocol if missing
+    const urlToTest = urlString.startsWith('http://') || urlString.startsWith('https://') 
+      ? urlString 
+      : `https://${urlString}`;
+    
+    const url = new URL(urlToTest);
+    
+    // Check if it's a valid HTTP/HTTPS URL with a proper hostname
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return false;
+    }
+    
+    if (!url.hostname || url.hostname === '') {
+      return false;
+    }
+    
+    // Check for valid hostname patterns: localhost, IP address, or domain name
+    const hostname = url.hostname;
+    
+    // Allow localhost
+    if (hostname === 'localhost') {
+      return true;
+    }
+    
+    // Check for valid IP address (IPv4)
+    const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (ipv4Regex.test(hostname)) {
+      // Validate each octet is 0-255
+      const octets = hostname.split('.').map(Number);
+      return octets.every(octet => octet >= 0 && octet <= 255);
+    }
+    
+    // Check for valid domain name (at least one dot, valid characters)
+    const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    return domainRegex.test(hostname) && hostname.includes('.');
+    
+  } catch {
+    return false;
+  }
+};
 
 interface CalimeroLoginModalProps {
   onConnect: (url: string) => void;
@@ -222,7 +266,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
 
   useEffect(() => {
     if (nodeType === 'remote') {
-      setIsValid(URL_REGEX.test(nodeUrl));
+      setIsValid(isValidUrl(nodeUrl));
     } else {
       setIsValid(true);
     }
