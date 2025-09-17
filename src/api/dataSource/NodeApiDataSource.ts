@@ -32,14 +32,14 @@ export class NodeApiDataSource implements NodeApi {
 
   async health(request: HealthRequest): ApiResponse<HealthStatus> {
     return await this.client.get<HealthStatus>(
-      `${request.url}/admin-api/health`,
+      new URL('admin-api/health', request.url).toString(),
     );
   }
 
   async getContext(contextId: string): ApiResponse<Context> {
     try {
       return this.client.get<Context>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}`,
+        new URL(`admin-api/contexts/${contextId}`, this.baseUrl).toString(),
       );
     } catch (error) {
       console.error('Error fetching context:', error);
@@ -53,7 +53,7 @@ export class NodeApiDataSource implements NodeApi {
   async getContexts(): ApiResponse<GetContextsResponse> {
     try {
       const response = await this.client.get<GetContextsResponse>(
-        `${this.baseUrl}/admin-api/contexts`,
+        new URL('admin-api/contexts', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -72,7 +72,7 @@ export class NodeApiDataSource implements NodeApi {
 
     try {
       const response = await this.client.post<CreateContextResponse>(
-        `${this.baseUrl}/admin-api/contexts`,
+        new URL('admin-api/contexts', this.baseUrl).toString(),
         {
           applicationId,
           initializationParams,
@@ -89,7 +89,7 @@ export class NodeApiDataSource implements NodeApi {
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
       const response = await this.client.delete<DeleteContextResponse>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}`,
+        new URL(`admin-api/contexts/${contextId}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -103,7 +103,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<FetchContextIdentitiesResponse> {
     try {
       const response = await this.client.get<FetchContextIdentitiesResponse>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/identities-owned`,
+        new URL(`admin-api/contexts/${contextId}/identities-owned`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -115,7 +115,7 @@ export class NodeApiDataSource implements NodeApi {
   async createNewIdentity(): ApiResponse<NodeIdentity> {
     try {
       const response = await this.client.post<NodeIdentity>(
-        `${this.baseUrl}/admin-api/identity/context`,
+        new URL('admin-api/identity/context', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -133,7 +133,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<string> {
     try {
       const response = await this.client.post<string>(
-        `${this.baseUrl}/admin-api/contexts/invite`,
+        new URL('admin-api/contexts/invite', this.baseUrl).toString(),
         {
           contextId: contextId,
           inviterId: inviterPublicKey,
@@ -152,7 +152,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
-        `${this.baseUrl}/admin-api/contexts/join`,
+        new URL('admin-api/contexts/join', this.baseUrl).toString(),
         {
           invitationPayload,
         },
@@ -168,7 +168,7 @@ export class NodeApiDataSource implements NodeApi {
   async getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse> {
     try {
       const response = await this.client.get<GetInstalledApplicationsResponse>(
-        `${this.baseUrl}/admin-api/applications`,
+        new URL('admin-api/applications', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -187,7 +187,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<InstalledApplication> {
     try {
       const response = await this.client.get<InstalledApplication>(
-        `${this.baseUrl}/admin-api/applications/${appId}`,
+        new URL(`admin-api/applications/${appId}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -211,7 +211,7 @@ export class NodeApiDataSource implements NodeApi {
       };
 
       const response = await this.client.post<InstallApplicationResponse>(
-        `${this.baseUrl}/admin-api/install-application`,
+        new URL('admin-api/install-application', this.baseUrl).toString(),
         requestBody,
       );
       return response;
@@ -228,7 +228,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<UninstallApplicationResponse> {
     try {
       const response = await this.client.delete<UninstallApplicationResponse>(
-        `${this.baseUrl}/admin-api/applications/${applicationId}`,
+        new URL(`admin-api/applications/${applicationId}`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -245,7 +245,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<ContextClientKeysList> {
     try {
       const response = await this.client.get<ContextClientKeysList>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/client-keys`,
+        new URL(`admin-api/contexts/${contextId}/client-keys`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -259,7 +259,7 @@ export class NodeApiDataSource implements NodeApi {
   async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
       const response = await this.client.get<ContextUsersList>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/identities`,
+        new URL(`admin-api/contexts/${contextId}/identities`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -273,7 +273,7 @@ export class NodeApiDataSource implements NodeApi {
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
       const response = await this.client.get<ContextStorage>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/storage`,
+        new URL(`admin-api/contexts/${contextId}/storage`, this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -290,7 +290,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<void> {
     try {
       const response = await this.client.post<void>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/capabilities/grant`,
+        new URL(`admin-api/contexts/${contextId}/capabilities/grant`, this.baseUrl).toString(),
         request,
       );
       return response;
@@ -306,7 +306,7 @@ export class NodeApiDataSource implements NodeApi {
   ): ApiResponse<void> {
     try {
       const response = await this.client.post<void>(
-        `${this.baseUrl}/admin-api/contexts/${contextId}/capabilities/revoke`,
+        new URL(`admin-api/contexts/${contextId}/capabilities/revoke`, this.baseUrl).toString(),
         request,
       );
       return response;
@@ -320,7 +320,7 @@ export class NodeApiDataSource implements NodeApi {
 
   async checkAuth(): ApiResponse<CheckAuthResponse> {
     const response = await this.client.get<CheckAuthResponse>(
-      `${this.baseUrl}/admin-api/is-authed`,
+      new URL('admin-api/is-authed', this.baseUrl).toString(),
     );
     return response;
   }

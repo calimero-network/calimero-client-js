@@ -59,7 +59,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<RefreshTokenResponse> {
     try {
       const response = await this.client.post<RefreshTokenResponse>(
-        `${this.baseUrl}/auth/refresh`,
+        new URL('auth/refresh', this.baseUrl).toString(),
         request,
       );
       return response;
@@ -77,7 +77,7 @@ export class AuthApiDataSource implements AuthApi {
   async getProviders(): ApiResponse<ProvidersResponse> {
     try {
       const response = await this.client.get<ProvidersResponse>(
-        `${this.baseUrl}/auth/providers`,
+        new URL('auth/providers', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -91,7 +91,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        `${this.baseUrl}/auth/token`,
+        new URL('auth/token', this.baseUrl).toString(),
         requestBody,
       );
       return response;
@@ -109,7 +109,7 @@ export class AuthApiDataSource implements AuthApi {
   async getChallenge(): ApiResponse<ChallengeResponse> {
     try {
       const response = await this.client.get<ChallengeResponse>(
-        `${this.baseUrl}/auth/challenge`,
+        new URL('auth/challenge', this.baseUrl).toString(),
       );
       return response;
     } catch (error) {
@@ -123,7 +123,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        `${this.baseUrl}/admin/client-key`,
+        new URL('admin/client-key', this.baseUrl).toString(),
         request,
       );
       return response;
