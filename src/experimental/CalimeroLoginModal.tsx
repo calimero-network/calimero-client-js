@@ -213,7 +213,7 @@ const isValidUrl = (urlString: string): boolean => {
       ? urlString 
       : `https://${urlString}`;
     
-    const url = new URL(urlToTest).toString();
+    const url = new URL(urlToTest);
     
     // Check if it's a valid HTTP/HTTPS URL with a proper hostname
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
@@ -237,7 +237,7 @@ const isValidUrl = (urlString: string): boolean => {
     if (ipv4Regex.test(hostname)) {
       // Validate each octet is 0-255
       const octets = hostname.split('.').map(Number);
-      return octets.every(octet => octet >= 0 && octet <= 255);
+      return octets.every((octet: number) => octet >= 0 && octet <= 255);
     }
     
     // Check for valid domain name (valid characters, can be single word or multi-part)
