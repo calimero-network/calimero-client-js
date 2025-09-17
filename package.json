@@ -1,12 +1,8 @@
 {
-  "name": "@calimero-network/calimero-client",
+  "name": "@calimero-network/calimero-client-workspace",
   "version": "0.1.14",
-  "description": "Javascript library to interact with Calimero P2P node",
-  "type": "module",
-  "main": "lib/index.js",
-  "module": "lib/index.mjs",
-  "types": "lib/index.d.ts",
-  "private": false,
+  "description": "Calimero client libraries workspace",
+  "private": true,
   "dependencies": {
     "axios": "^1.7.4",
     "jwt-decode": "^4.0.0",
@@ -53,46 +49,22 @@
     "styled-components": "^6.1.13"
   },
   "scripts": {
-    "build": "tsc && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
-    "test": "jest test",
-    "lint": "eslint . --ext .ts,.tsx src",
-    "dev": "concurrently \"pnpm compile -w\" \"pnpm bundle:watch\"",
-    "compile": "tsc -p ./tsconfig.json",
-    "bundle": "esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components && esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components",
-    "bundle:watch": "concurrently \"esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=esm --outfile=lib/index.mjs --external:react --external:react-dom --external:styled-components --watch\" \"esbuild src/index.ts --bundle --platform=browser --target=es2020 --format=cjs --outfile=lib/index.js --external:react --external:react-dom --external:styled-components --watch\"",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix src",
-    "prefuzz": "pnpm build",
-    "fuzz": "jsfuzz test/fuzz/borsh-roundtrip.js test/fuzz/corpus/",
-    "clean": "pnpm rimraf lib",
-    "bundlewatch": "bundlewatch",
-    "prettier": "exec prettier . --write",
-    "prettier:check": "exec prettier . --check",
-    "watch": "tsc -watch",
-    "prepack": "pnpm clean && pnpm build",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "clean": "pnpm -r clean",
+    "prettier": "pnpm -r prettier",
+    "prettier:check": "pnpm -r prettier:check",
+    "dev": "pnpm -r dev",
     "prepare": "husky"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "bundlewatch": {
-    "files": [
-      {
-        "path": "dist/calimero-sdk.min.js",
-        "maxSize": "105kB"
-      }
-    ]
-  },
-  "files": [
-    "lib"
+  "keywords": [
+    "calimero",
+    "workspace",
+    "monorepo"
   ],
-  "keywords": [],
   "license": "(MIT)",
   "author": "Calimero Ltd",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  }
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

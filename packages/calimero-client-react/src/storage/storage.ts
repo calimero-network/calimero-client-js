@@ -4,8 +4,6 @@
  * authentication tokens, and other context information.
  */
 
-
-
 /**
  * @constant {string} APP_URL
  * @description The key for the Node server URL in localStorage.

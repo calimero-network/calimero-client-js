@@ -1,4 +1,4 @@
-name: Publish Calimero JavaScript SDK
+name: Publish Calimero JavaScript SDKs
 
 on:
   push:
@@ -49,8 +49,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Release
+      - name: Build packages
+        run: pnpm build
+
+      - name: Release React Package
+        working-directory: packages/calimero-client-react
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Docs are incorrect: https://github.com/semantic-release/semantic-release/issues/2313#issuecomment-1004545613
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
