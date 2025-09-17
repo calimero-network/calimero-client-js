@@ -246,8 +246,8 @@ const response = await withRetry(
     retryCondition: (error, attempt) => {
       // Custom retry logic
       return error.status >= 500;
-    }
-  }
+    },
+  },
 );
 ```
 

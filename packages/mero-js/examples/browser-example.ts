@@ -36,10 +36,14 @@ async function example() {
     const formData = new FormData();
     formData.append('name', 'John Doe');
     formData.append('email', 'john@example.com');
-    
-    const postResponse = await httpClient.post<{ id: number }>('/api/users', formData, {
-      // FormData automatically handles Content-Type
-    });
+
+    const postResponse = await httpClient.post<{ id: number }>(
+      '/api/users',
+      formData,
+      {
+        // FormData automatically handles Content-Type
+      },
+    );
 
     if (postResponse.data) {
       console.log('User created:', postResponse.data.id);
@@ -50,10 +54,13 @@ async function example() {
     // Request with AbortController
     const abortController = new AbortController();
     setTimeout(() => abortController.abort(), 5000); // Cancel after 5 seconds
-    
-    const abortResponse = await httpClient.get<{ data: string }>('/api/slow-endpoint', {
-      signal: abortController.signal,
-    });
+
+    const abortResponse = await httpClient.get<{ data: string }>(
+      '/api/slow-endpoint',
+      {
+        signal: abortController.signal,
+      },
+    );
 
     // Request with retry
     const retryResponse = await withRetry(
@@ -62,7 +69,7 @@ async function example() {
         attempts: 3,
         baseDelayMs: 1000,
         backoffFactor: 2,
-      }
+      },
     );
 
     if (retryResponse.data) {

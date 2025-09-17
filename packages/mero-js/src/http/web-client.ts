@@ -108,7 +108,7 @@ export class WebHttpClient implements HttpClient {
     // Handle AbortSignal - merge user signal with timeout signal
     const userSignal = init.signal || this.transport.defaultAbortSignal;
     const timeoutMs = init.timeoutMs ?? this.transport.timeoutMs;
-    
+
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => {
       abortController.abort();
@@ -120,7 +120,9 @@ export class WebHttpClient implements HttpClient {
       // Create a combined signal that aborts when either signal aborts
       const fallbackController = new AbortController();
       userSignal.addEventListener('abort', () => fallbackController.abort());
-      abortController.signal.addEventListener('abort', () => fallbackController.abort());
+      abortController.signal.addEventListener('abort', () =>
+        fallbackController.abort(),
+      );
       combinedSignal = fallbackController.signal;
     } else {
       combinedSignal = abortController.signal;
@@ -131,7 +133,8 @@ export class WebHttpClient implements HttpClient {
         ...init,
         headers,
         signal: combinedSignal,
-        credentials: init.credentials ?? this.transport.credentials ?? 'same-origin',
+        credentials:
+          init.credentials ?? this.transport.credentials ?? 'same-origin',
       });
 
       clearTimeout(timeoutId);
@@ -205,7 +208,7 @@ export class WebHttpClient implements HttpClient {
       // Handle successful responses with enhanced parsing
       const parseMode = init.parse || this.detectParseMode(response);
       const data = await this.parseResponse<T>(response, parseMode);
-      
+
       return {
         data,
         error: null,
@@ -241,47 +244,55 @@ export class WebHttpClient implements HttpClient {
   }
 
   private detectParseMode(response: Response): ResponseParser {
-    const contentType = response.headers.get('content-type')?.toLowerCase() || '';
-    
+    const contentType =
+      response.headers.get('content-type')?.toLowerCase() || '';
+
     if (contentType.includes('application/json')) {
       return 'json';
     }
     if (contentType.includes('text/')) {
       return 'text';
     }
-    if (contentType.includes('application/octet-stream') || 
-        contentType.includes('image/') || 
-        contentType.includes('video/') || 
-        contentType.includes('audio/')) {
+    if (
+      contentType.includes('application/octet-stream') ||
+      contentType.includes('image/') ||
+      contentType.includes('video/') ||
+      contentType.includes('audio/')
+    ) {
       return 'arrayBuffer';
     }
-    
+
     // Default to JSON for most APIs
     return 'json';
   }
 
-  private async parseResponse<T>(response: Response, parseMode: ResponseParser): Promise<T> {
+  private async parseResponse<T>(
+    response: Response,
+    parseMode: ResponseParser,
+  ): Promise<T> {
     switch (parseMode) {
       case 'json':
         try {
-          return await response.json() as T;
+          return (await response.json()) as T;
         } catch (error) {
-          throw new Error(`Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          throw new Error(
+            `Failed to parse JSON response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
         }
       case 'text':
-        return await response.text() as T;
+        return (await response.text()) as T;
       case 'blob':
-        return await response.blob() as T;
+        return (await response.blob()) as T;
       case 'arrayBuffer':
-        return await response.arrayBuffer() as T;
+        return (await response.arrayBuffer()) as T;
       case 'response':
         return response as T;
       default:
         // Fallback to JSON with error handling
         try {
-          return await response.json() as T;
+          return (await response.json()) as T;
         } catch {
-          return await response.text() as T;
+          return (await response.text()) as T;
         }
     }
   }
@@ -346,7 +357,10 @@ export class WebHttpClient implements HttpClient {
   }
 
   // HTTP method implementations
-  async get<T>(path: string, init: RequestOptions = {}): Promise<ResponseData<T>> {
+  async get<T>(
+    path: string,
+    init: RequestOptions = {},
+  ): Promise<ResponseData<T>> {
     return this.makeRequest<T>(path, { ...init, method: 'GET' });
   }
 
@@ -356,18 +370,24 @@ export class WebHttpClient implements HttpClient {
     init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
     // Don't set Content-Type for FormData - let the browser handle it
-    const headers = body instanceof FormData 
-      ? { ...(init.headers ?? {}) }
-      : {
-          'Content-Type': 'application/json',
-          ...(init.headers ?? {}),
-        };
+    const headers =
+      body instanceof FormData
+        ? { ...(init.headers ?? {}) }
+        : {
+            'Content-Type': 'application/json',
+            ...(init.headers ?? {}),
+          };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'POST',
       headers,
-      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
+      body:
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     });
   }
 
@@ -376,18 +396,24 @@ export class WebHttpClient implements HttpClient {
     body?: unknown,
     init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const headers = body instanceof FormData 
-      ? { ...(init.headers ?? {}) }
-      : {
-          'Content-Type': 'application/json',
-          ...(init.headers ?? {}),
-        };
+    const headers =
+      body instanceof FormData
+        ? { ...(init.headers ?? {}) }
+        : {
+            'Content-Type': 'application/json',
+            ...(init.headers ?? {}),
+          };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'PUT',
       headers,
-      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
+      body:
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     });
   }
 
@@ -403,18 +429,24 @@ export class WebHttpClient implements HttpClient {
     body?: unknown,
     init: RequestOptions = {},
   ): Promise<ResponseData<T>> {
-    const headers = body instanceof FormData 
-      ? { ...(init.headers ?? {}) }
-      : {
-          'Content-Type': 'application/json',
-          ...(init.headers ?? {}),
-        };
+    const headers =
+      body instanceof FormData
+        ? { ...(init.headers ?? {}) }
+        : {
+            'Content-Type': 'application/json',
+            ...(init.headers ?? {}),
+          };
 
     return this.makeRequest<T>(path, {
       ...init,
       method: 'PATCH',
       headers,
-      body: body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined),
+      body:
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     });
   }
 

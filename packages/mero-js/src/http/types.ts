@@ -18,7 +18,12 @@ export interface Transport {
 }
 
 // Response parsing options
-export type ResponseParser = 'json' | 'text' | 'blob' | 'arrayBuffer' | 'response';
+export type ResponseParser =
+  | 'json'
+  | 'text'
+  | 'blob'
+  | 'arrayBuffer'
+  | 'response';
 
 export interface RequestOptions extends RequestInit {
   parse?: ResponseParser;
