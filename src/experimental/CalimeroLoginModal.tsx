@@ -276,10 +276,12 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
     if (isValid) {
       setLoading(true);
       setError(null);
-      const finalUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
+      const baseUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
+      // Ensure base URL ends with exactly one slash
+      const normalizedBaseUrl = baseUrl.replace(/\/+$/, '/');
 
       try {
-        const response = await fetch(new URL('/admin-api/is-authed', finalUrl).href);
+        const response = await fetch(new URL('admin-api/is-authed', normalizedBaseUrl).href);
 
         if (response.ok || response.status === 401) {
           setLoading(false);
