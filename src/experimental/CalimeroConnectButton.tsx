@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import styled from 'styled-components';
 import { useCalimero } from './CalimeroProvider';
 import CalimeroLogo from './CalimeroLogo';
+import { ConnectionType, CustomConnectionConfig } from './types';
 
 const StyledButton = styled.button`
   display: flex;
@@ -99,7 +100,13 @@ const DropdownInfoItem = styled.div`
   max-width: 150px;
 `;
 
-const CalimeroConnectButton: React.FC = () => {
+interface CalimeroConnectButtonProps {
+  connectionType?: ConnectionType | CustomConnectionConfig;
+}
+
+const CalimeroConnectButton: React.FC<CalimeroConnectButtonProps> = ({
+  connectionType = ConnectionType.RemoteAndLocal,
+}) => {
   const { isAuthenticated, login, logout, appUrl, isOnline } = useCalimero();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -163,7 +170,7 @@ const CalimeroConnectButton: React.FC = () => {
   }
 
   return (
-    <StyledButton onClick={login}>
+    <StyledButton onClick={() => login(connectionType)}>
       <CalimeroLogo className="calimero-logo" />
       Connect
     </StyledButton>

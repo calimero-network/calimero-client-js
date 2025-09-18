@@ -18,13 +18,18 @@ import {
 import CalimeroLoginModal from './CalimeroLoginModal';
 import Toast from './Toast';
 import { CalimeroApplication } from './app';
-import { AppMode, CalimeroApp } from './types';
+import {
+  AppMode,
+  CalimeroApp,
+  ConnectionType,
+  CustomConnectionConfig,
+} from './types';
 import { GlobalStyle } from '../styles/global';
 
 interface CalimeroContextValue {
   app: CalimeroApp | null;
   isAuthenticated: boolean;
-  login: () => void;
+  login: (connectionType?: ConnectionType | CustomConnectionConfig) => void;
   logout: () => void;
   appUrl: string | null;
   isOnline: boolean;
@@ -72,6 +77,9 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [appUrl, setAppUrl] = useState<string | null>(getAppEndpointKey());
+  const [currentConnectionType, setCurrentConnectionType] = useState<
+    ConnectionType | CustomConnectionConfig | null
+  >(null);
 
   const performLogin = useCallback(
     (url: string) => {
@@ -190,7 +198,25 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     performLogin(url);
   };
 
-  const login = () => setIsLoginOpen(true);
+  const login = (connectionType?: ConnectionType | CustomConnectionConfig) => {
+    if (!connectionType) {
+      setCurrentConnectionType(ConnectionType.RemoteAndLocal);
+      setIsLoginOpen(true);
+      return;
+    }
+
+    // Handle Custom connection type - skip modal and connect directly
+    if (
+      typeof connectionType === 'object' &&
+      connectionType.type === ConnectionType.Custom
+    ) {
+      handleConnect(connectionType.url);
+      return;
+    }
+
+    setCurrentConnectionType(connectionType);
+    setIsLoginOpen(true);
+  };
 
   const app = useMemo(
     () =>
@@ -217,10 +243,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         <>
           <GlobalStyle />
           {children}
-          {isLoginOpen && (
+          {isLoginOpen && currentConnectionType && (
             <CalimeroLoginModal
               onConnect={handleConnect}
               onClose={() => setIsLoginOpen(false)}
+              connectionType={currentConnectionType}
             />
           )}
           {toast && (

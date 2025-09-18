@@ -9,6 +9,7 @@ import {
   ExecutionResponse,
   AppMode,
   SubscriptionEvent,
+  ConnectionType,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
 import EventLog from './EventLog';
@@ -125,9 +126,44 @@ const AppContent: React.FC = () => {
           </div>
           <h1>My dApp</h1>
         </div>
-        <CalimeroConnectButton />
       </header>
       <main>
+        {!isAuthenticated && (
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <h2>Connection Type Examples</h2>
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+                marginBottom: '2rem',
+              }}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <h3>Default (Both Local & Remote)</h3>
+                <CalimeroConnectButton />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <h3>Local Only</h3>
+                <CalimeroConnectButton connectionType={ConnectionType.Local} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <h3>Remote Only</h3>
+                <CalimeroConnectButton connectionType={ConnectionType.Remote} />
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <h3>Custom URL (Skips Modal)</h3>
+                <CalimeroConnectButton
+                  connectionType={{
+                    type: ConnectionType.Custom,
+                    url: 'http://localhost:2528',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
         {isAuthenticated ? (
           <div>
             <div
