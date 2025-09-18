@@ -234,10 +234,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<UninstallApplicationResponse> {
     try {
       const response = await this.client.delete<UninstallApplicationResponse>(
-        this.buildUrl(
-          `admin-api/applications/${applicationId}`,
-          this.baseUrl,
-        ),
+        this.buildUrl(`admin-api/applications/${applicationId}`, this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -288,10 +285,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
       const response = await this.client.get<ContextStorage>(
-        this.buildUrl(
-          `admin-api/contexts/${contextId}/storage`,
-          this.baseUrl,
-        ),
+        this.buildUrl(`admin-api/contexts/${contextId}/storage`, this.baseUrl),
       );
       return response;
     } catch (error) {
