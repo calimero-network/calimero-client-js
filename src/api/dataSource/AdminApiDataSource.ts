@@ -50,7 +50,7 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.post<RootKeyResponse>(
-        new URL('admin/keys', this.baseUrl).toString(),
+        this.buildUrl('admin/keys', this.baseUrl),
         rootKeyRequest,
       );
       return response;
@@ -78,10 +78,10 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   ): ApiResponse<RootKeyResponse> {
     try {
       const response = await this.client.delete<RootKeyResponse>(
-        new URL(
+        this.buildUrl(
           `admin/keys/${rootKeyId}/clients/${clientId}`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -96,7 +96,7 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   ): ApiResponse<PermissionResponse> {
     try {
       const response = await this.client.put<PermissionResponse>(
-        new URL(`admin/keys/${keyId}/permissions`, this.baseUrl).toString(),
+        this.buildUrl(`admin/keys/${keyId}/permissions`, this.baseUrl),
         request,
       );
       return response;

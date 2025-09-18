@@ -35,7 +35,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
 
   async health(request: HealthRequest): ApiResponse<HealthStatus> {
     return await this.client.get<HealthStatus>(
-      new URL('admin-api/health', request.url).toString(),
+      this.buildUrl('admin-api/health', request.url),
     );
   }
 
@@ -75,7 +75,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
 
     try {
       const response = await this.client.post<CreateContextResponse>(
-        new URL('admin-api/contexts', this.baseUrl).toString(),
+        this.buildUrl('admin-api/contexts', this.baseUrl),
         {
           applicationId,
           initializationParams,
@@ -92,7 +92,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async deleteContext(contextId: string): ApiResponse<DeleteContextResponse> {
     try {
       const response = await this.client.delete<DeleteContextResponse>(
-        new URL(`admin-api/contexts/${contextId}`, this.baseUrl).toString(),
+        this.buildUrl(`admin-api/contexts/${contextId}`, this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -106,10 +106,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<FetchContextIdentitiesResponse> {
     try {
       const response = await this.client.get<FetchContextIdentitiesResponse>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/identities-owned`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -121,7 +121,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async createNewIdentity(): ApiResponse<NodeIdentity> {
     try {
       const response = await this.client.post<NodeIdentity>(
-        new URL('admin-api/identity/context', this.baseUrl).toString(),
+        this.buildUrl('admin-api/identity/context', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -139,7 +139,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<string> {
     try {
       const response = await this.client.post<string>(
-        new URL('admin-api/contexts/invite', this.baseUrl).toString(),
+        this.buildUrl('admin-api/contexts/invite', this.baseUrl),
         {
           contextId: contextId,
           inviterId: inviterPublicKey,
@@ -158,7 +158,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
-        new URL('admin-api/contexts/join', this.baseUrl).toString(),
+        this.buildUrl('admin-api/contexts/join', this.baseUrl),
         {
           invitationPayload,
         },
@@ -174,7 +174,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse> {
     try {
       const response = await this.client.get<GetInstalledApplicationsResponse>(
-        new URL('admin-api/applications', this.baseUrl).toString(),
+        this.buildUrl('admin-api/applications', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -193,7 +193,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<InstalledApplication> {
     try {
       const response = await this.client.get<InstalledApplication>(
-        new URL(`admin-api/applications/${appId}`, this.baseUrl).toString(),
+        this.buildUrl(`admin-api/applications/${appId}`, this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -217,7 +217,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
       };
 
       const response = await this.client.post<InstallApplicationResponse>(
-        new URL('admin-api/install-application', this.baseUrl).toString(),
+        this.buildUrl('admin-api/install-application', this.baseUrl),
         requestBody,
       );
       return response;
@@ -234,10 +234,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<UninstallApplicationResponse> {
     try {
       const response = await this.client.delete<UninstallApplicationResponse>(
-        new URL(
+        this.buildUrl(
           `admin-api/applications/${applicationId}`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -254,10 +254,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<ContextClientKeysList> {
     try {
       const response = await this.client.get<ContextClientKeysList>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/client-keys`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -271,10 +271,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async getContextUsers(contextId: string): ApiResponse<ContextUsersList> {
     try {
       const response = await this.client.get<ContextUsersList>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/identities`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -288,10 +288,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async getContextStorageUsage(contextId: string): ApiResponse<ContextStorage> {
     try {
       const response = await this.client.get<ContextStorage>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/storage`,
           this.baseUrl,
-        ).toString(),
+        ),
       );
       return response;
     } catch (error) {
@@ -308,10 +308,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<void> {
     try {
       const response = await this.client.post<void>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/capabilities/grant`,
           this.baseUrl,
-        ).toString(),
+        ),
         request,
       );
       return response;
@@ -327,10 +327,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<void> {
     try {
       const response = await this.client.post<void>(
-        new URL(
+        this.buildUrl(
           `admin-api/contexts/${contextId}/capabilities/revoke`,
           this.baseUrl,
-        ).toString(),
+        ),
         request,
       );
       return response;
@@ -344,7 +344,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
 
   async checkAuth(): ApiResponse<CheckAuthResponse> {
     const response = await this.client.get<CheckAuthResponse>(
-      new URL('admin-api/is-authed', this.baseUrl).toString(),
+      this.buildUrl('admin-api/is-authed', this.baseUrl),
     );
     return response;
   }

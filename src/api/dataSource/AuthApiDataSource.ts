@@ -19,11 +19,14 @@ import {
   setAuthEndpointURL,
   getAppEndpointKey,
 } from '../../storage/storage';
+import { BaseApiDataSource } from './BaseApiDataSource';
 
-export class AuthApiDataSource implements AuthApi {
-  constructor(private client: HttpClient) {}
+export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
+  constructor(private client: HttpClient) {
+    super();
+  }
 
-  private get baseUrl(): string {
+  private get baseUrl(): string | null {
     return getAuthEndpointURL();
   }
 
@@ -59,7 +62,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<RefreshTokenResponse> {
     try {
       const response = await this.client.post<RefreshTokenResponse>(
-        new URL('auth/refresh', this.baseUrl).toString(),
+        this.buildUrl('auth/refresh', this.baseUrl),
         request,
       );
       return response;
@@ -77,7 +80,7 @@ export class AuthApiDataSource implements AuthApi {
   async getProviders(): ApiResponse<ProvidersResponse> {
     try {
       const response = await this.client.get<ProvidersResponse>(
-        new URL('auth/providers', this.baseUrl).toString(),
+        this.buildUrl('auth/providers', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -91,7 +94,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        new URL('auth/token', this.baseUrl).toString(),
+        this.buildUrl('auth/token', this.baseUrl),
         requestBody,
       );
       return response;
@@ -109,7 +112,7 @@ export class AuthApiDataSource implements AuthApi {
   async getChallenge(): ApiResponse<ChallengeResponse> {
     try {
       const response = await this.client.get<ChallengeResponse>(
-        new URL('auth/challenge', this.baseUrl).toString(),
+        this.buildUrl('auth/challenge', this.baseUrl),
       );
       return response;
     } catch (error) {
@@ -123,7 +126,7 @@ export class AuthApiDataSource implements AuthApi {
   ): ApiResponse<TokenResponse> {
     try {
       const response = await this.client.post<TokenResponse>(
-        new URL('admin/client-key', this.baseUrl).toString(),
+        this.buildUrl('admin/client-key', this.baseUrl),
         request,
       );
       return response;
