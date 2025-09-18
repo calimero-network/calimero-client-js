@@ -12,6 +12,18 @@ export enum AppMode {
   MultiContext = 'multi-context',
 }
 
+export enum ConnectionType {
+  RemoteAndLocal = 'remote-and-local',
+  Local = 'local',
+  Remote = 'remote',
+  Custom = 'custom',
+}
+
+export interface CustomConnectionConfig {
+  type: ConnectionType.Custom;
+  url: string;
+}
+
 // Minimal representation of a context
 export interface Context {
   contextId: string;

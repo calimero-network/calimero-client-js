@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Spinner from '../components/loader/Spinner';
 import CalimeroLogo from './CalimeroLogo';
+import { ConnectionType, CustomConnectionConfig } from './types';
 
 const fadeIn = keyframes`
   from {
@@ -253,17 +254,37 @@ const isValidUrl = (urlString: string): boolean => {
 interface CalimeroLoginModalProps {
   onConnect: (url: string) => void;
   onClose: () => void;
+  connectionType: ConnectionType | CustomConnectionConfig;
 }
 
 const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
   onConnect,
   onClose,
+  connectionType,
 }) => {
   const [nodeType, setNodeType] = useState<'local' | 'remote'>('local');
   const [nodeUrl, setNodeUrl] = useState<string>('');
   const [isValid, setIsValid] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Determine what should be shown based on connectionType
+  const shouldShowLocal =
+    connectionType === ConnectionType.RemoteAndLocal ||
+    connectionType === ConnectionType.Local;
+  const shouldShowRemote =
+    connectionType === ConnectionType.RemoteAndLocal ||
+    connectionType === ConnectionType.Remote;
+  const shouldShowRadioGroup = shouldShowLocal && shouldShowRemote;
+
+  // Set initial nodeType based on connectionType
+  useEffect(() => {
+    if (connectionType === ConnectionType.Local) {
+      setNodeType('local');
+    } else if (connectionType === ConnectionType.Remote) {
+      setNodeType('remote');
+    }
+  }, [connectionType]);
 
   useEffect(() => {
     if (nodeType === 'remote') {
@@ -318,41 +339,49 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
           </SpinnerContainer>
         ) : (
           <>
-            <InfoText>Select your Calimero node type to continue.</InfoText>
+            <InfoText>
+              {shouldShowRadioGroup
+                ? 'Select your Calimero node type to continue.'
+                : connectionType === ConnectionType.Local
+                  ? 'Connect to your local Calimero node.'
+                  : 'Enter your remote Calimero node URL.'}
+            </InfoText>
             {error && <ErrorMessage>{error}</ErrorMessage>}
-            <RadioGroup>
-              <label>
-                <input
-                  type="radio"
-                  value="local"
-                  checked={nodeType === 'local'}
-                  onChange={() => setNodeType('local')}
-                />
-                Local
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="remote"
-                  checked={nodeType === 'remote'}
-                  onChange={() => setNodeType('remote')}
-                />
-                Remote
-              </label>
-            </RadioGroup>
+            {shouldShowRadioGroup && (
+              <RadioGroup>
+                <label>
+                  <input
+                    type="radio"
+                    value="local"
+                    checked={nodeType === 'local'}
+                    onChange={() => setNodeType('local')}
+                  />
+                  Local
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="remote"
+                    checked={nodeType === 'remote'}
+                    onChange={() => setNodeType('remote')}
+                  />
+                  Remote
+                </label>
+              </RadioGroup>
+            )}
             <InputContainer>
-              {nodeType === 'remote' ? (
+              {shouldShowRemote && nodeType === 'remote' ? (
                 <input
                   type="text"
                   value={nodeUrl}
                   onChange={(e) => setNodeUrl(e.target.value)}
                   placeholder="https://your-node-url.calimero.network"
                 />
-              ) : (
+              ) : shouldShowLocal ? (
                 <LocalNodeInfo>
                   Using default local node: http://localhost
                 </LocalNodeInfo>
-              )}
+              ) : null}
             </InputContainer>
             <ButtonGroup>
               <StyledButton
