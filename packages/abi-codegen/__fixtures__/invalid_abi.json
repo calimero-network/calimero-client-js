@@ -1,0 +1,16 @@
+{
+  "schema_version": "wasm-abi/1",
+  "types": {
+    "User": {
+      "kind": "record",
+      "fields": [
+        {
+          "name": "id",
+          "type": { "$ref": "NonExistentType" }
+        }
+      ]
+    }
+  },
+  "methods": [],
+  "events": []
+}
