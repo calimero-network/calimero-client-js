@@ -283,6 +283,10 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
       setNodeType('local');
     } else if (connectionType === ConnectionType.Remote) {
       setNodeType('remote');
+      const nodeUrl = localStorage.getItem('app-url');
+      if (nodeUrl) {
+        setNodeUrl(nodeUrl);
+      }
     }
   }, [connectionType]);
 
