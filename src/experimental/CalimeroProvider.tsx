@@ -99,7 +99,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     clientLogout();
     setIsAuthenticated(false);
     setIsOnline(true);
-    setAppUrl(null);
   }, []);
 
   useEffect(() => {
