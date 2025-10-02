@@ -277,16 +277,19 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
     connectionType === ConnectionType.Remote;
   const shouldShowRadioGroup = shouldShowLocal && shouldShowRemote;
 
+  useEffect(() => {
+    const nodeUrl = localStorage.getItem('app-url');
+    if (nodeUrl) {
+      setNodeUrl(JSON.parse(nodeUrl));
+    }
+  },[])
+
   // Set initial nodeType based on connectionType
   useEffect(() => {
     if (connectionType === ConnectionType.Local) {
       setNodeType('local');
     } else if (connectionType === ConnectionType.Remote) {
       setNodeType('remote');
-      const nodeUrl = localStorage.getItem('app-url');
-      if (nodeUrl) {
-        setNodeUrl(nodeUrl);
-      }
     }
   }, [connectionType]);
 
