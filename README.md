@@ -17,7 +17,7 @@ The **Calimero TypeScript Client SDK** helps developers interact with decentrali
 The SDK has two main components:
 
 - `RpcClient`: For sending queries and updates to the server
-- `SubscriptionsClient`: For subscribing to real-time updates
+- `SubscriptionsClient`: For subscribing to real-time updates (supports both WebSocket and SSE)
 
 ## Installation
 
@@ -681,7 +681,95 @@ subscriptionsClient.removeCallback(callbackFunction);
 subscriptionsClient.disconnect();
 ```
 
-### 3. Multiple Connections
+### 3. SSE (Server-Sent Events) Subscriptions
+
+The `SseSubscriptionsClient` provides an HTTP-based alternative for real-time updates using Server-Sent Events:
+
+```typescript
+import { SseSubscriptionsClient } from '@calimero-network/calimero-client';
+
+// Initialize the client
+const sseClient = new SseSubscriptionsClient(
+  process.env['NEXT_PUBLIC_API_URL'],
+  '/sse',
+);
+
+// Connect to SSE endpoint
+await sseClient.connect();
+
+// Subscribe to specific contexts
+await sseClient.subscribe([process.env['NEXT_PUBLIC_APPLICATION_ID']]);
+
+// Handle incoming events
+sseClient.addCallback((event) => {
+  console.log('Received SSE event:', event);
+});
+
+// Unsubscribe from contexts
+await sseClient.unsubscribe([process.env['NEXT_PUBLIC_APPLICATION_ID']]);
+
+// Clean up
+sseClient.disconnect();
+```
+
+#### SSE vs WebSocket
+
+**When to use SSE:**
+- Better firewall/proxy compatibility (uses standard HTTP)
+- Simpler infrastructure requirements
+- Built-in automatic reconnection
+- Unidirectional server-to-client communication is sufficient
+
+**When to use WebSocket:**
+- Need bidirectional communication
+- Lower latency requirements
+- More efficient for high-frequency updates
+
+**Important:** SSE uses a **skip-on-disconnect** model:
+- Sessions persist across reconnections (subscriptions are maintained)
+- Events are NOT buffered - events missed during disconnection are skipped
+- Event ID gaps indicate missed events (client should re-query state if needed)
+
+### 4. Experimental: Using CalimeroProvider with Event Stream Mode
+
+The experimental `CalimeroProvider` component supports both WebSocket and SSE modes:
+
+```typescript
+import { 
+  CalimeroProvider, 
+  EventStreamMode,
+  AppMode 
+} from '@calimero-network/calimero-client';
+
+// Using WebSocket (default)
+function App() {
+  return (
+    <CalimeroProvider
+      clientApplicationId="your-application-id"
+      mode={AppMode.MultiContext}
+      applicationPath="https://path-to-your-wasm.wasm"
+    >
+      <YourAppContent />
+    </CalimeroProvider>
+  );
+}
+
+// Using SSE
+function AppWithSSE() {
+  return (
+    <CalimeroProvider
+      clientApplicationId="your-application-id"
+      mode={AppMode.MultiContext}
+      applicationPath="https://path-to-your-wasm.wasm"
+      eventStreamMode={EventStreamMode.SSE}
+    >
+      <YourAppContent />
+    </CalimeroProvider>
+  );
+}
+```
+
+### 5. Multiple Connections
 
 You can manage multiple WebSocket connections using connection IDs:
 

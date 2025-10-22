@@ -23,6 +23,7 @@ import {
   CalimeroApp,
   ConnectionType,
   CustomConnectionConfig,
+  EventStreamMode,
 } from './types';
 import { GlobalStyle } from '../styles/global';
 
@@ -51,6 +52,11 @@ interface CalimeroProviderProps {
   clientApplicationId: string;
   mode: AppMode;
   applicationPath: string;
+  /**
+   * Event streaming mode for real-time subscriptions.
+   * Defaults to WebSocket for backwards compatibility.
+   */
+  eventStreamMode?: EventStreamMode;
 }
 
 const getPermissionsForMode = (mode: AppMode): string[] => {
@@ -67,6 +73,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   clientApplicationId,
   mode,
   applicationPath,
+  eventStreamMode = EventStreamMode.WebSocket,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -220,13 +227,13 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const app = useMemo(
     () =>
       isAuthenticated
-        ? new CalimeroApplication(apiClient, clientApplicationId)
+        ? new CalimeroApplication(apiClient, clientApplicationId, eventStreamMode)
         : null,
-    [isAuthenticated, clientApplicationId],
+    [isAuthenticated, clientApplicationId, eventStreamMode],
   );
 
   useEffect(() => {
-    // Closes WebSocket connection on logout or when the component unmounts
+    // Closes event stream connection (WebSocket/SSE) on logout or when the component unmounts
     return () => {
       app?.close();
     };
