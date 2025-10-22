@@ -150,7 +150,10 @@ export class ExperimentalSSE {
               executionEvent.data = decodedString;
             }
           } catch (decodeError) {
-            console.error('Failed to decode event data byte array', decodeError);
+            console.error(
+              'Failed to decode event data byte array',
+              decodeError,
+            );
           }
         }
       });
@@ -203,13 +206,17 @@ export class ExperimentalSSE {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Subscription request failed: ${response.status} ${errorText}`);
+        throw new Error(
+          `Subscription request failed: ${response.status} ${errorText}`,
+        );
       }
 
       const result = await response.json();
 
       if (result.error) {
-        throw new Error(`Subscription ${method} failed: ${JSON.stringify(result.error)}`);
+        throw new Error(
+          `Subscription ${method} failed: ${JSON.stringify(result.error)}`,
+        );
       }
 
       console.log(`Successfully ${method}d to contexts:`, contextIds);
@@ -235,7 +242,10 @@ export class ExperimentalSSE {
     }
   }
 
-  public async subscribe(contextIds: string[], callback: SseCallback): Promise<void> {
+  public async subscribe(
+    contextIds: string[],
+    callback: SseCallback,
+  ): Promise<void> {
     // Store callback for each context
     contextIds.forEach((contextId) => {
       this.callbacks.set(contextId, callback);
@@ -268,4 +278,3 @@ export class ExperimentalSSE {
     this.sessionId = null;
   }
 }
-

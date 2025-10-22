@@ -227,7 +227,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const app = useMemo(
     () =>
       isAuthenticated
-        ? new CalimeroApplication(apiClient, clientApplicationId, eventStreamMode)
+        ? new CalimeroApplication(
+            apiClient,
+            clientApplicationId,
+            eventStreamMode,
+          )
         : null,
     [isAuthenticated, clientApplicationId, eventStreamMode],
   );

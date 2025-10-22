@@ -35,7 +35,7 @@ export enum EventStreamMode {
    * - Requires WebSocket support
    */
   WebSocket = 'websocket',
-  
+
   /**
    * SSE (Server-Sent Events) based streaming
    * - Unidirectional (server to client)

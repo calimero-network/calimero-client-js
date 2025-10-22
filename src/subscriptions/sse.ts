@@ -140,7 +140,10 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
 
         // Listen for 'close' events
         eventSource.addEventListener('close', (event: MessageEvent) => {
-          console.log(`Server closed connection for ${connectionId}:`, event.data);
+          console.log(
+            `Server closed connection for ${connectionId}:`,
+            event.data,
+          );
           this.disconnect(connectionId);
         });
       } catch (error) {
@@ -249,7 +252,9 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
 
       if (result.error) {
         console.error(`Subscription ${method} error:`, result.error);
-        throw new Error(`Subscription ${method} failed: ${JSON.stringify(result.error)}`);
+        throw new Error(
+          `Subscription ${method} failed: ${JSON.stringify(result.error)}`,
+        );
       }
 
       console.log(`Successfully ${method}d to contexts:`, contextIds);
@@ -315,7 +320,10 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
               executionEvent.data = decodedString;
             }
           } catch (decodeError) {
-            console.error('Failed to decode event data byte array', decodeError);
+            console.error(
+              'Failed to decode event data byte array',
+              decodeError,
+            );
           }
         }
       });
@@ -356,4 +364,3 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
     }
   }
 }
-

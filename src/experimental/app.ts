@@ -17,7 +17,10 @@ import {
  * Interface for event stream clients (WebSocket or SSE)
  */
 interface EventStreamClient {
-  subscribe(contextIds: string[], callback: (event: SubscriptionEvent) => void): void | Promise<void>;
+  subscribe(
+    contextIds: string[],
+    callback: (event: SubscriptionEvent) => void,
+  ): void | Promise<void>;
   unsubscribe(contextIds: string[]): void | Promise<void>;
   close(): void;
 }
@@ -36,9 +39,9 @@ export class CalimeroApplication implements CalimeroApp {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
     this.streamMode = streamMode;
-    
+
     const baseUrl = getAppEndpointKey();
-    
+
     // Initialize the appropriate event stream client based on mode
     if (streamMode === EventStreamMode.SSE) {
       this.eventStream = new ExperimentalSSE(baseUrl);

@@ -715,17 +715,20 @@ sseClient.disconnect();
 #### SSE vs WebSocket
 
 **When to use SSE:**
+
 - Better firewall/proxy compatibility (uses standard HTTP)
 - Simpler infrastructure requirements
 - Built-in automatic reconnection
 - Unidirectional server-to-client communication is sufficient
 
 **When to use WebSocket:**
+
 - Need bidirectional communication
 - Lower latency requirements
 - More efficient for high-frequency updates
 
 **Important:** SSE uses a **skip-on-disconnect** model:
+
 - Sessions persist across reconnections (subscriptions are maintained)
 - Events are NOT buffered - events missed during disconnection are skipped
 - Event ID gaps indicate missed events (client should re-query state if needed)
@@ -735,10 +738,10 @@ sseClient.disconnect();
 The experimental `CalimeroProvider` component supports both WebSocket and SSE modes:
 
 ```typescript
-import { 
-  CalimeroProvider, 
+import {
+  CalimeroProvider,
   EventStreamMode,
-  AppMode 
+  AppMode
 } from '@calimero-network/calimero-client';
 
 // Using WebSocket (default)
