@@ -79,26 +79,20 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
         // Add authentication token as query parameter
         const urlWithAuth = `${url}?token=${encodeURIComponent(accessToken)}`;
 
-        // Check if we have a previous session ID for reconnection
-        const previousSessionId = this.sessionIds.get(connectionId);
-        const eventSourceInit: EventSourceInit = {};
-
-        if (previousSessionId) {
-          // Use Last-Event-ID for session reconnection
-          // Format: {session_id}-{event_number}
-          // We only need the session_id part, server will continue from current counter
-          eventSourceInit.withCredentials = false;
-        }
-
-        const eventSource = new EventSource(urlWithAuth, eventSourceInit);
+        const eventSource = new EventSource(urlWithAuth);
 
         this.eventSources.set(connectionId, eventSource);
         this.callbacks.set(connectionId, []);
 
-        eventSource.onopen = () => {
-          // Clear any reconnection timeout
+        // Track if we've received the session ID yet
+        let sessionReceived = false;
+
+        eventSource.onopen = (openEvent) => {
+          // Extract session ID from response headers
+          // Note: EventSource doesn't expose response headers directly in browser
+          // We'll get it from the first message event instead
+          console.log(`SSE connection opened for ${connectionId}`);
           this.clearReconnectTimeout(connectionId);
-          resolve();
         };
 
         eventSource.onerror = (error) => {
@@ -108,44 +102,47 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
           this.scheduleReconnect(connectionId);
 
           // Only reject on first connection attempt
-          if (!this.sessionIds.has(connectionId)) {
+          if (!sessionReceived) {
             reject(error);
           }
         };
 
-        // Listen for 'connect' event to get session ID
-        eventSource.addEventListener('connect', (event: MessageEvent) => {
+        // All events come through 'message' type now (WHATWG standard)
+        eventSource.onmessage = (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
-            if (data.sessionId) {
-              this.sessionIds.set(connectionId, data.sessionId);
+            
+            // Handle different event types by checking the 'type' field
+            if (data.type === 'connect') {
+              // Connect event - extract session ID
+              this.sessionIds.set(connectionId, data.session_id);
+              sessionReceived = true;
               console.log(
-                `SSE session established: ${data.sessionId} for connection: ${connectionId}`,
+                `SSE session ${data.reconnect ? 'restored' : 'established'}: ${data.session_id} for connection: ${connectionId}`,
               );
+              
+              // Resolve on first connect
+              if (!data.reconnect) {
+                resolve();
+              }
+            } else if (data.type === 'close') {
+              // Close event from server
+              console.log(
+                `Server closed connection for ${connectionId}:`,
+                data.reason,
+              );
+              this.disconnect(connectionId);
+            } else if (data.type === 'error') {
+              // Error event from server
+              console.error(`Server error for ${connectionId}:`, data.message);
+            } else {
+              // Regular data event
+              this.handleMessage(connectionId, data);
             }
           } catch (error) {
-            console.error('Failed to parse connect event:', error);
+            console.error('Failed to parse SSE message:', error);
           }
-        });
-
-        // Listen for 'message' events (actual data events)
-        eventSource.addEventListener('message', (event: MessageEvent) => {
-          this.handleMessage(connectionId, event);
-        });
-
-        // Listen for 'error' events from server
-        eventSource.addEventListener('error', (event: MessageEvent) => {
-          console.error(`Server error for ${connectionId}:`, event.data);
-        });
-
-        // Listen for 'close' events
-        eventSource.addEventListener('close', (event: MessageEvent) => {
-          console.log(
-            `Server closed connection for ${connectionId}:`,
-            event.data,
-          );
-          this.disconnect(connectionId);
-        });
+        };
       } catch (error) {
         reject(error);
       }
@@ -264,9 +261,10 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
     }
   }
 
-  private handleMessage(connectionId: string, event: MessageEvent): void {
+  private handleMessage(connectionId: string, data: any): void {
     try {
-      const response: SseResponse = JSON.parse(event.data);
+      // Data is already parsed JSON object
+      const response: SseResponse = data;
 
       if (response.error) {
         console.error(`SSE event error for ${connectionId}:`, response.error);
@@ -291,7 +289,7 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
         }
       }
     } catch (error) {
-      console.error('Failed to parse SSE message:', error);
+      console.error('Failed to handle SSE message:', error);
     }
   }
 

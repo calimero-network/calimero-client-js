@@ -68,32 +68,35 @@ export class ExperimentalSSE {
         this.clearReconnect();
       };
 
-      // Handle connect event with session ID
-      this.eventSource.addEventListener('connect', (event: MessageEvent) => {
+      // All events come through 'message' type now (WHATWG standard)
+      this.eventSource.onmessage = (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.sessionId) {
-            const isReconnect = this.sessionId !== null;
-            this.sessionId = data.sessionId;
+
+          // Handle different event types by checking the 'type' field
+          if (data.type === 'connect') {
+            // Connect event - extract session ID
+            const wasReconnect = data.reconnect === true;
+            this.sessionId = data.session_id;
             console.log(
-              `SSE session ${isReconnect ? 'restored' : 'established'}: ${data.sessionId}`,
+              `SSE session ${wasReconnect ? 'restored' : 'established'}: ${data.session_id}`,
             );
 
-            // If this is a new session, resubscribe to contexts
-            if (!isReconnect && this.subscribedContexts.size > 0) {
+            // If this is a new session (not reconnect), resubscribe to contexts
+            // Server maintains subscriptions on reconnect, so only resubscribe on new session
+            if (!wasReconnect && this.subscribedContexts.size > 0) {
               this.resubscribeAll();
             }
-          }
-        } catch (error) {
-          console.error('Failed to parse connect event:', error);
-        }
-      });
-
-      // Handle message events (actual data)
-      this.eventSource.addEventListener('message', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.result && data.result.contextId) {
+          } else if (data.type === 'close') {
+            // Close event from server
+            console.log('SSE server closed connection:', data.reason);
+            this.eventSource?.close();
+            this.scheduleReconnect();
+          } else if (data.type === 'error') {
+            // Error event from server
+            console.error('SSE server error:', data.message);
+          } else if (data.result && data.result.contextId) {
+            // Regular data event
             const nodeEvent: NodeEvent = data.result;
             this.decodeEventData(nodeEvent);
             const callback = this.callbacks.get(nodeEvent.contextId);
@@ -104,19 +107,7 @@ export class ExperimentalSSE {
         } catch (error) {
           console.error('Error parsing SSE message:', error);
         }
-      });
-
-      // Handle error events from server
-      this.eventSource.addEventListener('error', (event: MessageEvent) => {
-        console.error('SSE server error:', event.data);
-      });
-
-      // Handle close events
-      this.eventSource.addEventListener('close', (event: MessageEvent) => {
-        console.log('SSE server closed connection:', event.data);
-        this.eventSource?.close();
-        this.scheduleReconnect();
-      });
+      };
 
       this.eventSource.onerror = (error) => {
         console.error('SSE connection error:', error);
