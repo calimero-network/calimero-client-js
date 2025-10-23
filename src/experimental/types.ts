@@ -24,6 +24,28 @@ export interface CustomConnectionConfig {
   url: string;
 }
 
+/**
+ * Event streaming mode for real-time subscriptions
+ */
+export enum EventStreamMode {
+  /**
+   * WebSocket-based event streaming
+   * - Bidirectional communication
+   * - Lower latency
+   * - Requires WebSocket support
+   */
+  WebSocket = 'websocket',
+
+  /**
+   * SSE (Server-Sent Events) based streaming
+   * - Unidirectional (server to client)
+   * - HTTP-based, better firewall compatibility
+   * - Automatic reconnection built-in
+   * - Session persistence across reconnections
+   */
+  SSE = 'sse',
+}
+
 // Minimal representation of a context
 export interface Context {
   contextId: string;
@@ -97,7 +119,7 @@ export interface CalimeroApp {
   unsubscribeFromEvents(contextIds: string[]): void;
 
   /**
-   * Closes the underlying WebSocket connection.
+   * Closes the underlying event stream connection (WebSocket or SSE).
    */
   close(): void;
 }

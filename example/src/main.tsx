@@ -10,6 +10,7 @@ import {
   AppMode,
   SubscriptionEvent,
   ConnectionType,
+  EventStreamMode,
 } from '@calimero-network/calimero-client';
 import ExecutionModal from './ExecutionModal';
 import EventLog from './EventLog';
@@ -268,6 +269,7 @@ function App() {
       clientApplicationId="bk13KY5TSTjmp3cptTcmiv26upEPRnhs28pZMx2aByX"
       mode={AppMode.MultiContext}
       applicationPath="https://calimero-only-peers-dev.s3.amazonaws.com/uploads/b092670d7dacc612ec24701c9bbc8001.wasm"
+      eventStreamMode={EventStreamMode.SSE}
     >
       <AppContent />
     </CalimeroProvider>

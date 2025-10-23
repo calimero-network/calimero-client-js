@@ -282,7 +282,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
     if (nodeUrl) {
       setNodeUrl(JSON.parse(nodeUrl));
     }
-  },[])
+  }, []);
 
   // Set initial nodeType based on connectionType
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { ApiClient } from '../api';
 import { getAppEndpointKey } from '../storage/storage';
 import { ExperimentalWebSocket } from './websocket';
+import { ExperimentalSSE } from './sse';
 
 import {
   Context,
@@ -9,18 +10,44 @@ import {
   ProtocolID,
   ExecutionResponse,
   SubscriptionEvent,
+  EventStreamMode,
 } from './types';
+
+/**
+ * Interface for event stream clients (WebSocket or SSE)
+ */
+interface EventStreamClient {
+  subscribe(
+    contextIds: string[],
+    callback: (event: SubscriptionEvent) => void,
+  ): void | Promise<void>;
+  unsubscribe(contextIds: string[]): void | Promise<void>;
+  close(): void;
+}
 
 export class CalimeroApplication implements CalimeroApp {
   private apiClient: ApiClient;
   private clientApplicationId: string;
-  private websocket: ExperimentalWebSocket;
+  private eventStream: EventStreamClient;
+  private streamMode: EventStreamMode;
 
-  constructor(apiClient: ApiClient, clientApplicationId: string) {
+  constructor(
+    apiClient: ApiClient,
+    clientApplicationId: string,
+    streamMode: EventStreamMode = EventStreamMode.WebSocket,
+  ) {
     this.apiClient = apiClient;
     this.clientApplicationId = clientApplicationId;
+    this.streamMode = streamMode;
+
     const baseUrl = getAppEndpointKey();
-    this.websocket = new ExperimentalWebSocket(baseUrl);
+
+    // Initialize the appropriate event stream client based on mode
+    if (streamMode === EventStreamMode.SSE) {
+      this.eventStream = new ExperimentalSSE(baseUrl);
+    } else {
+      this.eventStream = new ExperimentalWebSocket(baseUrl);
+    }
   }
 
   async fetchContexts(): Promise<Context[]> {
@@ -115,14 +142,21 @@ export class CalimeroApplication implements CalimeroApp {
     contextIds: string[],
     callback: (event: SubscriptionEvent) => void,
   ): void {
-    this.websocket.subscribe(contextIds, callback);
+    this.eventStream.subscribe(contextIds, callback);
   }
 
   unsubscribeFromEvents(contextIds: string[]): void {
-    this.websocket.unsubscribe(contextIds);
+    this.eventStream.unsubscribe(contextIds);
   }
 
   public close(): void {
-    this.websocket.close();
+    this.eventStream.close();
+  }
+
+  /**
+   * Get the current event stream mode
+   */
+  public getStreamMode(): EventStreamMode {
+    return this.streamMode;
   }
 }
