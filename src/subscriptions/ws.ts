@@ -42,10 +42,17 @@ export class WsSubscriptionsClient implements SubscriptionsClient {
       this.callbacks.set(connectionId, []);
 
       websocket.onopen = () => {
+        console.log(`[WS] Connected to ${this.url}`);
         resolve();
       };
       websocket.onerror = (error) => {
+        console.error('[WS] Connection error:', error);
         reject(error);
+      };
+      websocket.onclose = (event) => {
+        console.log(
+          `[WS] Connection closed - Code: ${event.code}, Reason: ${event.reason || 'none'}, Clean: ${event.wasClean}`,
+        );
       };
       websocket.onmessage = (event) => this.handleMessage(connectionId, event);
     });

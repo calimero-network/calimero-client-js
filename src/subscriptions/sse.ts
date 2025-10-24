@@ -111,7 +111,7 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
         eventSource.onmessage = (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
-            
+
             // Handle different event types by checking the 'type' field
             if (data.type === 'connect') {
               // Connect event - extract session ID
@@ -120,7 +120,7 @@ export class SseSubscriptionsClient implements SubscriptionsClient {
               console.log(
                 `SSE session ${data.reconnect ? 'restored' : 'established'}: ${data.session_id} for connection: ${connectionId}`,
               );
-              
+
               // Resolve on first connect
               if (!data.reconnect) {
                 resolve();
