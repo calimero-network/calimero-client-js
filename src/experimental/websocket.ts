@@ -3,6 +3,10 @@ import { NodeEvent } from '../subscriptions';
 
 const RECONNECT_DELAY = 5000; // 5 seconds
 
+// WebSocket close code: Protocol Error (RFC 6455)
+// Used by server to indicate ping timeout
+const WS_CLOSE_CODE_PROTOCOL_ERROR = 1002;
+
 type WsCallback = (event: NodeEvent) => void;
 
 export class ExperimentalWebSocket {
@@ -41,6 +45,7 @@ export class ExperimentalWebSocket {
     this.ws = new WebSocket(fullUrl);
 
     this.ws.onopen = () => {
+      console.log('[WS] Connected successfully');
       this.clearReconnect();
     };
 
@@ -60,13 +65,21 @@ export class ExperimentalWebSocket {
       }
     };
 
-    this.ws.onclose = () => {
-      console.log('Experimental WebSocket disconnected.');
-      this.scheduleReconnect();
+    this.ws.onclose = (event) => {
+      console.log(
+        `[WS] Disconnected - Code: ${event.code}, Reason: ${event.reason || 'none'}, Clean: ${event.wasClean}`,
+      );
+
+      // Only auto-reconnect for abnormal closures
+      // Don't reconnect for normal closures or going away
+      // Do reconnect for protocol errors (e.g., ping timeout from server)
+      if (!event.wasClean || event.code === WS_CLOSE_CODE_PROTOCOL_ERROR) {
+        this.scheduleReconnect();
+      }
     };
 
     this.ws.onerror = (error) => {
-      console.error('Experimental WebSocket error:', error);
+      console.error('[WS] Connection error:', error);
       this.ws?.close();
     };
   }
