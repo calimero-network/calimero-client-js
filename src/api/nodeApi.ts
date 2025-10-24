@@ -36,6 +36,25 @@ export interface NodeIdentity {
   privateKey: string;
 }
 
+export interface InvitationFromMember {
+	inviterIdentity: string;
+	contextId: string;
+	expirationHeight: number;
+	secretSalt?: Uint8Array;
+	protocol: string;
+	network: string;
+	contractId: string;
+}
+
+export interface SignedOpenInvitation {
+	invitation: InvitationFromMember;
+	inviterSignature: string;
+}
+
+export interface ContextInviteByOpenInvitationResponse {
+  data: SignedOpenInvitation | null;
+}
+
 export interface JoinContextResponse {
   contextId: string;
   memberPublicKey: string;
@@ -113,7 +132,16 @@ export interface NodeApi {
     inviterPublicKey: string,
     inviteePublicKey: string,
   ): ApiResponse<string>;
+  contextInviteByOpenInvitation(
+	contextId: string,
+	inviterId: string,
+	validForBlocks: number,
+  ): ApiResponse<ContextInviteByOpenInvitationResponse>;
   joinContext(invitationPayload: string): ApiResponse<JoinContextResponse>;
+  joinContextByOpenInvitation(
+	  invitation: SignedOpenInvitation,
+	  newMemberPublicKey: string
+  ): ApiResponse<JoinContextResponse>;
 
   // Application Management
   getInstalledApplications(): ApiResponse<GetInstalledApplicationsResponse>;

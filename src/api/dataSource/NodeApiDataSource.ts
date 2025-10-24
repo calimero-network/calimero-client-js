@@ -19,6 +19,9 @@ import {
   ContextStorage,
   CapabilitiesRequest,
   CheckAuthResponse,
+  ContextInviteByOpenInvitationResponse,
+  InviteToContextResponse
+  SignedOpenInvitation,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
@@ -150,6 +153,46 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     } catch (error) {
       console.error('Error inviting to context:', error);
       return { error: { code: 500, message: 'Failed to invite to context.' } };
+    }
+  }
+
+  public async contextInviteByOpenInvitation(
+    contextId: string,
+    inviterId: string,
+    validForBlocks: number,
+  ): ApiResponse<ContextInviteByOpenInvitationResponse> {
+    try {
+      const response = await this.rpcClient.post<ContextInviteByOpenInvitationResponse>(
+        '/admin-api/contexts/invite_by_open_invitation',
+        {
+          contextId,
+          inviterId,
+          validForBlocks,
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error('Error creating open invitation:', error);
+      return { error: { code: 500, message: 'Failed to create open invitation.' } };
+    }
+  }
+
+  public async joinContextByOpenInvitation(
+    invitation: SignedOpenInvitation,
+    newMemberPublicKey: string,
+  ): ApiResponse<JoinContextResponse> {
+    try {
+      const response = await this.rpcClient.post<JoinContextResponse>(
+        '/admin-api/contexts/join_by_open_invitation',
+        {
+          invitation,
+          newMemberPublicKey,
+        },
+      );
+      return response;
+    } catch (error) {
+      console.error('Error joining context by open invitation:', error);
+      return { error: { code: 500, message: 'Failed to join context by open invitation.' } };
     }
   }
 
