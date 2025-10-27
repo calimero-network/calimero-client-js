@@ -7,6 +7,13 @@ import {
   ClientKey,
   PermissionResponse,
   UpdateKeyPermissionsRequest,
+  PackageListResponse,
+  PackageVersionsResponse,
+  PackageLatestResponse,
+  InstallApplicationRequest,
+  InstallApplicationResponse,
+  ContextsResponse,
+  ContextsWithExecutorsResponse,
 } from '../adminApi';
 import { HttpClient } from '../httpClient';
 import { getAuthEndpointURL } from '../../storage';
@@ -105,6 +112,81 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
       return {
         error: { code: 500, message: 'Failed to update key permissions.' },
       };
+    }
+  }
+
+  // Package Management Methods
+  async getPackages(): ApiResponse<PackageListResponse> {
+    try {
+      const response = await this.client.get<PackageListResponse>(
+        this.buildUrl('admin-api/packages', this.baseUrl),
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+      return { error: { code: 500, message: 'Failed to fetch packages.' } };
+    }
+  }
+
+  async getPackageVersions(packageName: string): ApiResponse<PackageVersionsResponse> {
+    try {
+      const response = await this.client.get<PackageVersionsResponse>(
+        this.buildUrl(`admin-api/packages/${packageName}/versions`, this.baseUrl),
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching package versions:', error);
+      return { error: { code: 500, message: 'Failed to fetch package versions.' } };
+    }
+  }
+
+  async getPackageLatest(packageName: string): ApiResponse<PackageLatestResponse> {
+    try {
+      const response = await this.client.get<PackageLatestResponse>(
+        this.buildUrl(`admin-api/packages/${packageName}/latest`, this.baseUrl),
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching latest package version:', error);
+      return { error: { code: 500, message: 'Failed to fetch latest package version.' } };
+    }
+  }
+
+  async installApplication(request: InstallApplicationRequest): ApiResponse<InstallApplicationResponse> {
+    try {
+      const response = await this.client.post<InstallApplicationResponse>(
+        this.buildUrl('admin-api/install-application', this.baseUrl),
+        request,
+      );
+      return response;
+    } catch (error) {
+      console.error('Error installing application:', error);
+      return { error: { code: 500, message: 'Failed to install application.' } };
+    }
+  }
+
+  // Context Management Methods
+  async getContextsForApplication(applicationId: string): ApiResponse<ContextsResponse> {
+    try {
+      const response = await this.client.get<ContextsResponse>(
+        this.buildUrl(`admin-api/contexts/for-application/${applicationId}`, this.baseUrl),
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching contexts for application:', error);
+      return { error: { code: 500, message: 'Failed to fetch contexts for application.' } };
+    }
+  }
+
+  async getContextsWithExecutorsForApplication(applicationId: string): ApiResponse<ContextsWithExecutorsResponse> {
+    try {
+      const response = await this.client.get<ContextsWithExecutorsResponse>(
+        this.buildUrl(`admin-api/contexts/with-executors/for-application/${applicationId}`, this.baseUrl),
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching contexts with executors for application:', error);
+      return { error: { code: 500, message: 'Failed to fetch contexts with executors for application.' } };
     }
   }
 }

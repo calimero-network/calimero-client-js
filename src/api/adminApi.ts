@@ -38,6 +38,53 @@ export interface UpdateKeyPermissionsRequest {
   remove?: string[];
 }
 
+// Package Management Types
+export interface PackageListResponse {
+  packages: string[];
+}
+
+export interface PackageVersionsResponse {
+  versions: string[];
+}
+
+export interface PackageLatestResponse {
+  application_id: string | null;
+}
+
+export interface InstallApplicationRequest {
+  url: string;
+  package: string;
+  version: string;
+  metadata: any[];
+}
+
+export interface InstallApplicationResponse {
+  data: {
+    applicationId: string;
+  };
+}
+
+// Context Management Types
+export interface Context {
+  id: string;
+  application_id: string;
+  root_hash: string;
+}
+
+export interface ContextWithExecutors extends Context {
+  executors: string[];
+}
+
+export interface ContextsResponse {
+  data: {
+    contexts: Context[];
+  };
+}
+
+export interface ContextsWithExecutorsResponse {
+  contexts: ContextWithExecutors[];
+}
+
 export interface AdminApi {
   getRootKeys(): ApiResponse<RootKey[]>;
   getClientKeys(): ApiResponse<ClientKey[]>;
@@ -51,4 +98,14 @@ export interface AdminApi {
     keyId: string,
     request: UpdateKeyPermissionsRequest,
   ): ApiResponse<PermissionResponse>;
+  
+  // Package Management Methods
+  getPackages(): ApiResponse<PackageListResponse>;
+  getPackageVersions(packageName: string): ApiResponse<PackageVersionsResponse>;
+  getPackageLatest(packageName: string): ApiResponse<PackageLatestResponse>;
+  installApplication(request: InstallApplicationRequest): ApiResponse<InstallApplicationResponse>;
+  
+  // Context Management Methods
+  getContextsForApplication(applicationId: string): ApiResponse<ContextsResponse>;
+  getContextsWithExecutorsForApplication(applicationId: string): ApiResponse<ContextsWithExecutorsResponse>;
 }
