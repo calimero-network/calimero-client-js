@@ -20,7 +20,6 @@ import {
   CapabilitiesRequest,
   CheckAuthResponse,
   ContextInviteByOpenInvitationResponse,
-  InviteToContextResponse
   SignedOpenInvitation,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
@@ -156,14 +155,14 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     }
   }
 
-  public async contextInviteByOpenInvitation(
+  async contextInviteByOpenInvitation(
     contextId: string,
     inviterId: string,
     validForBlocks: number,
   ): ApiResponse<ContextInviteByOpenInvitationResponse> {
     try {
-      const response = await this.rpcClient.post<ContextInviteByOpenInvitationResponse>(
-        '/admin-api/contexts/invite_by_open_invitation',
+      const response = await this.client.post<ContextInviteByOpenInvitationResponse>(
+        this.buildUrl('admin-api/contexts/invite_by_open_invitation', this.baseUrl),
         {
           contextId,
           inviterId,
@@ -177,13 +176,13 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     }
   }
 
-  public async joinContextByOpenInvitation(
+  async joinContextByOpenInvitation(
     invitation: SignedOpenInvitation,
     newMemberPublicKey: string,
   ): ApiResponse<JoinContextResponse> {
     try {
-      const response = await this.rpcClient.post<JoinContextResponse>(
-        '/admin-api/contexts/join_by_open_invitation',
+      const response = await this.client.post<JoinContextResponse>(
+        this.buildUrl('admin-api/contexts/join_by_open_invitation', this.baseUrl),
         {
           invitation,
           newMemberPublicKey,
