@@ -20,7 +20,6 @@ import {
   CapabilitiesRequest,
   CheckAuthResponse,
   ContextInviteByOpenInvitationResponse,
-  InviteToContextResponse
   SignedOpenInvitation,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
@@ -156,34 +155,43 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     }
   }
 
-  public async contextInviteByOpenInvitation(
+  async contextInviteByOpenInvitation(
     contextId: string,
     inviterId: string,
     validForBlocks: number,
   ): ApiResponse<ContextInviteByOpenInvitationResponse> {
     try {
-      const response = await this.rpcClient.post<ContextInviteByOpenInvitationResponse>(
-        '/admin-api/contexts/invite_by_open_invitation',
-        {
-          contextId,
-          inviterId,
-          validForBlocks,
-        },
-      );
+      const response =
+        await this.client.post<ContextInviteByOpenInvitationResponse>(
+          this.buildUrl(
+            'admin-api/contexts/invite_by_open_invitation',
+            this.baseUrl,
+          ),
+          {
+            contextId,
+            inviterId,
+            validForBlocks,
+          },
+        );
       return response;
     } catch (error) {
       console.error('Error creating open invitation:', error);
-      return { error: { code: 500, message: 'Failed to create open invitation.' } };
+      return {
+        error: { code: 500, message: 'Failed to create open invitation.' },
+      };
     }
   }
 
-  public async joinContextByOpenInvitation(
+  async joinContextByOpenInvitation(
     invitation: SignedOpenInvitation,
     newMemberPublicKey: string,
   ): ApiResponse<JoinContextResponse> {
     try {
-      const response = await this.rpcClient.post<JoinContextResponse>(
-        '/admin-api/contexts/join_by_open_invitation',
+      const response = await this.client.post<JoinContextResponse>(
+        this.buildUrl(
+          'admin-api/contexts/join_by_open_invitation',
+          this.baseUrl,
+        ),
         {
           invitation,
           newMemberPublicKey,
@@ -192,7 +200,12 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error joining context by open invitation:', error);
-      return { error: { code: 500, message: 'Failed to join context by open invitation.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to join context by open invitation.',
+        },
+      };
     }
   }
 

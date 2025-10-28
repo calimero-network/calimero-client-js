@@ -128,19 +128,28 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
     }
   }
 
-  async getPackageVersions(packageName: string): ApiResponse<PackageVersionsResponse> {
+  async getPackageVersions(
+    packageName: string,
+  ): ApiResponse<PackageVersionsResponse> {
     try {
       const response = await this.client.get<PackageVersionsResponse>(
-        this.buildUrl(`admin-api/packages/${packageName}/versions`, this.baseUrl),
+        this.buildUrl(
+          `admin-api/packages/${packageName}/versions`,
+          this.baseUrl,
+        ),
       );
       return response;
     } catch (error) {
       console.error('Error fetching package versions:', error);
-      return { error: { code: 500, message: 'Failed to fetch package versions.' } };
+      return {
+        error: { code: 500, message: 'Failed to fetch package versions.' },
+      };
     }
   }
 
-  async getPackageLatest(packageName: string): ApiResponse<PackageLatestResponse> {
+  async getPackageLatest(
+    packageName: string,
+  ): ApiResponse<PackageLatestResponse> {
     try {
       const response = await this.client.get<PackageLatestResponse>(
         this.buildUrl(`admin-api/packages/${packageName}/latest`, this.baseUrl),
@@ -148,11 +157,18 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
       return response;
     } catch (error) {
       console.error('Error fetching latest package version:', error);
-      return { error: { code: 500, message: 'Failed to fetch latest package version.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch latest package version.',
+        },
+      };
     }
   }
 
-  async installApplication(request: InstallApplicationRequest): ApiResponse<InstallApplicationResponse> {
+  async installApplication(
+    request: InstallApplicationRequest,
+  ): ApiResponse<InstallApplicationResponse> {
     try {
       const response = await this.client.post<InstallApplicationResponse>(
         this.buildUrl('admin-api/install-application', this.baseUrl),
@@ -161,32 +177,57 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
       return response;
     } catch (error) {
       console.error('Error installing application:', error);
-      return { error: { code: 500, message: 'Failed to install application.' } };
+      return {
+        error: { code: 500, message: 'Failed to install application.' },
+      };
     }
   }
 
   // Context Management Methods
-  async getContextsForApplication(applicationId: string): ApiResponse<ContextsResponse> {
+  async getContextsForApplication(
+    applicationId: string,
+  ): ApiResponse<ContextsResponse> {
     try {
       const response = await this.client.get<ContextsResponse>(
-        this.buildUrl(`admin-api/contexts/for-application/${applicationId}`, this.baseUrl),
+        this.buildUrl(
+          `admin-api/contexts/for-application/${applicationId}`,
+          this.baseUrl,
+        ),
       );
       return response;
     } catch (error) {
       console.error('Error fetching contexts for application:', error);
-      return { error: { code: 500, message: 'Failed to fetch contexts for application.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch contexts for application.',
+        },
+      };
     }
   }
 
-  async getContextsWithExecutorsForApplication(applicationId: string): ApiResponse<ContextsWithExecutorsResponse> {
+  async getContextsWithExecutorsForApplication(
+    applicationId: string,
+  ): ApiResponse<ContextsWithExecutorsResponse> {
     try {
       const response = await this.client.get<ContextsWithExecutorsResponse>(
-        this.buildUrl(`admin-api/contexts/with-executors/for-application/${applicationId}`, this.baseUrl),
+        this.buildUrl(
+          `admin-api/contexts/with-executors/for-application/${applicationId}`,
+          this.baseUrl,
+        ),
       );
       return response;
     } catch (error) {
-      console.error('Error fetching contexts with executors for application:', error);
-      return { error: { code: 500, message: 'Failed to fetch contexts with executors for application.' } };
+      console.error(
+        'Error fetching contexts with executors for application:',
+        error,
+      );
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to fetch contexts with executors for application.',
+        },
+      };
     }
   }
 }
