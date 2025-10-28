@@ -98,14 +98,20 @@ export interface AdminApi {
     keyId: string,
     request: UpdateKeyPermissionsRequest,
   ): ApiResponse<PermissionResponse>;
-  
+
   // Package Management Methods
   getPackages(): ApiResponse<PackageListResponse>;
   getPackageVersions(packageName: string): ApiResponse<PackageVersionsResponse>;
   getPackageLatest(packageName: string): ApiResponse<PackageLatestResponse>;
-  installApplication(request: InstallApplicationRequest): ApiResponse<InstallApplicationResponse>;
-  
+  installApplication(
+    request: InstallApplicationRequest,
+  ): ApiResponse<InstallApplicationResponse>;
+
   // Context Management Methods
-  getContextsForApplication(applicationId: string): ApiResponse<ContextsResponse>;
-  getContextsWithExecutorsForApplication(applicationId: string): ApiResponse<ContextsWithExecutorsResponse>;
+  getContextsForApplication(
+    applicationId: string,
+  ): ApiResponse<ContextsResponse>;
+  getContextsWithExecutorsForApplication(
+    applicationId: string,
+  ): ApiResponse<ContextsWithExecutorsResponse>;
 }

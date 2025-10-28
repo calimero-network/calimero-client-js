@@ -161,18 +161,24 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     validForBlocks: number,
   ): ApiResponse<ContextInviteByOpenInvitationResponse> {
     try {
-      const response = await this.client.post<ContextInviteByOpenInvitationResponse>(
-        this.buildUrl('admin-api/contexts/invite_by_open_invitation', this.baseUrl),
-        {
-          contextId,
-          inviterId,
-          validForBlocks,
-        },
-      );
+      const response =
+        await this.client.post<ContextInviteByOpenInvitationResponse>(
+          this.buildUrl(
+            'admin-api/contexts/invite_by_open_invitation',
+            this.baseUrl,
+          ),
+          {
+            contextId,
+            inviterId,
+            validForBlocks,
+          },
+        );
       return response;
     } catch (error) {
       console.error('Error creating open invitation:', error);
-      return { error: { code: 500, message: 'Failed to create open invitation.' } };
+      return {
+        error: { code: 500, message: 'Failed to create open invitation.' },
+      };
     }
   }
 
@@ -182,7 +188,10 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
-        this.buildUrl('admin-api/contexts/join_by_open_invitation', this.baseUrl),
+        this.buildUrl(
+          'admin-api/contexts/join_by_open_invitation',
+          this.baseUrl,
+        ),
         {
           invitation,
           newMemberPublicKey,
@@ -191,7 +200,12 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
       return response;
     } catch (error) {
       console.error('Error joining context by open invitation:', error);
-      return { error: { code: 500, message: 'Failed to join context by open invitation.' } };
+      return {
+        error: {
+          code: 500,
+          message: 'Failed to join context by open invitation.',
+        },
+      };
     }
   }
 
