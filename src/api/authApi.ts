@@ -4,7 +4,15 @@ export interface LoginRequest {
   url: string;
   callbackUrl: string;
   permissions: string[];
-  applicationId: string;
+  /**
+   * Legacy: Hash-based application ID (backwards compat)
+   */
+  applicationId?: string;
+  /**
+   * Registry manifest URL (package-based approach)
+   * Constructed from registryUrl + packageName + version
+   */
+  manifestUrl?: string;
   applicationPath: string;
 }
 

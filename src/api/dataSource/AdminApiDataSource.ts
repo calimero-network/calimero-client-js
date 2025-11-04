@@ -16,7 +16,7 @@ import {
   ContextsWithExecutorsResponse,
 } from '../adminApi';
 import { HttpClient } from '../httpClient';
-import { getAuthEndpointURL } from '../../storage';
+import { getAppEndpointKey } from '../../storage';
 import { BaseApiDataSource } from './BaseApiDataSource';
 
 export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
@@ -25,7 +25,8 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   }
 
   private get baseUrl(): string | null {
-    return getAuthEndpointURL();
+    // Admin API endpoints are on the node, not the auth service
+    return getAppEndpointKey();
   }
 
   async getRootKeys(): ApiResponse<RootKey[]> {

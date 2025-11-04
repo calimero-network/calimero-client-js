@@ -772,6 +772,46 @@ function AppWithSSE() {
 }
 ```
 
+#### Package-Based Application Resolution (Recommended)
+
+Instead of hardcoded application IDs, use package names for stable, readable identifiers:
+
+```typescript
+import {
+  CalimeroProvider,
+  AppMode
+} from '@calimero-network/calimero-client';
+
+function App() {
+  return (
+    <CalimeroProvider
+      packageName="network.calimero.meropass"
+      // packageVersion="1.0.0"  // Optional: specific version (defaults to latest)
+      // registryUrl="http://localhost:8082"  // Optional: custom registry URL
+      mode={AppMode.MultiContext}
+      applicationPath={window.location.pathname}
+    >
+      <YourAppContent />
+    </CalimeroProvider>
+  );
+}
+```
+
+**Benefits of Package-Based Approach:**
+- Stable identifiers that don't change across builds
+- Human-readable package names (e.g., `network.calimero.meropass`)
+- Automatic resolution via Calimero registry
+- Backwards compatible with `clientApplicationId`
+
+**How it works:**
+1. Client passes package name to auth service
+2. Auth service queries registry for manifest
+3. Registry returns manifest with artifact URL
+4. Auth service installs app on node if needed
+5. Auth service creates JWT with resolved app ID
+
+See [PACKAGE_NAMING.md](../PACKAGE_NAMING.md) for complete package naming documentation.
+
 ### 5. Multiple Connections
 
 You can manage multiple WebSocket connections using connection IDs:

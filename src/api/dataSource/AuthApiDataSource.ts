@@ -40,7 +40,14 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
       const loginUrl = new URL('auth/login', request.url);
       loginUrl.searchParams.set('callback-url', request.callbackUrl);
       loginUrl.searchParams.set('permissions', request.permissions.join(','));
-      loginUrl.searchParams.set(APPLICATION_ID, request.applicationId);
+      
+      // Prefer manifest-url (package-based) over application-id (legacy)
+      if (request.manifestUrl) {
+        loginUrl.searchParams.set('manifest-url', request.manifestUrl);
+      } else if (request.applicationId) {
+        loginUrl.searchParams.set(APPLICATION_ID, request.applicationId);
+      }
+      
       loginUrl.searchParams.set('application-path', request.applicationPath);
       loginUrl.searchParams.set(APP_URL, originalAppUrl);
 
