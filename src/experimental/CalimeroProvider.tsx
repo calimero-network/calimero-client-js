@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
 } from 'react';
 import { apiClient } from '../api';
 import {
@@ -120,16 +121,19 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     );
   });
 
-  // Clear resolved ID when switching packages or when using legacy with different ID
+  // Track previous packageName to detect actual changes
+  const prevPackageNameRef = useRef(packageName);
+
+  // Clear resolved ID only when packageName actually changes
   useEffect(() => {
-    if (packageName) {
-      // Package-based: if packageName changes, clear resolved ID to force re-resolution
+    if (packageName && packageName !== prevPackageNameRef.current) {
+      // Package changed - clear old resolved ID to force re-resolution
       const storedId = localStorage.getItem('calimero-application-id');
       if (storedId) {
-        // Clear on package change to get fresh resolution
         localStorage.removeItem('calimero-application-id');
         setResolvedApplicationId(null);
       }
+      prevPackageNameRef.current = packageName;
     } else if (clientApplicationId) {
       // Legacy: prop is the source of truth, update if different
       if (resolvedApplicationId !== clientApplicationId) {
