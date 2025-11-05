@@ -57,7 +57,7 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
       if (request.applicationPath) {
         loginUrl.searchParams.set('application-path', request.applicationPath);
       }
-      
+
       loginUrl.searchParams.set(APP_URL, originalAppUrl);
 
       window.location.href = loginUrl.href;
