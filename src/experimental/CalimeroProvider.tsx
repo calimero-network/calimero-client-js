@@ -140,12 +140,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   const performLogin = useCallback(
     (url: string) => {
-      console.log('🔍 performLogin called with:', {
-        url,
-        packageName,
-        packageVersion,
-        registryUrl,
-      });
       const permissions = getPermissionsForMode(mode);
 
       // Prefer package-based approach over legacy application ID
@@ -384,12 +378,9 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   }, [isAuthenticated, isOnline, logout]);
 
   const handleConnect = (url: string) => {
-    console.log('🎯 handleConnect called with url:', url);
-    console.log('🎯 Will call performLogin with packageName:', packageName);
     setAppEndpointKey(url);
     setAppUrl(url);
     performLogin(url);
-    console.log('🎯 performLogin should have been called');
   };
 
   const login = (connectionType?: ConnectionType | CustomConnectionConfig) => {
