@@ -28,10 +28,10 @@ export interface CustomConnectionConfig {
 
 /**
  * Package-based application configuration (recommended)
- * 
+ *
  * Uses package names from the Calimero registry for stable, human-readable identifiers.
  * The registry provides the application manifest including the WASM artifact URL.
- * 
+ *
  * Example:
  * ```tsx
  * <CalimeroProvider
@@ -47,7 +47,7 @@ export interface PackageBasedApp {
   packageName: string;
   /** Optional specific version. Defaults to latest if not provided. */
   packageVersion?: string;
-  /** 
+  /**
    * Optional registry URL for fetching package manifests.
    * Defaults to production registry: https://mero-registry.vercel.app/api
    * Override for development/testing: http://localhost:8082
@@ -55,17 +55,17 @@ export interface PackageBasedApp {
   registryUrl?: string;
   // Explicitly exclude legacy props
   clientApplicationId?: never;
-  applicationPath?: never;  // Path comes from registry manifest
+  applicationPath?: never; // Path comes from registry manifest
 }
 
 /**
  * Legacy application ID configuration
- * 
+ *
  * Uses hash-based application IDs with direct WASM URLs.
  * Maintained for backwards compatibility with existing applications.
- * 
+ *
  * ⚠️ New applications should use PackageBasedApp instead.
- * 
+ *
  * Example:
  * ```tsx
  * <CalimeroProvider
@@ -88,13 +88,13 @@ export interface LegacyAppId {
 
 /**
  * Admin mode configuration
- * 
+ *
  * Requests admin-level access to the node without installing any application.
  * Use this for node management tools, admin dashboards, or full-access utilities.
- * 
+ *
  * ⚠️ Admin permissions grant unrestricted control over the node.
  * Only use for trusted administrative interfaces.
- * 
+ *
  * Example:
  * ```tsx
  * <CalimeroProvider mode={AppMode.Admin}>
@@ -121,12 +121,12 @@ export interface NonAdminModeConfig {
 
 /**
  * Application configuration - discriminated union ensures valid prop combinations
- * 
+ *
  * Valid combinations:
  * 1. Package-based + SingleContext/MultiContext
- * 2. Legacy App ID + SingleContext/MultiContext  
+ * 2. Legacy App ID + SingleContext/MultiContext
  * 3. Admin mode (no application)
- * 
+ *
  * TypeScript will prevent invalid combinations like:
  * - packageName + clientApplicationId (can't mix approaches)
  * - packageName + applicationPath (path comes from registry)
