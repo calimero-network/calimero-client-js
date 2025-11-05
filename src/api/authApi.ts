@@ -5,6 +5,11 @@ export interface LoginRequest {
   callbackUrl: string;
   permissions: string[];
   /**
+   * Application mode: single-context, multi-context, or admin
+   * Determines the authentication flow and token scoping
+   */
+  mode?: string;
+  /**
    * Legacy: Hash-based application ID (backwards compat)
    */
   applicationId?: string;

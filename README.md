@@ -798,12 +798,14 @@ function App() {
 ```
 
 **Benefits of Package-Based Approach:**
+
 - Stable identifiers that don't change across builds
 - Human-readable package names (e.g., `network.calimero.meropass`)
 - Automatic resolution via Calimero registry
 - Backwards compatible with `clientApplicationId`
 
 **How it works:**
+
 1. Client passes package name to auth service
 2. Auth service queries registry for manifest
 3. Registry returns manifest with artifact URL

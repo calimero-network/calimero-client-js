@@ -10,6 +10,8 @@ export type ProtocolID = Protocol | string;
 
 export enum AppMode {
   MultiContext = 'multi-context',
+  SingleContext = 'single-context',
+  Admin = 'admin',
 }
 
 export enum ConnectionType {

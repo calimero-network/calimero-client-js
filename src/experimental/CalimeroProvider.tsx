@@ -243,7 +243,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
             }),
           );
         } catch (err) {
-          console.warn('Failed to persist admin auth params in sessionStorage', err);
+          console.warn(
+            'Failed to persist admin auth params in sessionStorage',
+            err,
+          );
         }
 
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
