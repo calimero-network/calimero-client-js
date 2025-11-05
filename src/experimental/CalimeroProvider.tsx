@@ -83,12 +83,23 @@ export interface CalimeroProviderProps {
 
 const getPermissionsForMode = (mode: AppMode): string[] => {
   switch (mode) {
+    case AppMode.SingleContext:
+      // Single-context applications: user selects/creates ONE context at auth time
+      // Token is scoped to that specific context
+      // - create: Create new context if user doesn't have one
+      // - list: List contexts for selection
+      // - execute: Execute methods within the selected context
+      return ['context:create', 'context:execute'];
     case AppMode.MultiContext:
-      // Context-scoped permissions for multi-context applications
-      // - create: Create new contexts (vaults)
+      // Multi-context applications: user can manage multiple contexts at runtime
+      // Token is scoped to the application, not a specific context
+      // - create: Create new contexts dynamically
       // - list: List user's contexts
-      // - execute: Execute methods within contexts
+      // - execute: Execute methods within any context
       return ['context:create', 'context:list', 'context:execute'];
+    case AppMode.Admin:
+      // Admin applications: full administrative access
+      return ['admin'];
     default:
       throw new Error(`Unsupported application mode: ${mode}`);
   }
@@ -116,22 +127,34 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [currentConnectionType, setCurrentConnectionType] = useState<
     ConnectionType | CustomConnectionConfig | null
   >(null);
-  const [resolvedApplicationId, setResolvedApplicationId] = useState<string | null>(() => {
+  const [resolvedApplicationId, setResolvedApplicationId] = useState<
+    string | null
+  >(() => {
     // Try localStorage first, then fall back to prop
-    return localStorage.getItem('calimero-application-id') || clientApplicationId || null;
+    return (
+      localStorage.getItem('calimero-application-id') ||
+      clientApplicationId ||
+      null
+    );
   });
 
   const performLogin = useCallback(
     (url: string) => {
-      console.log('🔍 performLogin called with:', { url, packageName, packageVersion, registryUrl });
+      console.log('🔍 performLogin called with:', {
+        url,
+        packageName,
+        packageVersion,
+        registryUrl,
+      });
       const permissions = getPermissionsForMode(mode);
-      
+
       // Prefer package-based approach over legacy application ID
       if (packageName) {
         // Pass package-name directly - auth frontend will fetch latest version from registry
         const authParams = new URLSearchParams();
         authParams.append('callback-url', window.location.href);
         authParams.append('permissions', permissions.join(','));
+        authParams.append('mode', mode); // Explicitly pass mode to auth service
         authParams.append('package-name', packageName);
         if (packageVersion) {
           authParams.append('package-version', packageVersion);
@@ -142,16 +165,54 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         if (applicationPath) {
           authParams.append('application-path', applicationPath);
         }
-        
+
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
         console.log('🚀 Redirecting to:', finalUrl);
+
+        // Store auth params in sessionStorage so auth-frontend can recover them
+        try {
+          sessionStorage.setItem(
+            'calimero-auth-params',
+            JSON.stringify({
+              'package-name': packageName,
+              'package-version': packageVersion || null,
+              'registry-url': registryUrl || null,
+              'callback-url': window.location.href,
+              permissions: permissions.join(','),
+              mode,
+              'application-path': applicationPath || null,
+              timestamp: Date.now(),
+            }),
+          );
+        } catch (err) {
+          console.warn('Failed to persist auth params in sessionStorage', err);
+        }
+
         // Redirect to auth service
         window.location.href = finalUrl;
         return;
       } else if (clientApplicationId) {
         // Legacy: use application ID (requires applicationPath)
         if (!applicationPath) {
-          throw new Error('applicationPath is required when using clientApplicationId');
+          throw new Error(
+            'applicationPath is required when using clientApplicationId',
+          );
+        }
+
+        try {
+          sessionStorage.setItem(
+            'calimero-auth-params',
+            JSON.stringify({
+              'application-id': clientApplicationId,
+              'application-path': applicationPath,
+              'callback-url': window.location.href,
+              permissions: permissions.join(','),
+              mode,
+              timestamp: Date.now(),
+            }),
+          );
+        } catch (err) {
+          console.warn('Failed to persist legacy auth params in sessionStorage', err);
         }
         apiClient.auth().login({
           url,
@@ -159,12 +220,22 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           applicationId: clientApplicationId,
           permissions,
           applicationPath,
+          mode, // Pass mode for proper flow detection
         });
       } else {
-        throw new Error('Either packageName or clientApplicationId must be provided');
+        throw new Error(
+          'Either packageName or clientApplicationId must be provided',
+        );
       }
     },
-    [packageName, packageVersion, registryUrl, clientApplicationId, mode, applicationPath],
+    [
+      packageName,
+      packageVersion,
+      registryUrl,
+      clientApplicationId,
+      mode,
+      applicationPath,
+    ],
   );
 
   const logout = useCallback(() => {
@@ -178,7 +249,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   useEffect(() => {
     const fragment = window.location.hash.substring(1); // Remove the leading #
     if (!fragment) return; // No fragment, nothing to do
-    
+
     const fragmentParams = new URLSearchParams(fragment);
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
@@ -190,16 +261,19 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
       setRefreshToken(refreshToken);
-      
+
       // Store resolved application ID from auth callback
       if (applicationId) {
         console.log('✅ Resolved application ID from auth:', applicationId);
         setResolvedApplicationId(applicationId);
         // Persist to localStorage for subsequent page loads
         localStorage.setItem('calimero-application-id', applicationId);
-        console.log('✅ Stored in localStorage:', localStorage.getItem('calimero-application-id'));
+        console.log(
+          '✅ Stored in localStorage:',
+          localStorage.getItem('calimero-application-id'),
+        );
       }
-      
+
       const newAppUrl = getAppEndpointKey();
       setAppUrl(newAppUrl);
       if (!newAppUrl) return;
@@ -212,7 +286,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       };
       verify();
     }
-  }, []);  // Run once on mount to check for auth callback
+  }, []); // Run once on mount to check for auth callback
 
   useEffect(() => {
     const checkSession = async () => {
