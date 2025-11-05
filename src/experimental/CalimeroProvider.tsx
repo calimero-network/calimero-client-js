@@ -50,7 +50,7 @@ export const useCalimero = () => useContext(CalimeroContext);
 
 /**
  * CalimeroProvider props - uses discriminated union for type safety
- * 
+ *
  * See AppConfig type in types.ts for valid prop combinations.
  */
 export type CalimeroProviderProps = AppConfig & {
@@ -111,13 +111,32 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [resolvedApplicationId, setResolvedApplicationId] = useState<
     string | null
   >(() => {
-    // Prop takes precedence over localStorage (allows developer to override)
+    // For package-based: resolved ID from auth callback is source of truth
+    // For legacy: clientApplicationId prop is the ID
     return (
-      clientApplicationId ||
       localStorage.getItem('calimero-application-id') ||
+      clientApplicationId ||
       null
     );
   });
+
+  // Clear resolved ID when switching packages or when using legacy with different ID
+  useEffect(() => {
+    if (packageName) {
+      // Package-based: if packageName changes, clear resolved ID to force re-resolution
+      const storedId = localStorage.getItem('calimero-application-id');
+      if (storedId) {
+        // Clear on package change to get fresh resolution
+        localStorage.removeItem('calimero-application-id');
+        setResolvedApplicationId(null);
+      }
+    } else if (clientApplicationId) {
+      // Legacy: prop is the source of truth, update if different
+      if (resolvedApplicationId !== clientApplicationId) {
+        setResolvedApplicationId(clientApplicationId);
+      }
+    }
+  }, [packageName, clientApplicationId, resolvedApplicationId]);
 
   const performLogin = useCallback(
     (url: string) => {
