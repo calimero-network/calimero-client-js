@@ -305,7 +305,9 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
     if (isValid) {
       setLoading(true);
       setError(null);
-      const baseUrl = nodeType === 'local' ? `http://localhost` : nodeUrl;
+      // For local nodes, use nip.io domain (Traefik routes to the correct service)
+      const baseUrl =
+        nodeType === 'local' ? `http://node1.127.0.0.1.nip.io` : nodeUrl;
       // Ensure base URL ends with exactly one slash
 
       try {
@@ -386,7 +388,7 @@ const CalimeroLoginModal: React.FC<CalimeroLoginModalProps> = ({
                 />
               ) : shouldShowLocal ? (
                 <LocalNodeInfo>
-                  Using default local node: http://localhost
+                  Using default local node: http://node1.127.0.0.1.nip.io
                 </LocalNodeInfo>
               ) : null}
             </InputContainer>

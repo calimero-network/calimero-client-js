@@ -4,8 +4,27 @@ export interface LoginRequest {
   url: string;
   callbackUrl: string;
   permissions: string[];
-  applicationId: string;
-  applicationPath: string;
+  /**
+   * Application mode: single-context, multi-context, or admin
+   * Determines the authentication flow and token scoping
+   */
+  mode?: string;
+  /**
+   * Legacy: Hash-based application ID (backwards compat)
+   */
+  applicationId?: string;
+  /**
+   * Registry manifest URL (package-based approach)
+   * Constructed from registryUrl + packageName + version
+   */
+  manifestUrl?: string;
+  /**
+   * Application path (optional)
+   * - Package-based: comes from registry manifest (not provided directly)
+   * - Admin mode: not needed
+   * - Legacy mode: required when using applicationId
+   */
+  applicationPath?: string;
 }
 
 export interface LoginResponse {
