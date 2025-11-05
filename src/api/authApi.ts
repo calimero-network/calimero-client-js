@@ -18,7 +18,13 @@ export interface LoginRequest {
    * Constructed from registryUrl + packageName + version
    */
   manifestUrl?: string;
-  applicationPath: string;
+  /**
+   * Application path (optional)
+   * - Package-based: comes from registry manifest (not provided directly)
+   * - Admin mode: not needed
+   * - Legacy mode: required when using applicationId
+   */
+  applicationPath?: string;
 }
 
 export interface LoginResponse {
