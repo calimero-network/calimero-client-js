@@ -212,7 +212,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
             }),
           );
         } catch (err) {
-          console.warn('Failed to persist legacy auth params in sessionStorage', err);
+          console.warn(
+            'Failed to persist legacy auth params in sessionStorage',
+            err,
+          );
         }
         apiClient.auth().login({
           url,
@@ -222,6 +225,31 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           applicationPath,
           mode, // Pass mode for proper flow detection
         });
+        return;
+      } else if (mode === AppMode.Admin) {
+        const authParams = new URLSearchParams();
+        authParams.append('callback-url', window.location.href);
+        authParams.append('permissions', permissions.join(','));
+        authParams.append('mode', mode);
+
+        try {
+          sessionStorage.setItem(
+            'calimero-auth-params',
+            JSON.stringify({
+              'callback-url': window.location.href,
+              permissions: permissions.join(','),
+              mode,
+              timestamp: Date.now(),
+            }),
+          );
+        } catch (err) {
+          console.warn('Failed to persist admin auth params in sessionStorage', err);
+        }
+
+        const finalUrl = `${url}/auth/login?${authParams.toString()}`;
+        console.log('🚀 Redirecting to:', finalUrl);
+        window.location.href = finalUrl;
+        return;
       } else {
         throw new Error(
           'Either packageName or clientApplicationId must be provided',
