@@ -20,6 +20,7 @@ import Toast from './Toast';
 import { CalimeroApplication } from './app';
 import {
   AppMode,
+  AppConfig,
   CalimeroApp,
   ConnectionType,
   CustomConnectionConfig,
@@ -47,39 +48,19 @@ const CalimeroContext = createContext<CalimeroContextValue>({
 
 export const useCalimero = () => useContext(CalimeroContext);
 
-export interface CalimeroProviderProps {
+/**
+ * CalimeroProvider props - uses discriminated union for type safety
+ * 
+ * See AppConfig type in types.ts for valid prop combinations.
+ */
+export type CalimeroProviderProps = AppConfig & {
   children: React.ReactNode;
-  /**
-   * Legacy: Hash-based application ID (for backwards compatibility)
-   */
-  clientApplicationId?: string;
-  /**
-   * Package name in reverse DNS format (e.g., 'network.calimero.meropass')
-   * Preferred over clientApplicationId
-   */
-  packageName?: string;
-  /**
-   * Optional specific version. If not provided, uses latest version.
-   */
-  packageVersion?: string;
-  /**
-   * Optional registry URL for fetching package manifests
-   * Defaults to production registry (https://mero-registry.vercel.app/api)
-   * Override for development/testing (e.g., 'http://localhost:8082')
-   * Used only when packageName is provided
-   */
-  registryUrl?: string;
-  mode: AppMode;
-  /**
-   * Application path (only used for legacy clientApplicationId approach)
-   */
-  applicationPath?: string;
   /**
    * Event streaming mode for real-time subscriptions.
    * Defaults to WebSocket for backwards compatibility.
    */
   eventStreamMode?: EventStreamMode;
-}
+};
 
 const getPermissionsForMode = (mode: AppMode): string[] => {
   switch (mode) {
@@ -130,10 +111,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
   const [resolvedApplicationId, setResolvedApplicationId] = useState<
     string | null
   >(() => {
-    // Try localStorage first, then fall back to prop
+    // Prop takes precedence over localStorage (allows developer to override)
     return (
-      localStorage.getItem('calimero-application-id') ||
       clientApplicationId ||
+      localStorage.getItem('calimero-application-id') ||
       null
     );
   });
