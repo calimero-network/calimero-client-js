@@ -49,7 +49,7 @@ export interface PackageBasedApp {
   packageVersion?: string;
   /**
    * Optional registry URL for fetching package manifests.
-   * Defaults to production registry: https://mero-registry.vercel.app/api
+   * Defaults to production registry: https://apps.calimero.network/api
    * Override for development/testing: http://localhost:8082
    */
   registryUrl?: string;
