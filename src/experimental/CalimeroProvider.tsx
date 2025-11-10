@@ -66,12 +66,9 @@ export type CalimeroProviderProps = AppConfig & {
 const getPermissionsForMode = (mode: AppMode): string[] => {
   switch (mode) {
     case AppMode.SingleContext:
-      // Single-context applications: user selects/creates ONE context at auth time
-      // Token is scoped to that specific context
-      // - create: Create new context if user doesn't have one
-      // - list: List contexts for selection
-      // - execute: Execute methods within the selected context
-      return ['context:create', 'context:execute'];
+      // Single-context applications: auth flow handles context selection/creation
+      // The application only needs to execute inside the granted context
+      return ['context:execute'];
     case AppMode.MultiContext:
       // Multi-context applications: user can manage multiple contexts at runtime
       // Token is scoped to the application, not a specific context
