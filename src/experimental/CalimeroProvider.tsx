@@ -322,12 +322,15 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       const newAppUrl = getAppEndpointKey();
       setAppUrl(newAppUrl);
 
+      // Only set authenticated state if we have a valid URL
+      // This prevents inconsistent state where app appears authenticated
+      // but subsequent API calls fail due to missing URL configuration
+      if (!newAppUrl) return;
+
       // Set authenticated state immediately after processing tokens
       // This prevents race conditions where components check isAuthenticated
       // before the async verify() completes
       setIsAuthenticated(true);
-
-      if (!newAppUrl) return;
 
       // Verify auth in background (non-blocking)
       const verify = async () => {

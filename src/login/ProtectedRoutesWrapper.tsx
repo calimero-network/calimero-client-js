@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   getAccessToken,
   getJWTObject,
@@ -69,47 +69,46 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     checkAuth();
   };
 
-  const initializeApplication = async (
-    accessToken: string,
-    refreshToken: string,
-    appId?: string,
-  ) => {
-    try {
-      setIsLoading(true);
-      // Store tokens
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setContextAndIdentityFromJWT(accessToken);
+  const initializeApplication = useCallback(
+    async (accessToken: string, refreshToken: string, appId?: string) => {
+      try {
+        setIsLoading(true);
+        // Store tokens
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        setContextAndIdentityFromJWT(accessToken);
 
-      if (appId) {
-        // If applicationId is provided as prop, use it
-        setApplicationId(appId);
-        setIsInitialized(true);
-        setIsAuthenticated(true);
-      } else {
-        // Otherwise fetch from context
-        const contextId = getContextId();
-        if (contextId) {
-          const response = await apiClient.node().getContext(contextId);
+        if (appId) {
+          // If applicationId is provided as prop, use it
+          setApplicationId(appId);
+          setIsInitialized(true);
+          setIsAuthenticated(true);
+        } else {
+          // Otherwise fetch from context
+          const contextId = getContextId();
+          if (contextId) {
+            const response = await apiClient.node().getContext(contextId);
 
-          if (response.error) {
-            setError(response.error.message);
-            return;
+            if (response.error) {
+              setError(response.error.message);
+              return;
+            }
+            setApplicationId(response.data.applicationId);
           }
-          setApplicationId(response.data.applicationId);
-        }
 
-        setIsInitialized(true);
-        setIsAuthenticated(true);
+          setIsInitialized(true);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        setError('Failed to initialize application');
+        setIsInitialized(false);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      setError('Failed to initialize application');
-      setIsInitialized(false);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [],
+  );
 
   const fetchContextApplication = async () => {
     try {

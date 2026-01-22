@@ -106,9 +106,9 @@ export class MeroHttpClientAdapter implements HttpClient {
   }
 
   private isRefreshRequest(url: string): boolean {
-    const baseUrl = getAppEndpointKey();
-    if (!baseUrl) return false;
-    return url === new URL('public/refresh', baseUrl).toString();
+    const authEndpoint = getAuthEndpointURL();
+    if (!authEndpoint) return false;
+    return url === new URL('auth/refresh', authEndpoint).toString();
   }
 
   private processQueue(error: Error | null, token: string | null = null) {
@@ -122,8 +122,14 @@ export class MeroHttpClientAdapter implements HttpClient {
         promise.reject(error);
       } else {
         // Retry the request with new token
+        // Preserve all headers from the original request
         const headers = token
-          ? [{ Authorization: `Bearer ${token}`, ...promise.headers?.[0] }]
+          ? [
+              ...(promise.headers || []).map((h) => ({
+                ...h,
+                Authorization: `Bearer ${token}`,
+              })),
+            ]
           : promise.headers;
 
         // Retry based on method
@@ -164,6 +170,9 @@ export class MeroHttpClientAdapter implements HttpClient {
               headers,
               promise.isJsonRpc,
             );
+            break;
+          case 'HEAD':
+            retryPromise = this.head(promise.url, headers);
             break;
           default:
             promise.reject(new Error(`Unknown method: ${promise.method}`));
@@ -288,6 +297,8 @@ export class MeroHttpClientAdapter implements HttpClient {
             originalHeaders,
             originalIsJsonRpc,
           );
+        case 'HEAD':
+          return this.head(originalUrl, originalHeaders);
         default:
           throw new Error(`Unknown method: ${originalMethod}`);
       }
@@ -357,6 +368,11 @@ export class MeroHttpClientAdapter implements HttpClient {
           response = await this.meroClient.patch<T>(url, body, {
             headers: mergedHeaders,
             parse,
+          });
+          break;
+        case 'HEAD':
+          response = await this.meroClient.head<T>(url, {
+            headers: mergedHeaders,
           });
           break;
         default:
@@ -577,39 +593,7 @@ export class MeroHttpClientAdapter implements HttpClient {
     url: string,
     headers?: Header[],
   ): Promise<ResponseData<HeadResponse>> {
-    try {
-      const mergedHeaders: Record<string, string> = {};
-      headers?.forEach((h) => {
-        Object.assign(mergedHeaders, h);
-      });
-
-      const headResponse = await this.meroClient.head(url, {
-        headers: mergedHeaders,
-      });
-
-      return {
-        data: headResponse,
-        error: null,
-      };
-    } catch (error) {
-      if (error instanceof HTTPError) {
-        return {
-          data: null,
-          error: {
-            code: error.status,
-            message: error.bodyText || error.statusText || 'Request failed',
-          },
-        };
-      }
-
-      return {
-        data: null,
-        error: {
-          code: 0,
-          message: error instanceof Error ? error.message : 'Network error',
-        },
-      };
-    }
+    return this.makeRequest<HeadResponse>('HEAD', url, undefined, headers);
   }
 
   // Expose refresh mechanism for RPC error handling
