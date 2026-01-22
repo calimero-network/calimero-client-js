@@ -34,10 +34,13 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm preview --port 5173',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  /* Disable webServer in CI - server is started manually in CI workflow */
+  webServer: process.env.CI
+    ? undefined
+    : {
+        command: 'pnpm preview --port 5173',
+        url: 'http://localhost:5173',
+        reuseExistingServer: true,
+        timeout: 120 * 1000,
+      },
 });
