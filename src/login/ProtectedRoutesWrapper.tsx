@@ -261,9 +261,10 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
         applicationId || undefined,
       );
 
-      // Clean up URL by removing the tokens from fragment
+      // Clean up URL by removing only our auth tokens (keep user's hash params intact)
       fragmentParams.delete('access_token');
       fragmentParams.delete('refresh_token');
+      fragmentParams.delete('application_id');
       const newFragment = fragmentParams.toString();
       const newUrl =
         window.location.pathname +

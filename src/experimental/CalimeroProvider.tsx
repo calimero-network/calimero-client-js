@@ -234,7 +234,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           sessionStorage.setItem(
             'calimero-auth-params',
             JSON.stringify({
-              'callback-url': window.location.href,
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               timestamp: Date.now(),
@@ -298,9 +298,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         localStorage.setItem('calimero-application-id', applicationId);
       }
 
-      // Clean up URL by removing hash tokens (keep other hash params if any)
+      // Clean up URL by removing only our auth tokens (keep user's hash params intact)
       fragmentParams.delete('access_token');
       fragmentParams.delete('refresh_token');
+      fragmentParams.delete('application_id');
       const newFragment = fragmentParams.toString();
       const cleanUrl =
         window.location.pathname +
