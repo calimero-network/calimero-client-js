@@ -116,22 +116,22 @@ jobs:
         run: |
           NODE_DATA_DIR="/tmp/e2e-test/node-data"
           mkdir -p "$NODE_DATA_DIR"
-          # Initialize node
+          # Initialize node if not already initialized
+          if [ ! -d "$NODE_DATA_DIR/node1" ]; then
+            "$MEROD_BINARY" \
+              --home "$NODE_DATA_DIR" \
+              --node-name node1 \
+              init \
+              --server-port 2428 \
+              --swarm-port 2528 \
+              --auth-mode embedded \
+              --auth-storage persistent
+          fi
+          # Start merod in background (ports are set during init)
           "$MEROD_BINARY" \
             --home "$NODE_DATA_DIR" \
             --node-name node1 \
-            init \
-            --server-port 2428 \
-            --swarm-port 2528 \
-            --auth-mode embedded \
-            --auth-storage persistent
-          # Start merod in background
-          "$MEROD_BINARY" \
-            --home "$NODE_DATA_DIR" \
-            --node-name node1 \
-            run \
-            --server-port 2428 \
-            --swarm-port 2528 > /tmp/merod.log 2>&1 &
+            run > /tmp/merod.log 2>&1 &
           echo $! > /tmp/merod-pid
           echo "Merod started with PID: $(cat /tmp/merod-pid)"
 
