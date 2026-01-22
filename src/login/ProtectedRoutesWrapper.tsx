@@ -239,11 +239,8 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
   const processHashParams = useCallback(() => {
     // Check for tokens in URL fragment
     const fragment = window.location.hash.substring(1); // Remove the leading #
-    console.log('[ProtectedRoutesWrapper] Full URL:', window.location.href);
-    console.log('[ProtectedRoutesWrapper] Hash fragment:', fragment);
-    
+
     if (!fragment) {
-      console.log('[ProtectedRoutesWrapper] No hash fragment, checking auth...');
       checkAuth();
       return;
     }
@@ -251,11 +248,8 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     const fragmentParams = new URLSearchParams(fragment);
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
-    console.log('[ProtectedRoutesWrapper] Found access_token:', !!encodedAccessToken, encodedAccessToken ? 'length: ' + encodedAccessToken.length : '');
-    console.log('[ProtectedRoutesWrapper] Found refresh_token:', !!encodedRefreshToken, encodedRefreshToken ? 'length: ' + encodedRefreshToken.length : '');
 
     if (encodedAccessToken && encodedRefreshToken) {
-      console.log('[ProtectedRoutesWrapper] Processing tokens...');
       // Initialize application with tokens and optional applicationId
       const accessToken = decodeURIComponent(encodedAccessToken);
       const refreshToken = decodeURIComponent(encodedRefreshToken);
@@ -279,10 +273,9 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
       setIsAuthenticated(true);
       setIsInitialized(true);
     } else {
-      console.log('[ProtectedRoutesWrapper] Tokens not found in hash, checking auth...');
       checkAuth();
     }
-  }, [applicationId, checkAuth]);
+  }, [applicationId, checkAuth, initializeApplication]);
 
   useEffect(() => {
     // Process hash params on mount

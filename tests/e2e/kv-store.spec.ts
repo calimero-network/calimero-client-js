@@ -141,7 +141,7 @@ test.describe('KV Store E2E Tests', () => {
       .first();
     await expect(createButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await createButton.click();
-    
+
     // Wait for context creation to complete - this can take time in CI
     await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
     await page.waitForTimeout(WAIT_LONG);
@@ -152,7 +152,9 @@ test.describe('KV Store E2E Tests', () => {
     const generateTokenButton = page
       .locator('button:has-text("Generate Token")')
       .first();
-    await expect(generateTokenButton).toBeVisible({ timeout: TIMEOUT_LONG * 2 }); // Double timeout for CI
+    await expect(generateTokenButton).toBeVisible({
+      timeout: TIMEOUT_LONG * 2,
+    }); // Double timeout for CI
     await generateTokenButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for redirect back to app
 

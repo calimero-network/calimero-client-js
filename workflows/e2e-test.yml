@@ -27,7 +27,7 @@ steps:
   - name: Create Context
     type: create_context
     node: calimero-node-1
-    application_id: "{{app_id}}"
+    application_id: '{{app_id}}'
     outputs:
       context_id: contextId
       member_public_key: memberPublicKey

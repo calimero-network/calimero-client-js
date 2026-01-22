@@ -147,47 +147,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       if (packageName) {
         // Pass package-name directly - auth frontend will fetch latest version from registry
         // Strip hash fragment from callback URL - auth service will add tokens to hash
-        // Check if we're on root and there's a stored intended route (user was redirected from another route)
-        let callbackUrl = window.location.href.split('#')[0];
-        const currentPath = window.location.pathname;
-        
-        // If we're on root, check if there's a stored intended route from a previous redirect
-        // This handles the case where the app redirects unauthenticated users from protected routes to root
-        if (currentPath === '/' || currentPath === '') {
-          try {
-            const storedRoute = sessionStorage.getItem('calimero-intended-route');
-            if (storedRoute && storedRoute !== '/') {
-              // Reconstruct the full URL with the intended route
-              const urlObj = new URL(window.location.href);
-              urlObj.pathname = storedRoute.split('?')[0]; // Get pathname without query
-              if (storedRoute.includes('?')) {
-                urlObj.search = storedRoute.split('?')[1]; // Preserve query params
-              }
-              callbackUrl = urlObj.href.split('#')[0];
-              console.log('[CalimeroProvider] Using stored intended route for callback:', callbackUrl);
-            } else {
-              // Fallback: check document.referrer if we came from another route
-              const referrer = document.referrer;
-              if (referrer) {
-                try {
-                  const referrerUrl = new URL(referrer);
-                  const currentUrl = new URL(window.location.href);
-                  // If referrer is same origin but different path, use it
-                  if (referrerUrl.origin === currentUrl.origin && referrerUrl.pathname !== '/') {
-                    callbackUrl = referrerUrl.href.split('#')[0];
-                    console.log('[CalimeroProvider] Using referrer for callback URL:', callbackUrl);
-                  }
-                } catch (err) {
-                  // Invalid referrer URL, ignore
-                }
-              }
-            }
-          } catch (err) {
-            console.warn('[CalimeroProvider] Failed to check stored route', err);
-          }
-        }
-        
-        const callbackUrlWithoutHash = callbackUrl.split('#')[0];
+        const callbackUrlWithoutHash = window.location.href.split('#')[0];
         const authParams = new URLSearchParams();
         authParams.append('callback-url', callbackUrlWithoutHash);
         authParams.append('permissions', permissions.join(','));
@@ -207,7 +167,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         console.log('🚀 Redirecting to:', finalUrl);
 
         // Store auth params in sessionStorage so auth-frontend can recover them
-        // Store the callback URL WITHOUT hash so we can restore the exact route after auth
         try {
           sessionStorage.setItem(
             'calimero-auth-params',
@@ -215,7 +174,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
               'package-name': packageName,
               'package-version': packageVersion || null,
               'registry-url': registryUrl || null,
-              'callback-url': callbackUrlWithoutHash, // Store without hash to preserve route
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               'application-path': applicationPath || null,
@@ -319,10 +278,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   const processHashParams = useCallback(() => {
     const fragment = window.location.hash.substring(1); // Remove the leading #
-    console.log('[CalimeroProvider] Full URL:', window.location.href);
-    console.log('[CalimeroProvider] Hash fragment:', fragment);
     if (!fragment) {
-      console.log('[CalimeroProvider] No hash fragment found');
       return; // No fragment, nothing to do
     }
 
@@ -330,12 +286,8 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
     const applicationId = fragmentParams.get('application_id');
-    console.log('[CalimeroProvider] Found access_token:', !!encodedAccessToken, encodedAccessToken ? 'length: ' + encodedAccessToken.length : '');
-    console.log('[CalimeroProvider] Found refresh_token:', !!encodedRefreshToken, encodedRefreshToken ? 'length: ' + encodedRefreshToken.length : '');
-    console.log('[CalimeroProvider] Found application_id:', applicationId);
 
     if (encodedAccessToken && encodedRefreshToken) {
-      console.log('[CalimeroProvider] Processing tokens...');
       const accessToken = decodeURIComponent(encodedAccessToken);
       const refreshToken = decodeURIComponent(encodedRefreshToken);
       setAccessToken(accessToken);
@@ -343,38 +295,39 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
       // Store resolved application ID from auth callback
       if (applicationId) {
-        console.log('✅ Resolved application ID from auth:', applicationId);
         setResolvedApplicationId(applicationId);
         // Persist to localStorage for subsequent page loads
         localStorage.setItem('calimero-application-id', applicationId);
-        console.log(
-          '✅ Stored in localStorage:',
-          localStorage.getItem('calimero-application-id'),
-        );
       }
 
       // Clean up URL by removing hash tokens (keep other hash params if any)
       fragmentParams.delete('access_token');
       fragmentParams.delete('refresh_token');
       const newFragment = fragmentParams.toString();
-      const cleanUrl = window.location.pathname + window.location.search + (newFragment ? `#${newFragment}` : '');
+      const cleanUrl =
+        window.location.pathname +
+        window.location.search +
+        (newFragment ? `#${newFragment}` : '');
       window.history.replaceState({}, document.title, cleanUrl);
-      
+
       // Clean up sessionStorage
       try {
         sessionStorage.removeItem('calimero-auth-params');
       } catch (err) {
-        console.warn('[CalimeroProvider] Failed to clean up sessionStorage', err);
+        console.warn(
+          '[CalimeroProvider] Failed to clean up sessionStorage',
+          err,
+        );
       }
 
       const newAppUrl = getAppEndpointKey();
       setAppUrl(newAppUrl);
-      
+
       // Set authenticated state immediately after processing tokens
       // This prevents race conditions where components check isAuthenticated
       // before the async verify() completes
       setIsAuthenticated(true);
-      
+
       if (!newAppUrl) return;
 
       // Verify auth in background (non-blocking)
@@ -382,15 +335,16 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         const response = await apiClient.node().checkAuth();
         if (response.error) {
           // If verification fails, reset auth state
-          console.warn('[CalimeroProvider] Auth verification failed:', response.error);
+          console.warn(
+            '[CalimeroProvider] Auth verification failed:',
+            response.error,
+          );
           setIsAuthenticated(false);
         }
       };
       verify();
-    } else {
-      console.log('[CalimeroProvider] Tokens not found in hash');
     }
-  }, []);
+  }, [setResolvedApplicationId, setAppUrl, setIsAuthenticated]);
 
   useEffect(() => {
     // Process hash params on mount
@@ -398,7 +352,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
     // Also listen for hash changes (in case hash is added after mount)
     const handleHashChange = () => {
-      console.log('[CalimeroProvider] Hash changed, reprocessing...');
       processHashParams();
     };
     window.addEventListener('hashchange', handleHashChange);
@@ -429,7 +382,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
 
   // Debug: Log isAuthenticated changes and expose on window for debugging
   useEffect(() => {
-    console.log('[CalimeroProvider] isAuthenticated changed to:', isAuthenticated);
+    console.log(
+      '[CalimeroProvider] isAuthenticated changed to:',
+      isAuthenticated,
+    );
     // Expose on window for easy debugging in console
     if (typeof window !== 'undefined') {
       (window as any).__calimeroIsAuthenticated = isAuthenticated;

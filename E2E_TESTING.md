@@ -5,6 +5,7 @@ This document describes the comprehensive E2E testing infrastructure for `calime
 ## Overview
 
 The E2E test suite validates the entire integration flow:
+
 1. Builds `calimero-client-js` from source
 2. Creates a test application using `create-mero-app`
 3. Replaces the client dependency with the built version
@@ -25,6 +26,7 @@ Run the automated script:
 ```
 
 This script handles all setup automatically. It will:
+
 - Build the client library
 - Create a test app
 - Start a node with Docker
@@ -34,6 +36,7 @@ This script handles all setup automatically. It will:
 ### CI Testing
 
 The CI workflow (`.github/workflows/e2e-test.yml`) runs automatically on:
+
 - Pull requests (when `src/**`, `package.json`, or workflow files change)
 - Pushes to `master` or `refactor/**` branches
 - Manual workflow dispatch
@@ -100,6 +103,7 @@ calimero-client-js/
 ### For CI
 
 All prerequisites are handled by GitHub Actions:
+
 - Node.js 20.x
 - pnpm 8
 - Rust stable with wasm32-unknown-unknown
@@ -154,21 +158,25 @@ test.describe('Feature Tests', () => {
 ### Local Debugging
 
 1. **Run tests in headed mode:**
+
    ```bash
    pnpm exec playwright test --headed
    ```
 
 2. **Debug specific test:**
+
    ```bash
    pnpm exec playwright test --debug
    ```
 
 3. **View test report:**
+
    ```bash
    pnpm exec playwright show-report
    ```
 
 4. **Check node logs:**
+
    ```bash
    docker logs calimero-node
    ```
@@ -191,27 +199,32 @@ test.describe('Feature Tests', () => {
 ### Common Issues
 
 #### Node fails to start
+
 - **Check Docker:** `docker info`
 - **Check ports:** `lsof -i :2428`
 - **View logs:** `docker logs calimero-node`
 - **Try different ports:** Modify script variables
 
 #### Frontend build fails
+
 - **Check dependencies:** `pnpm install`
 - **Check Node version:** `node --version` (>= 18)
 - **Clear cache:** `rm -rf node_modules .pnpm-store`
 
 #### WASM build fails
+
 - **Install target:** `rustup target add wasm32-unknown-unknown`
 - **Check Cargo.toml:** Ensure dependencies are correct
 - **Try release profile:** `cargo build --release`
 
 #### Tests timeout
+
 - **Increase timeout** in `playwright.config.ts`
 - **Check services:** Verify node and frontend are running
 - **Check network:** Ensure no firewall blocking
 
 #### Dependency replacement fails
+
 - **Check tarball exists:** `ls dist/*.tgz`
 - **Check package.json:** Verify dependency name matches
 - **Try manual install:** `pnpm add file:../../dist/*.tgz`
@@ -252,6 +265,7 @@ When adding new tests:
 ## Support
 
 For issues or questions:
+
 - Check `tests/e2e/README.md` for detailed test docs
 - Review CI workflow logs
 - Check Playwright documentation: https://playwright.dev

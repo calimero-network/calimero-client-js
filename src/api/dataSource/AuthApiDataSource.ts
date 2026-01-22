@@ -152,7 +152,8 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
         return {
           error: {
             code: 400,
-            message: 'Node URL not configured. Please set the app endpoint key.',
+            message:
+              'Node URL not configured. Please set the app endpoint key.',
           },
         };
       }
@@ -166,7 +167,10 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
       });
       const response = await this.client.post<TokenResponse>(url, request);
       if (response.error) {
-        console.error('[AuthApiDataSource] Client key generation failed:', response.error);
+        console.error(
+          '[AuthApiDataSource] Client key generation failed:',
+          response.error,
+        );
       } else {
         console.log('[AuthApiDataSource] Client key generated successfully');
       }
