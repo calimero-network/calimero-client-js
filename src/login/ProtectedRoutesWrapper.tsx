@@ -283,7 +283,6 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
     // Also listen for hash changes (in case hash is added after mount)
     const handleHashChange = () => {
-      console.log('[ProtectedRoutesWrapper] Hash changed, reprocessing...');
       processHashParams();
     };
     window.addEventListener('hashchange', handleHashChange);
