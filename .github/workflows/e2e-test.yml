@@ -97,53 +97,57 @@ jobs:
           pnpm install
           cd app && pnpm install && cd ..
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Clone merobox
+      - name: Download merod binary
         run: |
-          git clone https://github.com/calimero-network/merobox.git
+          MEROD_DIR="/tmp/merod-bin"
+          mkdir -p "$MEROD_DIR"
+          MEROD_BINARY="$MEROD_DIR/merod"
+          VERSION="0.10.0-rc.33"
+          ASSET_NAME="merod_x86_64-unknown-linux-gnu.tar.gz"
+          DOWNLOAD_URL="https://github.com/calimero-network/core/releases/download/$VERSION/$ASSET_NAME"
+          echo "Downloading merod from: $DOWNLOAD_URL"
+          curl -L -o "$MEROD_DIR/temp.tar.gz" "$DOWNLOAD_URL"
+          tar -xzf "$MEROD_DIR/temp.tar.gz" -C "$MEROD_DIR" merod
+          rm "$MEROD_DIR/temp.tar.gz"
+          chmod +x "$MEROD_BINARY"
+          echo "MEROD_BINARY=$MEROD_BINARY" >> $GITHUB_ENV
 
-      - name: Install merobox
+      - name: Initialize and start merod node
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./merobox
-
-      - name: Verify merobox installation
-        run: merobox --version
-
-      - name: Copy workflow file
-        working-directory: /tmp/e2e-test/test-kv-store
-        run: |
-          mkdir -p workflows
-          cp ${{ github.workspace }}/workflows/e2e-test.yml workflows/e2e-test.yml
-
-      - name: Run merobox workflow
-        working-directory: /tmp/e2e-test/test-kv-store
-        run: |
-          merobox bootstrap run workflows/e2e-test.yml --auth-service
+          NODE_DATA_DIR="/tmp/e2e-test/node-data"
+          mkdir -p "$NODE_DATA_DIR"
+          # Initialize node
+          "$MEROD_BINARY" \
+            --home "$NODE_DATA_DIR" \
+            --node-name node1 \
+            init \
+            --server-port 2428 \
+            --swarm-port 2528 \
+            --auth-mode embedded \
+            --auth-storage persistent
+          # Start merod in background
+          "$MEROD_BINARY" \
+            --home "$NODE_DATA_DIR" \
+            --node-name node1 \
+            run \
+            --server-port 2428 \
+            --swarm-port 2528 > /tmp/merod.log 2>&1 &
+          echo $! > /tmp/merod-pid
+          echo "Merod started with PID: $(cat /tmp/merod-pid)"
 
       - name: Wait for node to be ready
         run: |
-          echo "Waiting for node to start..."
-          # Merobox with auth-service uses nip.io URLs
-          # Prefix from workflow is "calimero-node", so node1 becomes node1.127.0.0.1.nip.io
-          NODE_URL="http://node1.127.0.0.1.nip.io"
+          NODE_URL="http://localhost:2428"
           HEALTH_URL="$NODE_URL/auth/health"
+          echo "Waiting for node to start at $HEALTH_URL..."
           for i in {1..30}; do
             if curl -f "$HEALTH_URL" 2>/dev/null; then
               echo "Node is ready at $NODE_URL!"
               break
             fi
             if [ $i -eq 30 ]; then
-              echo "Node failed to start. Checking alternatives..."
-              curl -f http://localhost/auth/health 2>/dev/null && echo "Auth service is up" || echo "Auth service not responding"
-              merobox list || true
+              echo "Node failed to start. Logs:"
+              tail -50 /tmp/merod.log || true
               exit 1
             fi
             echo "Attempt $i/30: Node not ready yet..."
@@ -180,8 +184,8 @@ jobs:
       - name: Run Playwright tests
         working-directory: /tmp/e2e-test/test-kv-store/app
         env:
-          NODE_URL: http://node1.127.0.0.1.nip.io
-          AUTH_URL: http://localhost/auth
+          NODE_URL: http://localhost:2428
+          AUTH_URL: http://localhost:2428/auth
           FRONTEND_URL: http://localhost:5173
           # Longer timeouts for CI (GitHub Actions can be slower)
           # Base timeout multiplied by 3 for CI (default: 5000ms -> 15000ms)
@@ -208,8 +212,14 @@ jobs:
           path: /tmp/e2e-test/test-kv-store/app/playwright-report/
           retention-days: 7
 
-      - name: Cleanup merobox
+      - name: Cleanup
         if: always()
         run: |
-          merobox nuke --force || true
+          # Stop merod
+          if [ -f /tmp/merod-pid ]; then
+            kill $(cat /tmp/merod-pid) 2>/dev/null || true
+          fi
+          # Stop vite
           kill $(cat /tmp/vite-pid) 2>/dev/null || true
+          # Cleanup node data
+          rm -rf /tmp/e2e-test/node-data || true
