@@ -73,7 +73,7 @@ test.describe('KV Store E2E Tests', () => {
       timeout: TIMEOUT_MEDIUM,
     });
     // Click on any element containing "Username/Password" text (it's clickable)
-    // eslint-disable-next-line testing-library/prefer-screen-queries -- This is Playwright, not React Testing Library
+    // eslint-disable-next-line testing-library/prefer-screen-queries -- Playwright uses page.getByText, not screen
     const usernamePasswordOption = page.getByText('Username/Password').first();
     await expect(usernamePasswordOption).toBeVisible({
       timeout: TIMEOUT_MEDIUM,
@@ -147,14 +147,12 @@ test.describe('KV Store E2E Tests', () => {
     await page.waitForTimeout(WAIT_LONG);
 
     // Step 15: Wait for "Generate Token" button to appear and click it
-    // After context creation, the page may need to reload or update
-    // Try waiting for the button with a longer timeout
     const generateTokenButton = page
       .locator('button:has-text("Generate Token")')
       .first();
     await expect(generateTokenButton).toBeVisible({
       timeout: TIMEOUT_LONG * 2,
-    }); // Double timeout for CI
+    });
     await generateTokenButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for redirect back to app
 
@@ -180,7 +178,6 @@ test.describe('KV Store E2E Tests', () => {
     await setEntryButton.click();
 
     // Step 20: Verify entry appears in the Key-Value Entries table
-    // Wait for the entries table/div to show the new entry
     const entriesContainer = page
       .locator(
         'div:has-text("Key-Value Entries"), div:has-text("Key"), div:has-text("Value")',
@@ -188,12 +185,9 @@ test.describe('KV Store E2E Tests', () => {
       .first();
     await expect(entriesContainer).toBeVisible({ timeout: TIMEOUT_MEDIUM });
 
-    // Verify the entry "3" appears in the table
-    // The entry should show both key "3" and value "3"
     const entryKey = page.locator('text=3').first();
     await expect(entryKey).toBeVisible({ timeout: TIMEOUT_SHORT });
 
-    // Additional verification: Check that the entries container has content
     const entriesContent = await entriesContainer.textContent();
     expect(entriesContent).toContain('3');
   });

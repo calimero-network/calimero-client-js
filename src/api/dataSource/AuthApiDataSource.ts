@@ -158,22 +158,7 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
         };
       }
       const url = this.buildUrl('admin/client-key', nodeBaseUrl);
-      console.log('[AuthApiDataSource] Generating client key at:', url);
-      console.log('[AuthApiDataSource] Request payload:', {
-        context_id: request.context_id,
-        context_identity: request.context_identity,
-        permissions: request.permissions,
-        target_node_url: request.target_node_url,
-      });
       const response = await this.client.post<TokenResponse>(url, request);
-      if (response.error) {
-        console.error(
-          '[AuthApiDataSource] Client key generation failed:',
-          response.error,
-        );
-      } else {
-        console.log('[AuthApiDataSource] Client key generated successfully');
-      }
       return response;
     } catch (error) {
       console.error('[AuthApiDataSource] Error generating client key:', error);

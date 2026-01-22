@@ -164,7 +164,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         }
 
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
-        console.log('🚀 Redirecting to:', finalUrl);
 
         // Store auth params in sessionStorage so auth-frontend can recover them
         try {
@@ -249,7 +248,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         }
 
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
-        console.log('🚀 Redirecting to:', finalUrl);
         window.location.href = finalUrl;
         return;
       } else {
@@ -379,18 +377,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     };
     checkSession();
   }, [performLogin, logout]);
-
-  // Debug: Log isAuthenticated changes and expose on window for debugging
-  useEffect(() => {
-    console.log(
-      '[CalimeroProvider] isAuthenticated changed to:',
-      isAuthenticated,
-    );
-    // Expose on window for easy debugging in console
-    if (typeof window !== 'undefined') {
-      (window as any).__calimeroIsAuthenticated = isAuthenticated;
-    }
-  }, [isAuthenticated]);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
