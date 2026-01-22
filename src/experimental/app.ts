@@ -53,10 +53,10 @@ export class CalimeroApplication implements CalimeroApp {
   async fetchContexts(): Promise<Context[]> {
     const contextsResponse = await this.apiClient.node().getContexts();
     if (contextsResponse.error) {
-      const errorMessage = contextsResponse.error.message || `HTTP ${contextsResponse.error.code || 'Unknown'}`;
-      throw new Error(
-        `Error fetching contexts: ${errorMessage}`,
-      );
+      const errorMessage =
+        contextsResponse.error.message ||
+        `HTTP ${contextsResponse.error.code || 'Unknown'}`;
+      throw new Error(`Error fetching contexts: ${errorMessage}`);
     }
 
     if (!contextsResponse.data) {

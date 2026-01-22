@@ -105,7 +105,6 @@ export class MeroHttpClientAdapter implements HttpClient {
     });
   }
 
-
   private isRefreshRequest(url: string): boolean {
     const baseUrl = getAppEndpointKey();
     if (!baseUrl) return false;
@@ -126,15 +125,25 @@ export class MeroHttpClientAdapter implements HttpClient {
         const headers = token
           ? [{ Authorization: `Bearer ${token}`, ...promise.headers?.[0] }]
           : promise.headers;
-        
+
         // Retry based on method
         let retryPromise: Promise<ResponseData<unknown>>;
         switch (promise.method) {
           case 'GET':
-            retryPromise = this.get(promise.url, headers, promise.isJsonRpc, promise.options);
+            retryPromise = this.get(
+              promise.url,
+              headers,
+              promise.isJsonRpc,
+              promise.options,
+            );
             break;
           case 'POST':
-            retryPromise = this.post(promise.url, promise.body, headers, promise.isJsonRpc);
+            retryPromise = this.post(
+              promise.url,
+              promise.body,
+              headers,
+              promise.isJsonRpc,
+            );
             break;
           case 'PUT':
             retryPromise = this.put(
@@ -149,7 +158,12 @@ export class MeroHttpClientAdapter implements HttpClient {
             retryPromise = this.delete(promise.url, headers, promise.isJsonRpc);
             break;
           case 'PATCH':
-            retryPromise = this.patch(promise.url, promise.body, headers, promise.isJsonRpc);
+            retryPromise = this.patch(
+              promise.url,
+              promise.body,
+              headers,
+              promise.isJsonRpc,
+            );
             break;
           default:
             promise.reject(new Error(`Unknown method: ${promise.method}`));
@@ -207,7 +221,7 @@ export class MeroHttpClientAdapter implements HttpClient {
       if (!authEndpoint) {
         throw new Error('Auth endpoint not configured');
       }
-      
+
       const refreshUrl = new URL('auth/refresh', authEndpoint).toString();
       const response = await this.meroClient.post<RefreshTokenResponse>(
         refreshUrl,
@@ -216,7 +230,7 @@ export class MeroHttpClientAdapter implements HttpClient {
           refresh_token: refreshToken,
         },
       );
-      
+
       // Convert to ResponseData format
       const refreshResponse: ResponseData<RefreshTokenResponse> = {
         data: response,
@@ -240,9 +254,19 @@ export class MeroHttpClientAdapter implements HttpClient {
       // Retry original request
       switch (originalMethod) {
         case 'GET':
-          return this.get<T>(originalUrl, originalHeaders, originalIsJsonRpc, originalOptions);
+          return this.get<T>(
+            originalUrl,
+            originalHeaders,
+            originalIsJsonRpc,
+            originalOptions,
+          );
         case 'POST':
-          return this.post<T>(originalUrl, originalBody, originalHeaders, originalIsJsonRpc);
+          return this.post<T>(
+            originalUrl,
+            originalBody,
+            originalHeaders,
+            originalIsJsonRpc,
+          );
         case 'PUT':
           return this.put<T>(
             originalUrl,
@@ -252,9 +276,18 @@ export class MeroHttpClientAdapter implements HttpClient {
             originalOnUploadProgress,
           );
         case 'DELETE':
-          return this.delete<T>(originalUrl, originalHeaders, originalIsJsonRpc);
+          return this.delete<T>(
+            originalUrl,
+            originalHeaders,
+            originalIsJsonRpc,
+          );
         case 'PATCH':
-          return this.patch<T>(originalUrl, originalBody, originalHeaders, originalIsJsonRpc);
+          return this.patch<T>(
+            originalUrl,
+            originalBody,
+            originalHeaders,
+            originalIsJsonRpc,
+          );
         default:
           throw new Error(`Unknown method: ${originalMethod}`);
       }
@@ -390,7 +423,8 @@ export class MeroHttpClientAdapter implements HttpClient {
                   data: null,
                   error: {
                     code: 401,
-                    message: errorMessage || 'Session expired. Please log in again.',
+                    message:
+                      errorMessage || 'Session expired. Please log in again.',
                   },
                 };
               }
@@ -400,7 +434,8 @@ export class MeroHttpClientAdapter implements HttpClient {
                 data: null,
                 error: {
                   code: 401,
-                  message: errorMessage || 'Session was revoked. Please log in again.',
+                  message:
+                    errorMessage || 'Session was revoked. Please log in again.',
                 },
               };
             case 'invalid_token':
@@ -409,7 +444,9 @@ export class MeroHttpClientAdapter implements HttpClient {
                 data: null,
                 error: {
                   code: 401,
-                  message: errorMessage || 'Invalid authentication. Please log in again.',
+                  message:
+                    errorMessage ||
+                    'Invalid authentication. Please log in again.',
                 },
               };
             default:
@@ -424,7 +461,8 @@ export class MeroHttpClientAdapter implements HttpClient {
         }
 
         // Handle other HTTP errors
-        let errorMessage = error.bodyText || error.statusText || 'Something went wrong';
+        let errorMessage =
+          error.bodyText || error.statusText || 'Something went wrong';
         try {
           const errorJson = JSON.parse(errorMessage);
           if (typeof errorJson === 'string') {
@@ -477,7 +515,14 @@ export class MeroHttpClientAdapter implements HttpClient {
     isJsonRpc = false,
     options?: RequestOptions,
   ): Promise<ResponseData<T>> {
-    return this.makeRequest<T>('GET', url, undefined, headers, isJsonRpc, options);
+    return this.makeRequest<T>(
+      'GET',
+      url,
+      undefined,
+      headers,
+      isJsonRpc,
+      options,
+    );
   }
 
   async post<T>(
@@ -498,7 +543,13 @@ export class MeroHttpClientAdapter implements HttpClient {
   ): Promise<ResponseData<T>> {
     // Note: Upload progress with fetch requires ReadableStream tracking
     // For now, we'll make the request but progress tracking is limited
-    const result = await this.makeRequest<T>('PUT', url, body, headers, isJsonRpc);
+    const result = await this.makeRequest<T>(
+      'PUT',
+      url,
+      body,
+      headers,
+      isJsonRpc,
+    );
     if (onUploadProgress) {
       onUploadProgress(100);
     }
@@ -522,7 +573,10 @@ export class MeroHttpClientAdapter implements HttpClient {
     return this.makeRequest<T>('PATCH', url, body, headers, isJsonRpc);
   }
 
-  async head(url: string, headers?: Header[]): Promise<ResponseData<HeadResponse>> {
+  async head(
+    url: string,
+    headers?: Header[],
+  ): Promise<ResponseData<HeadResponse>> {
     try {
       const mergedHeaders: Record<string, string> = {};
       headers?.forEach((h) => {
@@ -600,7 +654,8 @@ export class MeroHttpClientAdapter implements HttpClient {
           data: null,
           error: {
             code: error.status,
-            message: error.bodyText || error.statusText || 'Token refresh failed',
+            message:
+              error.bodyText || error.statusText || 'Token refresh failed',
           },
         };
       }
@@ -608,7 +663,8 @@ export class MeroHttpClientAdapter implements HttpClient {
         data: null,
         error: {
           code: 500,
-          message: error instanceof Error ? error.message : 'Token refresh failed',
+          message:
+            error instanceof Error ? error.message : 'Token refresh failed',
         },
       };
     }

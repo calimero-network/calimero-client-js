@@ -1,0 +1,246 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/e2e-test.yml'
+  push:
+    branches:
+      - master
+      - 'refactor/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-test:
+    name: E2E Test with KV Store
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install
+
+      - name: Build calimero-client-js
+        working-directory: .
+        run: |
+          pnpm build
+          # Create a tarball for local installation (npm pack runs from root)
+          mkdir -p dist
+          npm pack --pack-destination dist
+          echo "CLIENT_TARBALL=$(ls dist/*.tgz | head -1)" >> $GITHUB_ENV
+
+      - name: Setup test workspace
+        run: |
+          mkdir -p /tmp/e2e-test
+          cd /tmp/e2e-test
+
+      - name: Create test app with create-mero-app
+        working-directory: /tmp/e2e-test
+        run: |
+          # Use create-mero-app to scaffold a KV store app
+          # Select option 1 (Rust template) via stdin
+          printf "1\n" | npx create-mero-app@latest test-kv-store
+          cd test-kv-store
+
+      - name: Replace client dependency with built version
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          # Replace @calimero-network/calimero-client dependency
+          if [ -f "app/package.json" ]; then
+            cd app
+            # Remove existing dependency
+            pnpm remove @calimero-network/calimero-client || true
+            # Install from local tarball (use absolute path)
+            TARBALL=$(ls ${{ github.workspace }}/dist/*.tgz | head -1)
+            if [ -z "$TARBALL" ]; then
+              echo "Error: No tarball found in ${{ github.workspace }}/dist/"
+              exit 1
+            fi
+            echo "Installing from: $TARBALL"
+            pnpm add "file:$TARBALL"
+            cd ..
+          fi
+
+      - name: Install test app dependencies
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          pnpm install
+          cd app && pnpm install && cd ..
+
+      - name: Build KV store logic (WASM)
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          cd logic
+          # Install Rust WASM target if not already installed
+          rustup target add wasm32-unknown-unknown || true
+          # Build the WASM
+          cargo build --target wasm32-unknown-unknown --release --profile app-release
+          # Copy WASM to res directory
+          mkdir -p res
+          cp target/wasm32-unknown-unknown/app-release/kv_store.wasm res/kv_store.wasm || \
+          cp target/wasm32-unknown-unknown/release/kv_store.wasm res/kv_store.wasm
+          cd ..
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Clone merobox
+        run: |
+          git clone https://github.com/calimero-network/merobox.git
+
+      - name: Install merobox
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./merobox
+
+      - name: Verify merobox installation
+        run: merobox --version
+
+      - name: Copy workflow file
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          mkdir -p workflows
+          cp ${{ github.workspace }}/workflows/e2e-test.yml workflows/e2e-test.yml
+
+      - name: Run merobox workflow
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          merobox bootstrap run workflows/e2e-test.yml --auth-service
+
+      - name: Wait for node to be ready
+        run: |
+          echo "Waiting for node to start..."
+          # Merobox with auth-service uses nip.io URLs
+          # Prefix from workflow is "calimero-node", so node1 becomes node1.127.0.0.1.nip.io
+          NODE_URL="http://node1.127.0.0.1.nip.io"
+          HEALTH_URL="$NODE_URL/auth/health"
+          for i in {1..30}; do
+            if curl -f "$HEALTH_URL" 2>/dev/null; then
+              echo "Node is ready at $NODE_URL!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Node failed to start. Checking alternatives..."
+              curl -f http://localhost/auth/health 2>/dev/null && echo "Auth service is up" || echo "Auth service not responding"
+              merobox list || true
+              exit 1
+            fi
+            echo "Attempt $i/30: Node not ready yet..."
+            sleep 2
+          done
+
+      - name: Build frontend
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          pnpm build
+
+      - name: Install Playwright browsers
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          pnpm add -D @playwright/test playwright
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Start frontend server
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          # Start preview server in background
+          pnpm preview --port 5173 --host 0.0.0.0 > /tmp/vite.log 2>&1 &
+          echo $! > /tmp/vite-pid
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:5173 2>/dev/null; then
+              echo "Frontend server is ready!"
+              break
+            fi
+            echo "Waiting for frontend server... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run Playwright tests
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        env:
+          NODE_URL: http://node1.127.0.0.1.nip.io
+          AUTH_URL: http://localhost/auth
+          FRONTEND_URL: http://localhost:5173
+          # Longer timeouts for CI (GitHub Actions can be slower)
+          # Base timeout multiplied by 3 for CI (default: 5000ms -> 15000ms)
+          E2E_TIMEOUT: 15000
+          # Base wait multiplied by 3 for CI (default: 500ms -> 1500ms)
+          E2E_WAIT: 1500
+        run: |
+          # Copy Playwright config from calimero-client-js if it exists
+          if [ -f "${{ github.workspace }}/tests/e2e/playwright.config.ts" ]; then
+            cp "${{ github.workspace }}/tests/e2e/playwright.config.ts" playwright.config.ts
+          fi
+          # Copy test files
+          mkdir -p tests/e2e
+          if [ -d "${{ github.workspace }}/tests/e2e" ]; then
+            cp -r "${{ github.workspace }}/tests/e2e"/*.spec.ts tests/e2e/ 2>/dev/null || true
+          fi
+          pnpm exec playwright test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: /tmp/e2e-test/test-kv-store/app/playwright-report/
+          retention-days: 7
+
+      - name: Cleanup merobox
+        if: always()
+        run: |
+          merobox nuke --force || true
+          kill $(cat /tmp/vite-pid) 2>/dev/null || true

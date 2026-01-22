@@ -8,11 +8,12 @@
   "types": "lib/index.d.ts",
   "private": false,
   "dependencies": {
-    "@calimero-network/mero-js": "^0.1.0",
+    "@calimero-network/mero-js": "^1.0.2",
     "jwt-decode": "^4.0.0",
     "near-api-js": "^3.0.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@jest/globals": "^29.7.0",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/github": "^11.0.3",
@@ -69,7 +70,10 @@
     "prettier:check": "exec prettier . --check",
     "watch": "tsc -watch",
     "prepack": "pnpm clean && pnpm build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug"
   },
   "eslintConfig": {
     "extends": [

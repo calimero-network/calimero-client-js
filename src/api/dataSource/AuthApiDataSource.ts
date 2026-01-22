@@ -37,8 +37,12 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
       // Get the original application URL from localStorage, fallback to callbackUrl if not available
       const originalAppUrl = getAppEndpointKey() || request.callbackUrl;
 
+      // Strip hash fragment from callback URL - auth service will add tokens to hash
+      // This prevents issues with existing hash fragments interfering with token processing
+      const callbackUrlWithoutHash = request.callbackUrl.split('#')[0];
+
       const loginUrl = new URL('auth/login', request.url);
-      loginUrl.searchParams.set('callback-url', request.callbackUrl);
+      loginUrl.searchParams.set('callback-url', callbackUrlWithoutHash);
       loginUrl.searchParams.set('permissions', request.permissions.join(','));
 
       // Set mode if provided (determines auth flow and token scoping)
@@ -141,15 +145,42 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
     request: GenerateClientKeyRequest,
   ): ApiResponse<TokenResponse> {
     try {
-      const response = await this.client.post<TokenResponse>(
-        this.buildUrl('admin/client-key', this.baseUrl),
-        request,
-      );
+      // admin/client-key is an auth service endpoint accessible through the node URL
+      // With merobox auth-service, it's proxied through Traefik at the node URL
+      const nodeBaseUrl = getAppEndpointKey();
+      if (!nodeBaseUrl) {
+        return {
+          error: {
+            code: 400,
+            message: 'Node URL not configured. Please set the app endpoint key.',
+          },
+        };
+      }
+      const url = this.buildUrl('admin/client-key', nodeBaseUrl);
+      console.log('[AuthApiDataSource] Generating client key at:', url);
+      console.log('[AuthApiDataSource] Request payload:', {
+        context_id: request.context_id,
+        context_identity: request.context_identity,
+        permissions: request.permissions,
+        target_node_url: request.target_node_url,
+      });
+      const response = await this.client.post<TokenResponse>(url, request);
+      if (response.error) {
+        console.error('[AuthApiDataSource] Client key generation failed:', response.error);
+      } else {
+        console.log('[AuthApiDataSource] Client key generated successfully');
+      }
       return response;
     } catch (error) {
-      console.error('Error generating client key:', error);
+      console.error('[AuthApiDataSource] Error generating client key:', error);
       return {
-        error: { code: 500, message: 'Failed to generate client key.' },
+        error: {
+          code: 500,
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to generate client key.',
+        },
       };
     }
   }
