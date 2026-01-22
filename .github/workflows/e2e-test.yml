@@ -36,13 +36,6 @@ jobs:
         with:
           version: 8
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          override: true
-
       - name: Cache pnpm store
         uses: actions/cache@v4
         with:
@@ -52,18 +45,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
 
       - name: Install dependencies
         working-directory: .
@@ -115,20 +96,6 @@ jobs:
         run: |
           pnpm install
           cd app && pnpm install && cd ..
-
-      - name: Build KV store logic (WASM)
-        working-directory: /tmp/e2e-test/test-kv-store
-        run: |
-          cd logic
-          # Install Rust WASM target if not already installed
-          rustup target add wasm32-unknown-unknown || true
-          # Build the WASM
-          cargo build --target wasm32-unknown-unknown --release --profile app-release
-          # Copy WASM to res directory
-          mkdir -p res
-          cp target/wasm32-unknown-unknown/app-release/kv_store.wasm res/kv_store.wasm || \
-          cp target/wasm32-unknown-unknown/release/kv_store.wasm res/kv_store.wasm
-          cd ..
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
