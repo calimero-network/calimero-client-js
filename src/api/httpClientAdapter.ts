@@ -298,7 +298,9 @@ export class MeroHttpClientAdapter implements HttpClient {
             originalIsJsonRpc,
           );
         case 'HEAD':
-          return this.head(originalUrl, originalHeaders);
+          return this.head(originalUrl, originalHeaders) as Promise<
+            ResponseData<T>
+          >;
         default:
           throw new Error(`Unknown method: ${originalMethod}`);
       }
@@ -371,10 +373,9 @@ export class MeroHttpClientAdapter implements HttpClient {
           });
           break;
         case 'HEAD':
-          response = await this.meroClient.head<T>(url, {
-            headers: mergedHeaders,
-          });
-          break;
+          // HEAD requests are handled separately in the head() method
+          // This case should not be reached, but included for completeness
+          throw new Error('HEAD requests should use head() method directly');
         default:
           throw new Error(`Unsupported method: ${method}`);
       }
@@ -593,7 +594,74 @@ export class MeroHttpClientAdapter implements HttpClient {
     url: string,
     headers?: Header[],
   ): Promise<ResponseData<HeadResponse>> {
-    return this.makeRequest<HeadResponse>('HEAD', url, undefined, headers);
+    try {
+      // Merge headers
+      const mergedHeaders: Record<string, string> = {};
+      headers?.forEach((h) => {
+        Object.assign(mergedHeaders, h);
+      });
+
+      const headResponse = await this.meroClient.head(url, {
+        headers: mergedHeaders,
+      });
+
+      return {
+        data: headResponse,
+        error: null,
+      };
+    } catch (error) {
+      if (error instanceof HTTPError && error.status === 401) {
+        // Check if this is a token expiration error
+        let errorBody: { error?: string } | null = null;
+        if (error.bodyText) {
+          try {
+            errorBody = JSON.parse(error.bodyText);
+          } catch {
+            // Not JSON, ignore
+          }
+        }
+        if (errorBody?.error === 'token_expired') {
+          // Queue this request and refresh token
+          return new Promise<ResponseData<HeadResponse>>((resolve, reject) => {
+            this.failedQueue.push({
+              resolve: resolve as (value?: unknown) => void,
+              reject,
+              method: 'HEAD',
+              url,
+              body: undefined,
+              headers,
+              isJsonRpc: false,
+              options: undefined,
+              onUploadProgress: undefined,
+            });
+
+            // Trigger token refresh if not already refreshing
+            if (!this.isRefreshing) {
+              this.handleTokenRefresh('HEAD', url, undefined, headers, false);
+            }
+          });
+        }
+      }
+
+      // Handle other errors
+      if (error instanceof HTTPError) {
+        return {
+          data: null,
+          error: {
+            code: error.status,
+            message: error.bodyText || error.statusText || 'Request failed',
+          },
+        };
+      }
+
+      return {
+        data: null,
+        error: {
+          code: 0,
+          message: error instanceof Error ? error.message : 'Network error',
+        },
+      };
+    }
   }
 
   // Expose refresh mechanism for RPC error handling
