@@ -53,16 +53,19 @@ export class CalimeroApplication implements CalimeroApp {
   async fetchContexts(): Promise<Context[]> {
     const contextsResponse = await this.apiClient.node().getContexts();
     if (contextsResponse.error) {
+      const errorMessage = contextsResponse.error.message || `HTTP ${contextsResponse.error.code || 'Unknown'}`;
       throw new Error(
-        `Error fetching contexts: ${contextsResponse.error.message}`,
+        `Error fetching contexts: ${errorMessage}`,
       );
     }
 
-    const filteredApiContexts = contextsResponse.data
-      ? contextsResponse.data.contexts.filter(
-          (apiContext) => apiContext.applicationId === this.clientApplicationId,
-        )
-      : [];
+    if (!contextsResponse.data) {
+      throw new Error('No contexts data returned from API');
+    }
+
+    const filteredApiContexts = contextsResponse.data.contexts.filter(
+      (apiContext) => apiContext.applicationId === this.clientApplicationId,
+    );
 
     const contexts = await Promise.all(
       filteredApiContexts.map(async (apiContext) => {

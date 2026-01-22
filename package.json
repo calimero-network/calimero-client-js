@@ -1,6 +1,6 @@
 {
   "name": "@calimero-network/calimero-client",
-  "version": "0.0.0",
+  "version": "1.25.0-beta.1",
   "description": "Javascript library to interact with Calimero P2P node",
   "type": "module",
   "main": "lib/index.js",
@@ -8,7 +8,7 @@
   "types": "lib/index.d.ts",
   "private": false,
   "dependencies": {
-    "axios": "^1.7.4",
+    "@calimero-network/mero-js": "^0.1.0",
     "jwt-decode": "^4.0.0",
     "near-api-js": "^3.0.4"
   },

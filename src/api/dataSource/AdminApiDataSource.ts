@@ -154,6 +154,8 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
       const response = await this.client.get<PackageLatestResponse>(
         this.buildUrl(`admin-api/packages/${packageName}/latest`, this.baseUrl),
       );
+      // Debug: log the raw response to see what we're getting
+      console.log('[AdminApiDataSource] getPackageLatest raw response:', JSON.stringify(response));
       return response;
     } catch (error) {
       console.error('Error fetching latest package version:', error);

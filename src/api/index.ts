@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { AxiosHttpClient, HttpClient } from './httpClient';
+import { MeroHttpClientAdapter, HttpClient } from './httpClientAdapter';
 import { NodeApi } from './nodeApi';
 import { NodeApiDataSource } from './dataSource/NodeApiDataSource';
 import { AuthApi } from './authApi';
@@ -55,12 +54,12 @@ class ApiClient {
   }
 }
 
-const apiClient = new ApiClient(new AxiosHttpClient(axios));
-const authClient = new AuthApiDataSource(new AxiosHttpClient(axios));
-const contractClient = new ContractApiDataSource(new AxiosHttpClient(axios));
-const adminClient = new AdminApiDataSource(new AxiosHttpClient(axios));
-const blobClient = new BlobApiDataSource(new AxiosHttpClient(axios));
-const rpcClient = new JsonRpcClient(new AxiosHttpClient(axios));
+const apiClient = new ApiClient(new MeroHttpClientAdapter());
+const authClient = new AuthApiDataSource(new MeroHttpClientAdapter());
+const contractClient = new ContractApiDataSource(new MeroHttpClientAdapter());
+const adminClient = new AdminApiDataSource(new MeroHttpClientAdapter());
+const blobClient = new BlobApiDataSource(new MeroHttpClientAdapter());
+const rpcClient = new JsonRpcClient(new MeroHttpClientAdapter());
 
 export type { ApiClient };
 

@@ -48,7 +48,7 @@ export interface PackageVersionsResponse {
 }
 
 export interface PackageLatestResponse {
-  application_id: string | null;
+  applicationId: string | null; // camelCase to match backend API response
 }
 
 export interface InstallApplicationRequest {
