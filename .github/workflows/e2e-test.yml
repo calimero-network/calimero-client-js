@@ -177,6 +177,11 @@ jobs:
               echo "Frontend server is ready!"
               break
             fi
+            if [ $i -eq 30 ]; then
+              echo "Frontend server failed to start. Logs:"
+              tail -50 /tmp/vite.log || true
+              exit 1
+            fi
             echo "Waiting for frontend server... ($i/30)"
             sleep 2
           done
@@ -199,10 +204,28 @@ jobs:
           fi
           # Copy test files
           mkdir -p tests/e2e
-          if [ -d "${{ github.workspace }}/tests/e2e" ]; then
-            cp -r "${{ github.workspace }}/tests/e2e"/*.spec.ts tests/e2e/ 2>/dev/null || true
+          if [ ! -d "${{ github.workspace }}/tests/e2e" ]; then
+            echo "Error: Test directory not found at ${{ github.workspace }}/tests/e2e"
+            exit 1
           fi
-          pnpm exec playwright test
+          # Copy test files and verify at least one was copied
+          TEST_COUNT=$(find "${{ github.workspace }}/tests/e2e" -name "*.spec.ts" | wc -l)
+          if [ "$TEST_COUNT" -eq 0 ]; then
+            echo "Error: No test files found in ${{ github.workspace }}/tests/e2e"
+            exit 1
+          fi
+          if ! cp "${{ github.workspace }}/tests/e2e"/*.spec.ts tests/e2e/ 2>/dev/null; then
+            echo "Error: Failed to copy test files"
+            exit 1
+          fi
+          # Verify files were copied
+          COPIED_COUNT=$(find tests/e2e -name "*.spec.ts" | wc -l)
+          if [ "$COPIED_COUNT" -eq 0 ]; then
+            echo "Error: No test files found after copy"
+            exit 1
+          fi
+          echo "Copied $COPIED_COUNT test file(s)"
+          pnpm exec playwright test --config tests/e2e/playwright.config.ts
 
       - name: Upload test results
         if: always()
@@ -220,6 +243,8 @@ jobs:
             kill $(cat /tmp/merod-pid) 2>/dev/null || true
           fi
           # Stop vite
-          kill $(cat /tmp/vite-pid) 2>/dev/null || true
+          if [ -f /tmp/vite-pid ]; then
+            kill $(cat /tmp/vite-pid) 2>/dev/null || true
+          fi
           # Cleanup node data
           rm -rf /tmp/e2e-test/node-data || true
