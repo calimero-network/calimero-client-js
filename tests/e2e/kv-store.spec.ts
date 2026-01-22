@@ -24,7 +24,9 @@ const WAIT_MEDIUM = WAIT * 2;
 const WAIT_LONG = WAIT * 3;
 
 test.describe('KV Store E2E Tests', () => {
-  test('should complete full authentication and KV store flow', async ({ page }) => {
+  test('should complete full authentication and KV store flow', async ({
+    page,
+  }) => {
     // Navigate to the app
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -35,7 +37,11 @@ test.describe('KV Store E2E Tests', () => {
     await connectButton.click();
 
     // Step 2: Wait for the modal to appear
-    const modal = page.locator('div:has-text("Calimero Connect"), div:has-text("Select your Calimero node type")').first();
+    const modal = page
+      .locator(
+        'div:has-text("Calimero Connect"), div:has-text("Select your Calimero node type")',
+      )
+      .first();
     await expect(modal).toBeVisible({ timeout: TIMEOUT_SHORT });
 
     // Step 3: Click "Remote" radio button
@@ -45,56 +51,80 @@ test.describe('KV Store E2E Tests', () => {
     await page.waitForTimeout(WAIT_SHORT); // Wait for input to appear
 
     // Step 4: Enter node URL
-    const nodeUrlInput = page.locator('input[placeholder*="your-node-url"], input[placeholder*="calimero.network"]').first();
+    const nodeUrlInput = page
+      .locator(
+        'input[placeholder*="your-node-url"], input[placeholder*="calimero.network"]',
+      )
+      .first();
     await expect(nodeUrlInput).toBeVisible({ timeout: TIMEOUT_SHORT });
     await nodeUrlInput.fill(NODE_URL);
 
     // Step 5: Click "Connect" button in modal
-    const modalConnectButton = page.locator('button.connect-button:has-text("Connect")').first();
+    const modalConnectButton = page
+      .locator('button.connect-button:has-text("Connect")')
+      .first();
     await expect(modalConnectButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await modalConnectButton.click();
-    
+
     // Step 6: Wait for redirect to auth and select "Username/Password" authentication method
     await page.waitForURL(/.*\/auth\/.*/, { timeout: TIMEOUT_MEDIUM });
     // Wait for "Choose an authentication method" text to appear
-    await page.waitForSelector('text=Choose an authentication method', { timeout: TIMEOUT_MEDIUM });
+    await page.waitForSelector('text=Choose an authentication method', {
+      timeout: TIMEOUT_MEDIUM,
+    });
     // Click on any element containing "Username/Password" text (it's clickable)
     // eslint-disable-next-line testing-library/prefer-screen-queries -- This is Playwright, not React Testing Library
     const usernamePasswordOption = page.getByText('Username/Password').first();
-    await expect(usernamePasswordOption).toBeVisible({ timeout: TIMEOUT_MEDIUM });
+    await expect(usernamePasswordOption).toBeVisible({
+      timeout: TIMEOUT_MEDIUM,
+    });
     await usernamePasswordOption.click();
     await page.waitForTimeout(WAIT_MEDIUM); // Wait for form to appear
 
     // Step 7: Enter username
-    const usernameInput = page.locator('input#username, input[name="username"]').first();
+    const usernameInput = page
+      .locator('input#username, input[name="username"]')
+      .first();
     await expect(usernameInput).toBeVisible({ timeout: TIMEOUT_MEDIUM });
     await usernameInput.fill('dev');
 
     // Step 8: Enter password
-    const passwordInput = page.locator('input#password, input[name="password"]').first();
+    const passwordInput = page
+      .locator('input#password, input[name="password"]')
+      .first();
     await expect(passwordInput).toBeVisible({ timeout: TIMEOUT_SHORT });
     await passwordInput.fill('dev');
 
     // Step 9: Click "Sign In"
-    const signInButton = page.locator('button[type="submit"]:has-text("Sign In"), button:has-text("Sign In")').first();
+    const signInButton = page
+      .locator(
+        'button[type="submit"]:has-text("Sign In"), button:has-text("Sign In")',
+      )
+      .first();
     await expect(signInButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await signInButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for redirect/processing
 
     // Step 10: Click "Install & Continue" (app installation from registry)
-    const installButton = page.locator('button:has-text("Install & Continue")').first();
+    const installButton = page
+      .locator('button:has-text("Install & Continue")')
+      .first();
     await expect(installButton).toBeVisible({ timeout: TIMEOUT_LONG });
     await installButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for installation to complete
 
     // Step 11: Click "Approve Permissions"
-    const approveButton = page.locator('button:has-text("Approve Permissions")').first();
+    const approveButton = page
+      .locator('button:has-text("Approve Permissions")')
+      .first();
     await expect(approveButton).toBeVisible({ timeout: TIMEOUT_LONG });
     await approveButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for redirect
 
     // Step 12: Click "Create new context"
-    const createContextButton = page.locator('button:has-text("Create new context")').first();
+    const createContextButton = page
+      .locator('button:has-text("Create new context")')
+      .first();
     await expect(createContextButton).toBeVisible({ timeout: TIMEOUT_MEDIUM });
     await createContextButton.click();
     await page.waitForTimeout(WAIT_MEDIUM);
@@ -106,14 +136,23 @@ test.describe('KV Store E2E Tests', () => {
     await page.waitForTimeout(WAIT_SHORT);
 
     // Step 14: Click "Create context"
-    const createButton = page.locator('button:has-text("Create context")').first();
+    const createButton = page
+      .locator('button:has-text("Create context")')
+      .first();
     await expect(createButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await createButton.click();
+    
+    // Wait for context creation to complete - this can take time in CI
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
     await page.waitForTimeout(WAIT_LONG);
 
     // Step 15: Wait for "Generate Token" button to appear and click it
-    const generateTokenButton = page.locator('button:has-text("Generate Token")').first();
-    await expect(generateTokenButton).toBeVisible({ timeout: TIMEOUT_LONG });
+    // After context creation, the page may need to reload or update
+    // Try waiting for the button with a longer timeout
+    const generateTokenButton = page
+      .locator('button:has-text("Generate Token")')
+      .first();
+    await expect(generateTokenButton).toBeVisible({ timeout: TIMEOUT_LONG * 2 }); // Double timeout for CI
     await generateTokenButton.click();
     await page.waitForTimeout(WAIT_LONG); // Wait for redirect back to app
 
@@ -130,13 +169,21 @@ test.describe('KV Store E2E Tests', () => {
     await valueInput.fill('3');
 
     // Step 19: Click "Set Entry"
-    const setEntryButton = page.locator('button[type="submit"]:has-text("Set Entry"), button:has-text("Set Entry")').first();
+    const setEntryButton = page
+      .locator(
+        'button[type="submit"]:has-text("Set Entry"), button:has-text("Set Entry")',
+      )
+      .first();
     await expect(setEntryButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await setEntryButton.click();
 
     // Step 20: Verify entry appears in the Key-Value Entries table
     // Wait for the entries table/div to show the new entry
-    const entriesContainer = page.locator('div:has-text("Key-Value Entries"), div:has-text("Key"), div:has-text("Value")').first();
+    const entriesContainer = page
+      .locator(
+        'div:has-text("Key-Value Entries"), div:has-text("Key"), div:has-text("Value")',
+      )
+      .first();
     await expect(entriesContainer).toBeVisible({ timeout: TIMEOUT_MEDIUM });
 
     // Verify the entry "3" appears in the table
