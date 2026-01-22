@@ -201,6 +201,9 @@ jobs:
           # Copy Playwright config from calimero-client-js if it exists
           if [ -f "${{ github.workspace }}/tests/e2e/playwright.config.ts" ]; then
             cp "${{ github.workspace }}/tests/e2e/playwright.config.ts" playwright.config.ts
+          else
+            echo "Error: Playwright config not found at ${{ github.workspace }}/tests/e2e/playwright.config.ts"
+            exit 1
           fi
           # Copy test files
           mkdir -p tests/e2e
@@ -225,7 +228,8 @@ jobs:
             exit 1
           fi
           echo "Copied $COPIED_COUNT test file(s)"
-          pnpm exec playwright test --config tests/e2e/playwright.config.ts
+          # Config is copied to root as playwright.config.ts, Playwright will find it automatically
+          pnpm exec playwright test
 
       - name: Upload test results
         if: always()
