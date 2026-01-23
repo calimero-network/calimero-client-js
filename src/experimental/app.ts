@@ -63,7 +63,7 @@ export class CalimeroApplication implements CalimeroApp {
       throw new Error('No contexts data returned from API');
     }
 
-    const filteredApiContexts = contextsResponse.data.contexts.filter(
+    const filteredApiContexts = contextsResponse.data.data.contexts.filter(
       (apiContext) => apiContext.applicationId === this.clientApplicationId,
     );
 
@@ -81,7 +81,7 @@ export class CalimeroApplication implements CalimeroApp {
 
         return {
           contextId: apiContext.id,
-          executorId: identitiesResponse.data.identities[0], // Assuming the first identity is the executor
+          executorId: identitiesResponse.data.data.identities[0], // Assuming the first identity is the executor
           applicationId: apiContext.applicationId,
         };
       }),

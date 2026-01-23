@@ -24,11 +24,15 @@ export interface Context {
 }
 
 export interface GetContextsResponse {
-  contexts: Context[];
+  data: {
+    contexts: Context[];
+  };
 }
 
 export interface FetchContextIdentitiesResponse {
-  identities: string[];
+  data: {
+    identities: string[];
+  };
 }
 
 export interface NodeIdentity {

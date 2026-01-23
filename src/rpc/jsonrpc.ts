@@ -7,8 +7,8 @@ import {
   RpcResult,
   RpcError,
 } from '../types/rpc';
-import { HttpClient } from '@calimero-network/mero-js';
-import { withResponseData, mergeHeaders } from '../api/http-utils';
+import { HttpClient, HTTPError } from '@calimero-network/mero-js';
+import { mergeHeaders } from '../api/http-utils';
 import { getAppEndpointKey } from '../storage';
 
 type JsonRpcVersion = '2.0';
@@ -45,11 +45,11 @@ type DataType = {
 };
 
 interface ErrorData {
-  data: {
-    data: string | DataType;
-    type: string;
-  };
   type: string;
+  data?: string | DataType | {
+    data?: string | DataType;
+    type?: string;
+  };
 }
 
 interface JsonRpcResponse<Result> {
@@ -187,20 +187,18 @@ export class JsonRpcClient implements RpcClient {
     };
     const baseUrl = getAppEndpointKey();
     try {
-      const response = await withResponseData(() =>
-        this.httpClient.post<JsonRpcResponse<Result>>(
-          new URL(this.path, baseUrl).toString(),
-          data,
-          {
-            headers: config?.headers
-              ? mergeHeaders([config.headers])
-              : undefined,
-          },
-        ),
+      // JSON-RPC returns the response directly (not wrapped like admin API)
+      const jsonRpcResponse = await this.httpClient.post<JsonRpcResponse<Result>>(
+        new URL(this.path, baseUrl).toString(),
+        data,
+        {
+          headers: config?.headers
+            ? mergeHeaders([config.headers])
+            : undefined,
+        },
       );
 
-      if (!response.error) {
-        const jsonRpcResponse = response.data;
+      if (jsonRpcResponse) {
         if (jsonRpcResponse.id !== requestId) {
           const error = {
             code: 400,
@@ -221,24 +219,36 @@ export class JsonRpcClient implements RpcClient {
         }
 
         if (jsonRpcResponse.error) {
-          let messageData = jsonRpcResponse.error.data;
+          const errorObj = jsonRpcResponse.error;
+          let messageData = errorObj?.data;
           let errorMessage = '';
+          const errorType = errorObj?.type || 'UnknownServerError';
+          
           if (typeof messageData === 'string') {
             errorMessage = messageData;
+          } else if (messageData && typeof messageData === 'object' && 'type' in messageData) {
+            // Safely access type property
+            const typeValue = (messageData as any).type;
+            errorMessage = typeof typeValue === 'string' ? typeValue : errorType;
           } else {
-            errorMessage = messageData.type;
+            // For InternalError and other errors without detailed messages,
+            // provide a more helpful message
+            if (errorType === 'InternalError') {
+              errorMessage = 'Internal server error occurred. Please check server logs for details.';
+            } else {
+              errorMessage = errorType;
+            }
           }
+          
           const error = {
             code: 400,
             id: jsonRpcResponse.id,
             jsonrpc: jsonRpcResponse.jsonrpc,
             headers: {},
             error: {
-              name: jsonRpcResponse.error.type,
+              name: errorType,
               cause: {
-                name:
-                  jsonRpcResponse.error.data?.type ??
-                  jsonRpcResponse.error.type,
+                name: errorType,
                 info: {
                   message: errorMessage,
                 },
@@ -252,19 +262,18 @@ export class JsonRpcClient implements RpcClient {
           result: jsonRpcResponse.result,
         };
       } else {
+        // Handle cases where jsonRpcResponse itself is null/undefined (e.g., network error before JSON parsing)
         const rpcError = {
           id: requestId,
           jsonrpc: '2.0',
-          code: response.error.code ?? 500,
+          code: 500,
           headers: {},
           error: {
             name: 'UnknownServerError',
             cause: {
               name: 'UnknownServerError',
               info: {
-                message:
-                  response.error.message ??
-                  'Server Error: Something went wrong. Please try again.',
+                message: 'Network Error or Empty Response. Verify that the node server is running.',
               },
             },
           },
@@ -275,19 +284,22 @@ export class JsonRpcClient implements RpcClient {
       const rpcError = {
         id: requestId,
         jsonrpc: '2.0',
-        code: error?.response?.status ?? 500,
-        headers: Object.fromEntries(
-          Object.entries(error?.response?.headers || {}).map(([key, value]) => [
-            key,
-            String(value),
-          ]),
-        ),
+        code: error instanceof HTTPError ? error.status : 500,
+        headers: error instanceof HTTPError 
+          ? (() => {
+              const headers: Record<string, string> = {};
+              error.headers.forEach((value, key) => {
+                headers[key] = value;
+              });
+              return headers;
+            })()
+          : {},
         error: {
           name: 'UnknownServerError',
           cause: {
             name: 'UnknownServerError',
             info: {
-              message: `${error.message ?? error?.response?.data}.\n Verify that the node server is running.`,
+              message: `${error.message ?? 'Unknown error'}.\n Verify that the node server is running.`,
             },
           },
         },

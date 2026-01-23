@@ -103,23 +103,53 @@ test.describe('KV Store E2E Tests', () => {
       .first();
     await expect(signInButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await signInButton.click();
-    await page.waitForTimeout(WAIT_LONG); // Wait for redirect/processing
+    
+    // Wait for page to be fully loaded after sign-in
+    // The page might redirect back to app or stay on auth service
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
+    await page.waitForTimeout(WAIT_MEDIUM); // Additional wait for processing
 
-    // Step 10: Click "Install & Continue" (app installation from registry)
-    const installButton = page
+    // Step 10: Follow the auth flow with multiple button clicks
+    // Flow: "Install & Continue" → "Continue to App" → (optional second "Install & Continue") → "Approve Permissions"
+    
+    // Step 10a: First "Install & Continue" button
+    const firstInstallButton = page
       .locator('button:has-text("Install & Continue")')
       .first();
-    await expect(installButton).toBeVisible({ timeout: TIMEOUT_LONG });
-    await installButton.click();
-    await page.waitForTimeout(WAIT_LONG); // Wait for installation to complete
+    await firstInstallButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
+    await firstInstallButton.click();
+    await page.waitForTimeout(WAIT_MEDIUM);
+    
+    // Step 10b: "Continue to App" button
+    const continueToAppButton = page
+      .locator('button:has-text("Continue to App")')
+      .first();
+    await continueToAppButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
+    await continueToAppButton.click();
+    await page.waitForTimeout(WAIT_MEDIUM);
+    
+    // Step 10c: Second "Install & Continue" button (might not appear if app is already installed)
+    const secondInstallButton = page
+      .locator('button:has-text("Install & Continue")')
+      .first();
+    
+    const secondInstallCount = await secondInstallButton.count();
+    if (secondInstallCount > 0) {
+      await secondInstallButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
+      await secondInstallButton.click();
+      await page.waitForTimeout(WAIT_MEDIUM);
+    }
+    
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
+    await page.waitForTimeout(WAIT_MEDIUM);
 
-    // Step 11: Click "Approve Permissions"
+    // Step 10d: "Approve Permissions" button
     const approveButton = page
       .locator('button:has-text("Approve Permissions")')
       .first();
-    await expect(approveButton).toBeVisible({ timeout: TIMEOUT_LONG });
+    await approveButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
     await approveButton.click();
-    await page.waitForTimeout(WAIT_LONG); // Wait for redirect
+    await page.waitForTimeout(WAIT_LONG); // Wait for permissions to be processed
 
     // Step 12: Click "Create new context"
     const createContextButton = page

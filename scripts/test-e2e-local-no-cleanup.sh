@@ -29,7 +29,7 @@ cleanup() {
   echo -e "${GREEN}Cleanup complete${NC}"
 }
 
-trap cleanup EXIT
+# trap cleanup EXIT  # DISABLED - leave servers running
 
 # Check prerequisites
 echo -e "${GREEN}Checking prerequisites...${NC}"
@@ -89,7 +89,7 @@ case "$ARCH" in
 esac
 
 # Use RC release version
-VERSION="0.10.0-rc.36"
+VERSION="0.10.0-rc.33"
 echo -e "${YELLOW}Using merod RC version: $VERSION${NC}"
 
 DOWNLOAD_URL="https://github.com/calimero-network/core/releases/download/$VERSION/$ASSET_NAME"
@@ -221,8 +221,8 @@ pnpm exec playwright test || TEST_RESULT=$?
 
 echo -e "${GREEN}E2E test complete!${NC}"
 
-# Cleanup after tests
-cleanup
+echo "SERVERS LEFT RUNNING - Merod PID: $MEROD_PID, Vite PID: $VITE_PID"
+echo "Skipping cleanup - servers left running"
 
 # Exit with test result code
 exit $TEST_RESULT

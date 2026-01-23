@@ -112,7 +112,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         return;
       }
 
-      updateState({ contexts: response.data?.contexts, isLoading: false });
+      updateState({ contexts: response.data?.data?.contexts, isLoading: false });
     } catch (error) {
       updateState({
         errorMessage: 'Failed to fetch contexts',
@@ -133,7 +133,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         return;
       }
 
-      updateState({ contextIdentities: response.data.identities });
+      updateState({ contextIdentities: response.data.data.identities });
     } catch (error) {
       updateState({ errorMessage: 'Failed to fetch context identities' });
     }
