@@ -103,47 +103,28 @@ test.describe('KV Store E2E Tests', () => {
       .first();
     await expect(signInButton).toBeVisible({ timeout: TIMEOUT_SHORT });
     await signInButton.click();
-    
+
     // Wait for page to be fully loaded after sign-in
     // The page might redirect back to app or stay on auth service
     await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
     await page.waitForTimeout(WAIT_MEDIUM); // Additional wait for processing
 
     // Step 10: Follow the auth flow with multiple button clicks
-    // Flow: "Install & Continue" → "Continue to App" → (optional second "Install & Continue") → "Approve Permissions"
-    
-    // Step 10a: First "Install & Continue" button
-    const firstInstallButton = page
-      .locator('button:has-text("Install & Continue")')
-      .first();
-    await firstInstallButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
-    await firstInstallButton.click();
-    await page.waitForTimeout(WAIT_MEDIUM);
-    
-    // Step 10b: "Continue to App" button
-    const continueToAppButton = page
-      .locator('button:has-text("Continue to App")')
-      .first();
-    await continueToAppButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
-    await continueToAppButton.click();
-    await page.waitForTimeout(WAIT_MEDIUM);
-    
-    // Step 10c: Second "Install & Continue" button (might not appear if app is already installed)
-    const secondInstallButton = page
-      .locator('button:has-text("Install & Continue")')
-      .first();
-    
-    const secondInstallCount = await secondInstallButton.count();
-    if (secondInstallCount > 0) {
-      await secondInstallButton.waitFor({ state: 'visible', timeout: TIMEOUT_LONG });
-      await secondInstallButton.click();
-      await page.waitForTimeout(WAIT_MEDIUM);
-    }
-    
-    await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
-    await page.waitForTimeout(WAIT_MEDIUM);
+    // Flow: "Install & Continue" → "Approve Permissions"
 
-    // Step 10d: "Approve Permissions" button
+    // Step 10a: "Install & Continue" button
+    const installButton = page
+      .locator('button:has-text("Install & Continue")')
+      .first();
+    await installButton.waitFor({
+      state: 'visible',
+      timeout: TIMEOUT_LONG,
+    });
+    await installButton.click();
+    await page.waitForTimeout(WAIT_MEDIUM);
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT_LONG });
+
+    // Step 10b: "Approve Permissions" button
     const approveButton = page
       .locator('button:has-text("Approve Permissions")')
       .first();
