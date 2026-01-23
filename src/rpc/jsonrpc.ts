@@ -7,7 +7,8 @@ import {
   RpcResult,
   RpcError,
 } from '../types/rpc';
-import { HttpClient } from '../api/httpClient';
+import { HttpClient } from '@calimero-network/mero-js';
+import { withResponseData, mergeHeaders } from '../api/http-utils';
 import { getAppEndpointKey } from '../storage';
 
 type JsonRpcVersion = '2.0';
@@ -186,11 +187,16 @@ export class JsonRpcClient implements RpcClient {
     };
     const baseUrl = getAppEndpointKey();
     try {
-      const response = await this.httpClient.post<JsonRpcResponse<Result>>(
-        new URL(this.path, baseUrl).toString(),
-        data,
-        config?.headers ? [config.headers] : undefined,
-        true, // Set isJsonRpc flag to true
+      const response = await withResponseData(() =>
+        this.httpClient.post<JsonRpcResponse<Result>>(
+          new URL(this.path, baseUrl).toString(),
+          data,
+          {
+            headers: config?.headers
+              ? mergeHeaders([config.headers])
+              : undefined,
+          },
+        ),
       );
 
       if (!response.error) {

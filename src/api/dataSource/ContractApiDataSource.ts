@@ -1,5 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
-import { HttpClient } from '../httpClient';
+import { HttpClient } from '@calimero-network/mero-js';
+import { withResponseData } from '../http-utils';
 import {
   ContextStorageEntry,
   ContractApi,
@@ -34,110 +35,80 @@ export class ContractApiDataSource
   }
 
   async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
-    try {
-      return await this.client.post<Proposal[]>(
+    return withResponseData(() =>
+      this.client.post<Proposal[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals`,
           this.baseUrl,
         ),
         request,
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
-    try {
-      return await this.client.get<string[]>(
+    return withResponseData(() =>
+      this.client.get<string[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
           this.baseUrl,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalApprovalCount(
     proposalId: string,
   ): ApiResponse<ProposalApprovalCount> {
-    try {
-      return await this.client.get<ProposalApprovalCount>(
+    return withResponseData(() =>
+      this.client.get<ProposalApprovalCount>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
           this.baseUrl,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getNumOfProposals(): ApiResponse<number> {
-    try {
-      return await this.client.get<number>(
+    return withResponseData(() =>
+      this.client.get<number>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/count`,
           this.baseUrl,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
-    try {
-      return await this.client.get<Proposal>(
+    return withResponseData(() =>
+      this.client.get<Proposal>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
           this.baseUrl,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getContextValue(key: string): ApiResponse<StorageEntry> {
-    try {
-      return await this.client.post<StorageEntry>(
+    return withResponseData(() =>
+      this.client.post<StorageEntry>(
         this.buildUrl(`admin-api/contexts/${this.contextId}`, this.baseUrl),
         {
           key,
         },
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getContextStorageEntries(
     offset: number,
     limit: number,
   ): ApiResponse<ContextStorageEntry[]> {
-    try {
-      return await this.client.post<ContextStorageEntry[]>(
+    return withResponseData(() =>
+      this.client.post<ContextStorageEntry[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
           this.baseUrl,
@@ -146,12 +117,7 @@ export class ContractApiDataSource
           offset,
           limit,
         },
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 }

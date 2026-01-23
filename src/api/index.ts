@@ -1,4 +1,13 @@
-import { MeroHttpClientAdapter, HttpClient } from './httpClientAdapter';
+import { createBrowserHttpClient, HttpClient } from '@calimero-network/mero-js';
+import {
+  getAppEndpointKey,
+  getAccessToken,
+  setAccessToken,
+  getRefreshToken,
+  setRefreshToken,
+  getAuthEndpointURL,
+} from '../storage';
+import { RefreshTokenResponse } from './authApi';
 import { NodeApi } from './nodeApi';
 import { NodeApiDataSource } from './dataSource/NodeApiDataSource';
 import { AuthApi } from './authApi';
@@ -54,12 +63,62 @@ class ApiClient {
   }
 }
 
-const apiClient = new ApiClient(new MeroHttpClientAdapter());
-const authClient = new AuthApiDataSource(new MeroHttpClientAdapter());
-const contractClient = new ContractApiDataSource(new MeroHttpClientAdapter());
-const adminClient = new AdminApiDataSource(new MeroHttpClientAdapter());
-const blobClient = new BlobApiDataSource(new MeroHttpClientAdapter());
-const rpcClient = new JsonRpcClient(new MeroHttpClientAdapter());
+// Create mero-js HTTP client with token support and automatic refresh
+const httpClient = createBrowserHttpClient({
+  baseUrl: getAppEndpointKey() || 'http://localhost',
+  getAuthToken: async () => {
+    const token = getAccessToken();
+    return token || undefined;
+  },
+  onTokenRefresh: async (newToken: string) => {
+    setAccessToken(newToken);
+  },
+  refreshToken: async (): Promise<string> => {
+    // This is called automatically by mero-js when a 401 with 'token_expired' is detected
+    const refreshTokenValue = getRefreshToken();
+    const accessToken = getAccessToken();
+
+    if (!refreshTokenValue || !accessToken) {
+      throw new Error('Missing tokens for refresh');
+    }
+
+    const authEndpoint = getAuthEndpointURL();
+    if (!authEndpoint) {
+      throw new Error('Auth endpoint not configured');
+    }
+
+    // Create a temporary client for refresh (avoid circular dependency)
+    const { createBrowserHttpClient: createRefreshClient } = await import(
+      '@calimero-network/mero-js'
+    );
+    const refreshClient = createRefreshClient({
+      baseUrl: authEndpoint,
+    });
+
+    const refreshUrl = new URL('auth/refresh', authEndpoint).toString();
+    const response = await refreshClient.post<RefreshTokenResponse>(
+      refreshUrl,
+      {
+        access_token: accessToken,
+        refresh_token: refreshTokenValue,
+      },
+    );
+
+    // Update stored tokens
+    setAccessToken(response.access_token);
+    setRefreshToken(response.refresh_token);
+
+    // Return the new access token
+    return response.access_token;
+  },
+});
+
+const apiClient = new ApiClient(httpClient);
+const authClient = new AuthApiDataSource(httpClient);
+const contractClient = new ContractApiDataSource(httpClient);
+const adminClient = new AdminApiDataSource(httpClient);
+const blobClient = new BlobApiDataSource(httpClient);
+const rpcClient = new JsonRpcClient(httpClient);
 
 export type { ApiClient };
 

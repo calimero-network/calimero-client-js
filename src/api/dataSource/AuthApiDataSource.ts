@@ -1,5 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
-import { HttpClient } from '../httpClient';
+import { HttpClient } from '@calimero-network/mero-js';
+import { withResponseData } from '../http-utils';
 import {
   AuthApi,
   LoginRequest,
@@ -80,97 +81,56 @@ export class AuthApiDataSource extends BaseApiDataSource implements AuthApi {
   async refreshToken(
     request: RefreshTokenRequest,
   ): ApiResponse<RefreshTokenResponse> {
-    try {
-      const response = await this.client.post<RefreshTokenResponse>(
+    return withResponseData(() =>
+      this.client.post<RefreshTokenResponse>(
         this.buildUrl('auth/refresh', this.baseUrl),
         request,
-      );
-      return response;
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      return {
-        error: {
-          code: 500,
-          message: 'Token refresh failed. Please try again.',
-        },
-      };
-    }
+      ),
+    );
   }
 
   async getProviders(): ApiResponse<ProvidersResponse> {
-    try {
-      const response = await this.client.get<ProvidersResponse>(
+    return withResponseData(() =>
+      this.client.get<ProvidersResponse>(
         this.buildUrl('auth/providers', this.baseUrl),
-      );
-      return response;
-    } catch (error) {
-      console.error('Error getting providers:', error);
-      return { error: { code: 500, message: 'Failed to get providers.' } };
-    }
+      ),
+    );
   }
 
   async requestToken(
     requestBody: BaseTokenRequest,
   ): ApiResponse<TokenResponse> {
-    try {
-      const response = await this.client.post<TokenResponse>(
+    return withResponseData(() =>
+      this.client.post<TokenResponse>(
         this.buildUrl('auth/token', this.baseUrl),
         requestBody,
-      );
-      return response;
-    } catch (error) {
-      console.error('Error requesting token:', error);
-      return {
-        error: {
-          code: 500,
-          message: 'Token request failed. Please try again.',
-        },
-      };
-    }
+      ),
+    );
   }
 
   async getChallenge(): ApiResponse<ChallengeResponse> {
-    try {
-      const response = await this.client.get<ChallengeResponse>(
+    return withResponseData(() =>
+      this.client.get<ChallengeResponse>(
         this.buildUrl('auth/challenge', this.baseUrl),
-      );
-      return response;
-    } catch (error) {
-      console.error('Error getting challenge:', error);
-      return { error: { code: 500, message: 'Failed to get challenge.' } };
-    }
+      ),
+    );
   }
 
   async generateClientKey(
     request: GenerateClientKeyRequest,
   ): ApiResponse<TokenResponse> {
-    try {
-      // admin/client-key is an auth service endpoint accessible through the node URL
-      // With merobox auth-service, it's proxied through Traefik at the node URL
-      const nodeBaseUrl = getAppEndpointKey();
-      if (!nodeBaseUrl) {
-        return {
-          error: {
-            code: 400,
-            message:
-              'Node URL not configured. Please set the app endpoint key.',
-          },
-        };
-      }
-      const url = this.buildUrl('admin/client-key', nodeBaseUrl);
-      const response = await this.client.post<TokenResponse>(url, request);
-      return response;
-    } catch (error) {
-      console.error('[AuthApiDataSource] Error generating client key:', error);
+    const nodeBaseUrl = getAppEndpointKey();
+    if (!nodeBaseUrl) {
       return {
         error: {
-          code: 500,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to generate client key.',
+          code: 400,
+          message: 'Node URL not configured. Please set the app endpoint key.',
         },
       };
     }
+    const url = this.buildUrl('admin/client-key', nodeBaseUrl);
+    return withResponseData(() =>
+      this.client.post<TokenResponse>(url, request),
+    );
   }
 }
