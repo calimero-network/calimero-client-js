@@ -195,13 +195,15 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           );
         }
 
+        // Strip hash fragment from callback URL - auth service will add tokens to hash
+        const callbackUrlWithoutHash = window.location.href.split('#')[0];
         try {
           sessionStorage.setItem(
             'calimero-auth-params',
             JSON.stringify({
               'application-id': clientApplicationId,
               'application-path': applicationPath,
-              'callback-url': window.location.href,
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               timestamp: Date.now(),

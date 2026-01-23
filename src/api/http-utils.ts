@@ -22,7 +22,7 @@ export async function withResponseData<T>(
       // Handle 401 Unauthorized - mero-js already handled token_expired automatically
       if (error.status === 401) {
         const authError = error.headers.get('x-auth-error');
-        const errorMessage = error.bodyText || 'Unauthorized';
+        const bodyText = error.bodyText;
 
         switch (authError) {
           case 'missing_token':
@@ -30,7 +30,7 @@ export async function withResponseData<T>(
               data: null,
               error: {
                 code: 401,
-                message: errorMessage || 'No access token found.',
+                message: bodyText || 'No access token found.',
               },
             };
           case 'token_expired':
@@ -41,8 +41,7 @@ export async function withResponseData<T>(
               data: null,
               error: {
                 code: 401,
-                message:
-                  errorMessage || 'Session expired. Please log in again.',
+                message: bodyText || 'Session expired. Please log in again.',
               },
             };
           case 'token_revoked':
@@ -51,7 +50,7 @@ export async function withResponseData<T>(
               data: null,
               error: {
                 code: 401,
-                message: errorMessage || 'Token has been revoked.',
+                message: bodyText || 'Token has been revoked.',
               },
             };
           default:
@@ -59,7 +58,7 @@ export async function withResponseData<T>(
               data: null,
               error: {
                 code: error.status,
-                message: errorMessage || error.statusText || 'Request failed',
+                message: bodyText || error.statusText || 'Unauthorized',
               },
             };
         }

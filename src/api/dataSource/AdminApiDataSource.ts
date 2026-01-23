@@ -29,16 +29,34 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
     return getAuthEndpointURL();
   }
 
+  private validateBaseUrl(): ApiResponse<never> | null {
+    if (!this.baseUrl) {
+      return Promise.resolve({
+        data: null,
+        error: {
+          code: 400,
+          message:
+            'Auth endpoint URL not configured. Please set the auth endpoint.',
+        },
+      });
+    }
+    return null;
+  }
+
   async getRootKeys(): ApiResponse<RootKey[]> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
-      this.client.get<RootKey[]>(this.buildUrl('admin/keys', this.baseUrl)),
+      this.client.get<RootKey[]>(this.buildUrl('admin/keys', this.baseUrl!)),
     );
   }
 
   async getClientKeys(): ApiResponse<ClientKey[]> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<ClientKey[]>(
-        this.buildUrl('admin/keys/clients', this.baseUrl),
+        this.buildUrl('admin/keys/clients', this.baseUrl!),
       ),
     );
   }
@@ -46,18 +64,22 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async addRootKey(
     rootKeyRequest: RootKeyRequest,
   ): ApiResponse<RootKeyResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.post<RootKeyResponse>(
-        this.buildUrl('admin/keys', this.baseUrl),
+        this.buildUrl('admin/keys', this.baseUrl!),
         rootKeyRequest,
       ),
     );
   }
 
   async revokeRootKey(keyId: string): ApiResponse<RootKeyResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.delete<RootKeyResponse>(
-        this.buildUrl(`admin/keys/${keyId}`, this.baseUrl),
+        this.buildUrl(`admin/keys/${keyId}`, this.baseUrl!),
       ),
     );
   }
@@ -66,11 +88,13 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
     rootKeyId: string,
     clientId: string,
   ): ApiResponse<RootKeyResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.delete<RootKeyResponse>(
         this.buildUrl(
           `admin/keys/${rootKeyId}/clients/${clientId}`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
@@ -80,9 +104,11 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
     keyId: string,
     request: UpdateKeyPermissionsRequest,
   ): ApiResponse<PermissionResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.put<PermissionResponse>(
-        this.buildUrl(`admin/keys/${keyId}/permissions`, this.baseUrl),
+        this.buildUrl(`admin/keys/${keyId}/permissions`, this.baseUrl!),
         request,
       ),
     );
@@ -90,9 +116,11 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
 
   // Package Management Methods
   async getPackages(): ApiResponse<PackageListResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<PackageListResponse>(
-        this.buildUrl('admin-api/packages', this.baseUrl),
+        this.buildUrl('admin-api/packages', this.baseUrl!),
       ),
     );
   }
@@ -100,11 +128,13 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async getPackageVersions(
     packageName: string,
   ): ApiResponse<PackageVersionsResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<PackageVersionsResponse>(
         this.buildUrl(
           `admin-api/packages/${packageName}/versions`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
@@ -113,9 +143,14 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async getPackageLatest(
     packageName: string,
   ): ApiResponse<PackageLatestResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<PackageLatestResponse>(
-        this.buildUrl(`admin-api/packages/${packageName}/latest`, this.baseUrl),
+        this.buildUrl(
+          `admin-api/packages/${packageName}/latest`,
+          this.baseUrl!,
+        ),
       ),
     );
   }
@@ -123,9 +158,11 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async installApplication(
     request: InstallApplicationRequest,
   ): ApiResponse<InstallApplicationResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.post<InstallApplicationResponse>(
-        this.buildUrl('admin-api/install-application', this.baseUrl),
+        this.buildUrl('admin-api/install-application', this.baseUrl!),
         request,
       ),
     );
@@ -135,11 +172,13 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async getContextsForApplication(
     applicationId: string,
   ): ApiResponse<ContextsResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<ContextsResponse>(
         this.buildUrl(
           `admin-api/contexts/for-application/${applicationId}`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
@@ -148,11 +187,13 @@ export class AdminApiDataSource extends BaseApiDataSource implements AdminApi {
   async getContextsWithExecutorsForApplication(
     applicationId: string,
   ): ApiResponse<ContextsWithExecutorsResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<ContextsWithExecutorsResponse>(
         this.buildUrl(
           `admin-api/contexts/with-executors/for-application/${applicationId}`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );

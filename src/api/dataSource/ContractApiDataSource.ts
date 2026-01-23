@@ -24,6 +24,19 @@ export class ContractApiDataSource
     return getAppEndpointKey();
   }
 
+  private validateBaseUrl(): ApiResponse<never> | null {
+    if (!this.baseUrl) {
+      return Promise.resolve({
+        data: null,
+        error: {
+          code: 400,
+          message: 'Node URL not configured. Please set the app endpoint key.',
+        },
+      });
+    }
+    return null;
+  }
+
   private get contextId(): string {
     const id = getContextId();
     if (!id) {
@@ -35,11 +48,13 @@ export class ContractApiDataSource
   }
 
   async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.post<Proposal[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
         request,
       ),
@@ -47,11 +62,13 @@ export class ContractApiDataSource
   }
 
   async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<string[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
@@ -60,42 +77,50 @@ export class ContractApiDataSource
   async getProposalApprovalCount(
     proposalId: string,
   ): ApiResponse<ProposalApprovalCount> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<ProposalApprovalCount>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
   }
 
   async getNumOfProposals(): ApiResponse<number> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<number>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/count`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
   }
 
   async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.get<Proposal>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
       ),
     );
   }
 
   async getContextValue(key: string): ApiResponse<StorageEntry> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.post<StorageEntry>(
-        this.buildUrl(`admin-api/contexts/${this.contextId}`, this.baseUrl),
+        this.buildUrl(`admin-api/contexts/${this.contextId}`, this.baseUrl!),
         {
           key,
         },
@@ -107,11 +132,13 @@ export class ContractApiDataSource
     offset: number,
     limit: number,
   ): ApiResponse<ContextStorageEntry[]> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.post<ContextStorageEntry[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
         {
           offset,

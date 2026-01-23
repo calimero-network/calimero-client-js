@@ -21,14 +21,29 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
     return getAppEndpointKey();
   }
 
+  private validateBaseUrl(): ApiResponse<never> | null {
+    if (!this.baseUrl) {
+      return Promise.resolve({
+        data: null,
+        error: {
+          code: 400,
+          message: 'Node URL not configured. Please set the app endpoint key.',
+        },
+      });
+    }
+    return null;
+  }
+
   async uploadBlob(
     file: File,
     onProgress?: (progress: number) => void,
     expectedHash?: string,
   ): ApiResponse<BlobUploadResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     const fileArrayBuffer = await file.arrayBuffer();
 
-    let url = this.buildUrl('admin-api/blobs', this.baseUrl).toString();
+    let url = this.buildUrl('admin-api/blobs', this.baseUrl!).toString();
     const params = new URLSearchParams();
     if (expectedHash) {
       params.append('hash', expectedHash);
@@ -64,6 +79,11 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
   }
 
   async downloadBlob(blobId: string, contextId: string): Promise<Blob> {
+    if (!this.baseUrl) {
+      throw new Error(
+        'Node URL not configured. Please set the app endpoint key.',
+      );
+    }
     let url = this.buildUrl(
       `admin-api/blobs/${blobId}`,
       this.baseUrl,
@@ -83,9 +103,11 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
   }
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     const response = await withResponseData(() =>
       this.client.head(
-        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl!),
       ),
     );
 
@@ -115,9 +137,11 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
   }
 
   async listBlobs(): ApiResponse<BlobListResponseData> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     const response = await withResponseData(() =>
       this.client.get<RawBlobListResponseData>(
-        this.buildUrl('admin-api/blobs', this.baseUrl),
+        this.buildUrl('admin-api/blobs', this.baseUrl!),
       ),
     );
 
@@ -143,9 +167,11 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
   }
 
   async deleteBlob(blobId: string): ApiResponse<void> {
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
     return withResponseData(() =>
       this.client.delete<void>(
-        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl!),
       ),
     );
   }

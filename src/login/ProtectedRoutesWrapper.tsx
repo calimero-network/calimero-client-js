@@ -250,27 +250,41 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
 
     if (encodedAccessToken && encodedRefreshToken) {
       // Initialize application with tokens and optional applicationId
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setContextAndIdentityFromJWT(accessToken);
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setContextAndIdentityFromJWT(accessToken);
 
-      initializeApplication(
-        accessToken,
-        refreshToken,
-        applicationId || undefined,
-      );
+        initializeApplication(
+          accessToken,
+          refreshToken,
+          applicationId || undefined,
+        );
 
-      // Clean up URL by removing only our auth tokens (keep user's hash params intact)
-      fragmentParams.delete('access_token');
-      fragmentParams.delete('refresh_token');
-      fragmentParams.delete('application_id');
-      const newFragment = fragmentParams.toString();
-      const newUrl =
-        window.location.pathname +
-        window.location.search +
-        (newFragment ? `#${newFragment}` : '');
-      window.history.replaceState({}, '', newUrl);
-      setIsAuthenticated(true);
+        // Clean up URL by removing only our auth tokens (keep user's hash params intact)
+        fragmentParams.delete('access_token');
+        fragmentParams.delete('refresh_token');
+        fragmentParams.delete('application_id');
+        const newFragment = fragmentParams.toString();
+        const newUrl =
+          window.location.pathname +
+          window.location.search +
+          (newFragment ? `#${newFragment}` : '');
+        window.history.replaceState({}, '', newUrl);
+        setIsAuthenticated(true);
+      } catch (error) {
+        // Handle malformed percent-encoding in URL tokens
+        console.error(
+          '[ProtectedRoutesWrapper] Failed to decode tokens from URL fragment:',
+          error,
+        );
+        // Clear the malformed tokens from URL to prevent retry loops
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.hash = '';
+        window.history.replaceState({}, '', cleanUrl.toString());
+        // Don't set tokens, let user retry authentication
+        return;
+      }
       setIsInitialized(true);
     } else {
       checkAuth();
