@@ -286,10 +286,24 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     const applicationId = fragmentParams.get('application_id');
 
     if (encodedAccessToken && encodedRefreshToken) {
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+      } catch (error) {
+        // Handle malformed percent-encoding in URL tokens
+        console.error(
+          '[CalimeroProvider] Failed to decode tokens from URL fragment:',
+          error,
+        );
+        // Clear the malformed tokens from URL to prevent retry loops
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.hash = '';
+        window.history.replaceState({}, '', cleanUrl.toString());
+        // Don't set tokens, let user retry authentication
+        return;
+      }
 
       // Store resolved application ID from auth callback
       if (applicationId) {

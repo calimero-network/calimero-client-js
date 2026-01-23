@@ -112,7 +112,10 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         return;
       }
 
-      updateState({ contexts: response.data?.data?.contexts, isLoading: false });
+      updateState({
+        contexts: response.data?.data?.contexts,
+        isLoading: false,
+      });
     } catch (error) {
       updateState({
         errorMessage: 'Failed to fetch contexts',

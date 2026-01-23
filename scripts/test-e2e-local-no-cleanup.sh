@@ -89,7 +89,7 @@ case "$ARCH" in
 esac
 
 # Use RC release version
-VERSION="0.10.0-rc.33"
+VERSION="0.10.0-rc.36"
 echo -e "${YELLOW}Using merod RC version: $VERSION${NC}"
 
 DOWNLOAD_URL="https://github.com/calimero-network/core/releases/download/$VERSION/$ASSET_NAME"

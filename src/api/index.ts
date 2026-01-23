@@ -6,6 +6,8 @@ import {
   getRefreshToken,
   setRefreshToken,
   getAuthEndpointURL,
+  clearAccessToken,
+  clearRefreshToken,
 } from '../storage';
 import { RefreshTokenResponse } from './authApi';
 import { NodeApi } from './nodeApi';
@@ -79,6 +81,9 @@ const httpClient = createBrowserHttpClient({
     const accessToken = getAccessToken();
 
     if (!refreshTokenValue || !accessToken) {
+      // Clear tokens if they're missing to prevent retry loops
+      clearAccessToken();
+      clearRefreshToken();
       throw new Error('Missing tokens for refresh');
     }
 
@@ -87,29 +92,38 @@ const httpClient = createBrowserHttpClient({
       throw new Error('Auth endpoint not configured');
     }
 
-    // Create a temporary client for refresh (avoid circular dependency)
-    const { createBrowserHttpClient: createRefreshClient } = await import(
-      '@calimero-network/mero-js'
-    );
-    const refreshClient = createRefreshClient({
-      baseUrl: authEndpoint,
-    });
+    try {
+      // Create a temporary client for refresh (avoid circular dependency)
+      const { createBrowserHttpClient: createRefreshClient } = await import(
+        '@calimero-network/mero-js'
+      );
+      const refreshClient = createRefreshClient({
+        baseUrl: authEndpoint,
+      });
 
-    const refreshUrl = new URL('auth/refresh', authEndpoint).toString();
-    const response = await refreshClient.post<RefreshTokenResponse>(
-      refreshUrl,
-      {
-        access_token: accessToken,
-        refresh_token: refreshTokenValue,
-      },
-    );
+      const refreshUrl = new URL('auth/refresh', authEndpoint).toString();
+      const response = await refreshClient.post<RefreshTokenResponse>(
+        refreshUrl,
+        {
+          access_token: accessToken,
+          refresh_token: refreshTokenValue,
+        },
+      );
 
-    // Update stored tokens
-    setAccessToken(response.access_token);
-    setRefreshToken(response.refresh_token);
+      // Update stored tokens
+      setAccessToken(response.access_token);
+      setRefreshToken(response.refresh_token);
 
-    // Return the new access token
-    return response.access_token;
+      // Return the new access token
+      return response.access_token;
+    } catch (error) {
+      // If refresh fails, clear tokens to prevent infinite retry loops
+      console.error('[ApiClient] Token refresh failed:', error);
+      clearAccessToken();
+      clearRefreshToken();
+      // Re-throw to let mero-js handle the error (will trigger re-authentication)
+      throw error;
+    }
   },
 });
 
