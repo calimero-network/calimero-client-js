@@ -66,6 +66,9 @@ class ApiClient {
 }
 
 // Create mero-js HTTP client with token support and automatic refresh
+// Note: mero-js handles request queuing internally - if multiple requests get 401 simultaneously,
+// it caches the refreshToken promise and all requests wait for the same refresh to complete.
+// This prevents race conditions and multiple redundant refresh API calls.
 const httpClient = createBrowserHttpClient({
   baseUrl: getAppEndpointKey() || 'http://localhost',
   getAuthToken: async () => {
@@ -76,7 +79,8 @@ const httpClient = createBrowserHttpClient({
     setAccessToken(newToken);
   },
   refreshToken: async (): Promise<string> => {
-    // This is called automatically by mero-js when a 401 with 'token_expired' is detected
+    // This is called automatically by mero-js when a 401 with 'token_expired' is detected.
+    // mero-js ensures this callback is only invoked once even if multiple requests fail with 401 simultaneously.
     const refreshTokenValue = getRefreshToken();
     const accessToken = getAccessToken();
 
