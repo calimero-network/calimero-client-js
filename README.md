@@ -838,6 +838,18 @@ client.disconnect('connection1');
 client.disconnect('connection2');
 ```
 
+## Testing
+
+### E2E Tests
+
+End-to-end tests are available to verify the full integration flow. See [tests/e2e/README.md](./tests/e2e/README.md) for detailed documentation on running E2E tests locally and in CI.
+
+Quick start:
+
+```bash
+./scripts/test-e2e-local.sh
+```
+
 ## Error Handling
 
 The SDK provides comprehensive error handling:

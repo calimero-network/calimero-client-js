@@ -7,12 +7,12 @@ settings:
 importers:
   .:
     dependencies:
+      '@calimero-network/mero-js':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@near-wallet-selector/modal-ui':
         specifier: ^8.9.7
         version: 8.9.14(near-api-js@3.0.4)
-      axios:
-        specifier: ^1.7.4
-        version: 1.12.0
       jwt-decode:
         specifier: ^4.0.0
         version: 4.0.0
@@ -32,6 +32,9 @@ importers:
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
+      '@playwright/test':
+        specifier: ^1.40.0
+        version: 1.57.0
       '@semantic-release/commit-analyzer':
         specifier: ^13.0.1
         version: 13.0.1(semantic-release@24.2.0(typescript@4.9.5))
@@ -1405,6 +1408,13 @@ packages:
         integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==,
       }
 
+  '@calimero-network/mero-js@1.1.0':
+    resolution:
+      {
+        integrity: sha512-Xb/GkHIkSruV1neOXbA0vBGoh8eUbGVt1l8LkROhO106LeN/M7KiX89dyZAYPXS/+uSef2aYSnFQYEl0DdfKuA==,
+      }
+    engines: { node: '>=18.0.0' }
+
   '@cnakazawa/watch@1.0.4':
     resolution:
       {
@@ -2124,6 +2134,14 @@ packages:
       {
         integrity: sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g==,
       }
+
+  '@playwright/test@1.57.0':
+    resolution:
+      {
+        integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
 
   '@pnpm/config.env-replace@1.1.0':
     resolution:
@@ -2947,12 +2965,6 @@ packages:
     resolution:
       {
         integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==,
-      }
-
-  axios@1.12.0:
-    resolution:
-      {
-        integrity: sha512-oXTDccv8PcfjZmPGlWsPSwtOJCZ/b6W5jAMCNcfwJbCzDckwG0jrYJFaWH1yvivfCXjVzV/SPDEhMB3Q+DSurg==,
       }
 
   axobject-query@4.1.0:
@@ -4576,13 +4588,6 @@ packages:
       }
     engines: { node: '>= 6' }
 
-  form-data@4.0.4:
-    resolution:
-      {
-        integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==,
-      }
-    engines: { node: '>= 6' }
-
   fragment-cache@0.2.1:
     resolution:
       {
@@ -4608,6 +4613,14 @@ packages:
       {
         integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==,
       }
+
+  fsevents@2.3.2:
+    resolution:
+      {
+        integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==,
+      }
+    engines: { node: ^8.16.0 || ^10.6.0 || >=11.0.0 }
+    os: [darwin]
 
   fsevents@2.3.3:
     resolution:
@@ -6998,6 +7011,22 @@ packages:
       }
     engines: { node: '>=8' }
 
+  playwright-core@1.57.0:
+    resolution:
+      {
+        integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
+
+  playwright@1.57.0:
+    resolution:
+      {
+        integrity: sha512-ilYQj1s8sr2ppEJ2YVadYBN0Mb3mdo9J0wQ+UuDhzYqURwSoW4n1Xs5vs7ORwgDGmyEh33tRMeS8KhdkMoLXQw==,
+      }
+    engines: { node: '>=18' }
+    hasBin: true
+
   pngjs@5.0.0:
     resolution:
       {
@@ -7091,12 +7120,6 @@ packages:
     resolution:
       {
         integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==,
-      }
-
-  proxy-from-env@1.1.0:
-    resolution:
-      {
-        integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==,
       }
 
   psl@1.15.0:
@@ -9878,6 +9901,8 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@calimero-network/mero-js@1.1.0': {}
+
   '@cnakazawa/watch@1.0.4':
     dependencies:
       exec-sh: 0.3.6
@@ -10466,6 +10491,10 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 25.1.0
 
+  '@playwright/test@1.57.0':
+    dependencies:
+      playwright: 1.57.0
+
   '@pnpm/config.env-replace@1.1.0': {}
 
   '@pnpm/network.ca-file@1.0.2':
@@ -11052,14 +11081,6 @@ snapshots:
   axios@0.24.0:
     dependencies:
       follow-redirects: 1.15.11
-    transitivePeerDependencies:
-      - debug
-
-  axios@1.12.0:
-    dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.4
-      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
 
@@ -12310,14 +12331,6 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
 
-  form-data@4.0.4:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
-      mime-types: 2.1.35
-
   fragment-cache@0.2.1:
     dependencies:
       map-cache: 0.2.2
@@ -12334,6 +12347,9 @@ snapshots:
       universalify: 2.0.1
 
   fs.realpath@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -13074,11 +13090,7 @@ snapshots:
       pretty-format: 26.6.2
       throat: 5.0.0
     transitivePeerDependencies:
-      - bufferutil
-      - canvas
       - supports-color
-      - ts-node
-      - utf-8-validate
 
   jest-leak-detector@26.6.2:
     dependencies:
@@ -13917,6 +13929,14 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
+  playwright-core@1.57.0: {}
+
+  playwright@1.57.0:
+    dependencies:
+      playwright-core: 1.57.0
+    optionalDependencies:
+      fsevents: 2.3.2
+
   pngjs@5.0.0: {}
 
   posix-character-classes@0.1.1: {}
@@ -13966,8 +13986,6 @@ snapshots:
       react-is: 16.13.1
 
   proto-list@1.2.4: {}
-
-  proxy-from-env@1.1.0: {}
 
   psl@1.15.0:
     dependencies:

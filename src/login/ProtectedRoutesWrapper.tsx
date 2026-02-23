@@ -69,47 +69,46 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     checkAuth();
   };
 
-  const initializeApplication = async (
-    accessToken: string,
-    refreshToken: string,
-    appId?: string,
-  ) => {
-    try {
-      setIsLoading(true);
-      // Store tokens
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
-      setContextAndIdentityFromJWT(accessToken);
+  const initializeApplication = useCallback(
+    async (accessToken: string, refreshToken: string, appId?: string) => {
+      try {
+        setIsLoading(true);
+        // Store tokens
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+        setContextAndIdentityFromJWT(accessToken);
 
-      if (appId) {
-        // If applicationId is provided as prop, use it
-        setApplicationId(appId);
-        setIsInitialized(true);
-        setIsAuthenticated(true);
-      } else {
-        // Otherwise fetch from context
-        const contextId = getContextId();
-        if (contextId) {
-          const response = await apiClient.node().getContext(contextId);
+        if (appId) {
+          // If applicationId is provided as prop, use it
+          setApplicationId(appId);
+          setIsInitialized(true);
+          setIsAuthenticated(true);
+        } else {
+          // Otherwise fetch from context
+          const contextId = getContextId();
+          if (contextId) {
+            const response = await apiClient.node().getContext(contextId);
 
-          if (response.error) {
-            setError(response.error.message);
-            return;
+            if (response.error) {
+              setError(response.error.message);
+              return;
+            }
+            setApplicationId(response.data.applicationId);
           }
-          setApplicationId(response.data.applicationId);
-        }
 
-        setIsInitialized(true);
-        setIsAuthenticated(true);
+          setIsInitialized(true);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        setError('Failed to initialize application');
+        setIsInitialized(false);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      setError('Failed to initialize application');
-      setIsInitialized(false);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [],
+  );
 
   const fetchContextApplication = async () => {
     try {
@@ -236,40 +235,73 @@ export const ProtectedRoutesWrapper: React.FC<ProtectedRoutesWrapperProps> = ({
     setIsLoading(false);
   }, [authMode, error]);
 
-  useEffect(() => {
+  const processHashParams = useCallback(() => {
     // Check for tokens in URL fragment
     const fragment = window.location.hash.substring(1); // Remove the leading #
+
+    if (!fragment) {
+      checkAuth();
+      return;
+    }
+
     const fragmentParams = new URLSearchParams(fragment);
     const encodedAccessToken = fragmentParams.get('access_token');
     const encodedRefreshToken = fragmentParams.get('refresh_token');
 
     if (encodedAccessToken && encodedRefreshToken) {
       // Initialize application with tokens and optional applicationId
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setContextAndIdentityFromJWT(accessToken);
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setContextAndIdentityFromJWT(accessToken);
 
-      initializeApplication(
-        accessToken,
-        refreshToken,
-        applicationId || undefined,
-      );
+        initializeApplication(
+          accessToken,
+          refreshToken,
+          applicationId || undefined,
+        );
 
-      // Clean up URL by removing the tokens from fragment
-      fragmentParams.delete('access_token');
-      fragmentParams.delete('refresh_token');
-      const newFragment = fragmentParams.toString();
-      const newUrl =
-        window.location.pathname +
-        window.location.search +
-        (newFragment ? `#${newFragment}` : '');
-      window.history.replaceState({}, '', newUrl);
-      setIsAuthenticated(true);
+        // Clean up URL by removing only our auth tokens (keep user's hash params intact)
+        fragmentParams.delete('access_token');
+        fragmentParams.delete('refresh_token');
+        fragmentParams.delete('application_id');
+        const newFragment = fragmentParams.toString();
+        const newUrl =
+          window.location.pathname +
+          window.location.search +
+          (newFragment ? `#${newFragment}` : '');
+        window.history.replaceState({}, '', newUrl);
+        setIsAuthenticated(true);
+      } catch (error) {
+        // Handle malformed percent-encoding in URL tokens
+        console.error(
+          '[ProtectedRoutesWrapper] Failed to decode tokens from URL fragment:',
+          error,
+        );
+        // Clear the malformed tokens from URL to prevent retry loops
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.hash = '';
+        window.history.replaceState({}, '', cleanUrl.toString());
+        // Don't set tokens, let user retry authentication
+        return;
+      }
       setIsInitialized(true);
     } else {
       checkAuth();
     }
-  }, [applicationId, checkAuth]);
+  }, [applicationId, checkAuth, initializeApplication]);
+
+  useEffect(() => {
+    // Process hash params on mount
+    processHashParams();
+
+    // Also listen for hash changes (in case hash is added after mount)
+    const handleHashChange = () => {
+      processHashParams();
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [processHashParams]);
 
   if (isLoading) {
     return (

@@ -146,8 +146,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
       // Prefer package-based approach over legacy application ID
       if (packageName) {
         // Pass package-name directly - auth frontend will fetch latest version from registry
+        // Strip hash fragment from callback URL - auth service will add tokens to hash
+        const callbackUrlWithoutHash = window.location.href.split('#')[0];
         const authParams = new URLSearchParams();
-        authParams.append('callback-url', window.location.href);
+        authParams.append('callback-url', callbackUrlWithoutHash);
         authParams.append('permissions', permissions.join(','));
         authParams.append('mode', mode); // Explicitly pass mode to auth service
         authParams.append('package-name', packageName);
@@ -162,7 +164,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         }
 
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
-        console.log('🚀 Redirecting to:', finalUrl);
 
         // Store auth params in sessionStorage so auth-frontend can recover them
         try {
@@ -172,7 +173,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
               'package-name': packageName,
               'package-version': packageVersion || null,
               'registry-url': registryUrl || null,
-              'callback-url': window.location.href,
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               'application-path': applicationPath || null,
@@ -194,13 +195,15 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           );
         }
 
+        // Strip hash fragment from callback URL - auth service will add tokens to hash
+        const callbackUrlWithoutHash = window.location.href.split('#')[0];
         try {
           sessionStorage.setItem(
             'calimero-auth-params',
             JSON.stringify({
               'application-id': clientApplicationId,
               'application-path': applicationPath,
-              'callback-url': window.location.href,
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               timestamp: Date.now(),
@@ -222,8 +225,10 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         });
         return;
       } else if (mode === AppMode.Admin) {
+        // Strip hash fragment from callback URL - auth service will add tokens to hash
+        const callbackUrlWithoutHash = window.location.href.split('#')[0];
         const authParams = new URLSearchParams();
-        authParams.append('callback-url', window.location.href);
+        authParams.append('callback-url', callbackUrlWithoutHash);
         authParams.append('permissions', permissions.join(','));
         authParams.append('mode', mode);
 
@@ -231,7 +236,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
           sessionStorage.setItem(
             'calimero-auth-params',
             JSON.stringify({
-              'callback-url': window.location.href,
+              'callback-url': callbackUrlWithoutHash,
               permissions: permissions.join(','),
               mode,
               timestamp: Date.now(),
@@ -245,7 +250,6 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         }
 
         const finalUrl = `${url}/auth/login?${authParams.toString()}`;
-        console.log('🚀 Redirecting to:', finalUrl);
         window.location.href = finalUrl;
         return;
       } else {
@@ -272,9 +276,11 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     setIsOnline(true);
   }, []);
 
-  useEffect(() => {
+  const processHashParams = useCallback(() => {
     const fragment = window.location.hash.substring(1); // Remove the leading #
-    if (!fragment) return; // No fragment, nothing to do
+    if (!fragment) {
+      return; // No fragment, nothing to do
+    }
 
     const fragmentParams = new URLSearchParams(fragment);
     const encodedAccessToken = fragmentParams.get('access_token');
@@ -282,37 +288,93 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
     const applicationId = fragmentParams.get('application_id');
 
     if (encodedAccessToken && encodedRefreshToken) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      const accessToken = decodeURIComponent(encodedAccessToken);
-      const refreshToken = decodeURIComponent(encodedRefreshToken);
-      setAccessToken(accessToken);
-      setRefreshToken(refreshToken);
+      try {
+        const accessToken = decodeURIComponent(encodedAccessToken);
+        const refreshToken = decodeURIComponent(encodedRefreshToken);
+        setAccessToken(accessToken);
+        setRefreshToken(refreshToken);
+      } catch (error) {
+        // Handle malformed percent-encoding in URL tokens
+        console.error(
+          '[CalimeroProvider] Failed to decode tokens from URL fragment:',
+          error,
+        );
+        // Clear the malformed tokens from URL to prevent retry loops
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.hash = '';
+        window.history.replaceState({}, '', cleanUrl.toString());
+        // Don't set tokens, let user retry authentication
+        return;
+      }
 
       // Store resolved application ID from auth callback
       if (applicationId) {
-        console.log('✅ Resolved application ID from auth:', applicationId);
         setResolvedApplicationId(applicationId);
         // Persist to localStorage for subsequent page loads
         localStorage.setItem('calimero-application-id', applicationId);
-        console.log(
-          '✅ Stored in localStorage:',
-          localStorage.getItem('calimero-application-id'),
+      }
+
+      // Clean up URL by removing only our auth tokens (keep user's hash params intact)
+      fragmentParams.delete('access_token');
+      fragmentParams.delete('refresh_token');
+      fragmentParams.delete('application_id');
+      const newFragment = fragmentParams.toString();
+      const cleanUrl =
+        window.location.pathname +
+        window.location.search +
+        (newFragment ? `#${newFragment}` : '');
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      // Clean up sessionStorage
+      try {
+        sessionStorage.removeItem('calimero-auth-params');
+      } catch (err) {
+        console.warn(
+          '[CalimeroProvider] Failed to clean up sessionStorage',
+          err,
         );
       }
 
       const newAppUrl = getAppEndpointKey();
       setAppUrl(newAppUrl);
+
+      // Only set authenticated state if we have a valid URL
+      // This prevents inconsistent state where app appears authenticated
+      // but subsequent API calls fail due to missing URL configuration
       if (!newAppUrl) return;
 
+      // Set authenticated state immediately after processing tokens
+      // This prevents race conditions where components check isAuthenticated
+      // before the async verify() completes
+      setIsAuthenticated(true);
+
+      // Verify auth in background (non-blocking)
       const verify = async () => {
         const response = await apiClient.node().checkAuth();
-        if (!response.error) {
-          setIsAuthenticated(true);
+        if (response.error) {
+          // If verification fails, reset auth state
+          console.warn(
+            '[CalimeroProvider] Auth verification failed:',
+            response.error,
+          );
+          setIsAuthenticated(false);
         }
       };
       verify();
     }
-  }, []); // Run once on mount to check for auth callback
+  }, [setResolvedApplicationId, setAppUrl, setIsAuthenticated]);
+
+  useEffect(() => {
+    // Process hash params on mount
+    processHashParams();
+
+    // Also listen for hash changes (in case hash is added after mount)
+    const handleHashChange = () => {
+      processHashParams();
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [processHashParams]);
 
   useEffect(() => {
     const checkSession = async () => {

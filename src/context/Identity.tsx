@@ -41,7 +41,7 @@ export const Identity: React.FC = () => {
     const fetchContextsResponse: ResponseData<GetContextsResponse> =
       await apiClient.node().getContexts();
     const contexts =
-      fetchContextsResponse.data?.contexts.filter(
+      fetchContextsResponse.data?.data?.contexts.filter(
         (context) => context.applicationId === applicationId,
       ) ?? [];
     setContexts(contexts);
@@ -62,7 +62,7 @@ export const Identity: React.FC = () => {
     if (fetchContextIdentitiesResponse.error) {
       setError(fetchContextIdentitiesResponse.error.message);
     } else {
-      setIdentities(fetchContextIdentitiesResponse.data.identities);
+      setIdentities(fetchContextIdentitiesResponse.data.data.identities);
     }
     setIdentityLoading(false);
   };

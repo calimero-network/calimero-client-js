@@ -1,0 +1,254 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/e2e-test.yml'
+  push:
+    branches:
+      - master
+      - 'refactor/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-test:
+    name: E2E Test with KV Store
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/pnpm/store
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install
+
+      - name: Build calimero-client-js
+        working-directory: .
+        run: |
+          pnpm build
+          # Create a tarball for local installation (npm pack runs from root)
+          mkdir -p dist
+          npm pack --pack-destination dist
+          echo "CLIENT_TARBALL=$(ls dist/*.tgz | head -1)" >> $GITHUB_ENV
+
+      - name: Setup test workspace
+        run: |
+          mkdir -p /tmp/e2e-test
+          cd /tmp/e2e-test
+
+      - name: Create test app with create-mero-app
+        working-directory: /tmp/e2e-test
+        run: |
+          # Use create-mero-app to scaffold a KV store app
+          # Select option 1 (Rust template) via stdin
+          printf "1\n" | npx create-mero-app@latest test-kv-store
+          cd test-kv-store
+
+      - name: Replace client dependency with built version
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          # Replace @calimero-network/calimero-client dependency
+          if [ -f "app/package.json" ]; then
+            cd app
+            # Remove existing dependency
+            pnpm remove @calimero-network/calimero-client || true
+            # Install from local tarball (use absolute path)
+            TARBALL=$(ls ${{ github.workspace }}/dist/*.tgz | head -1)
+            if [ -z "$TARBALL" ]; then
+              echo "Error: No tarball found in ${{ github.workspace }}/dist/"
+              exit 1
+            fi
+            echo "Installing from: $TARBALL"
+            pnpm add "file:$TARBALL"
+            cd ..
+          fi
+
+      - name: Install test app dependencies
+        working-directory: /tmp/e2e-test/test-kv-store
+        run: |
+          pnpm install
+          cd app && pnpm install && cd ..
+
+      - name: Download merod binary
+        run: |
+          MEROD_DIR="/tmp/merod-bin"
+          mkdir -p "$MEROD_DIR"
+          MEROD_BINARY="$MEROD_DIR/merod"
+          VERSION="0.10.0-rc.36"
+          ASSET_NAME="merod_x86_64-unknown-linux-gnu.tar.gz"
+          DOWNLOAD_URL="https://github.com/calimero-network/core/releases/download/$VERSION/$ASSET_NAME"
+          echo "Downloading merod from: $DOWNLOAD_URL"
+          curl -L -o "$MEROD_DIR/temp.tar.gz" "$DOWNLOAD_URL"
+          tar -xzf "$MEROD_DIR/temp.tar.gz" -C "$MEROD_DIR" merod
+          rm "$MEROD_DIR/temp.tar.gz"
+          chmod +x "$MEROD_BINARY"
+          echo "MEROD_BINARY=$MEROD_BINARY" >> $GITHUB_ENV
+
+      - name: Initialize and start merod node
+        run: |
+          NODE_DATA_DIR="/tmp/e2e-test/node-data"
+          mkdir -p "$NODE_DATA_DIR"
+          # Initialize node if not already initialized
+          if [ ! -d "$NODE_DATA_DIR/node1" ]; then
+            "$MEROD_BINARY" \
+              --home "$NODE_DATA_DIR" \
+              --node-name node1 \
+              init \
+              --server-port 2428 \
+              --swarm-port 2528 \
+              --auth-mode embedded \
+              --auth-storage persistent
+          fi
+          # Start merod in background (ports are set during init)
+          "$MEROD_BINARY" \
+            --home "$NODE_DATA_DIR" \
+            --node-name node1 \
+            run > /tmp/merod.log 2>&1 &
+          echo $! > /tmp/merod-pid
+          echo "Merod started with PID: $(cat /tmp/merod-pid)"
+
+      - name: Wait for node to be ready
+        run: |
+          NODE_URL="http://localhost:2428"
+          HEALTH_URL="$NODE_URL/auth/health"
+          echo "Waiting for node to start at $HEALTH_URL..."
+          for i in {1..30}; do
+            if curl -f "$HEALTH_URL" 2>/dev/null; then
+              echo "Node is ready at $NODE_URL!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Node failed to start. Logs:"
+              tail -50 /tmp/merod.log || true
+              exit 1
+            fi
+            echo "Attempt $i/30: Node not ready yet..."
+            sleep 2
+          done
+
+      - name: Build frontend
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          pnpm build
+
+      - name: Install Playwright browsers
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          pnpm add -D @playwright/test playwright
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Start frontend server
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        run: |
+          # Start preview server in background
+          pnpm preview --port 5173 --host 0.0.0.0 > /tmp/vite.log 2>&1 &
+          echo $! > /tmp/vite-pid
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:5173 2>/dev/null; then
+              echo "Frontend server is ready!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Frontend server failed to start. Logs:"
+              tail -50 /tmp/vite.log || true
+              exit 1
+            fi
+            echo "Waiting for frontend server... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run Playwright tests
+        working-directory: /tmp/e2e-test/test-kv-store/app
+        env:
+          NODE_URL: http://localhost:2428
+          AUTH_URL: http://localhost:2428/auth
+          FRONTEND_URL: http://localhost:5173
+          # Longer timeouts for CI (GitHub Actions can be slower)
+          # Base timeout multiplied by 3 for CI (default: 5000ms -> 15000ms)
+          E2E_TIMEOUT: 15000
+          # Base wait multiplied by 3 for CI (default: 500ms -> 1500ms)
+          E2E_WAIT: 1500
+        run: |
+          # Copy Playwright config from calimero-client-js if it exists
+          if [ -f "${{ github.workspace }}/tests/e2e/playwright.config.ts" ]; then
+            cp "${{ github.workspace }}/tests/e2e/playwright.config.ts" playwright.config.ts
+          else
+            echo "Error: Playwright config not found at ${{ github.workspace }}/tests/e2e/playwright.config.ts"
+            exit 1
+          fi
+          # Copy test files
+          mkdir -p tests/e2e
+          if [ ! -d "${{ github.workspace }}/tests/e2e" ]; then
+            echo "Error: Test directory not found at ${{ github.workspace }}/tests/e2e"
+            exit 1
+          fi
+          # Copy test files and verify at least one was copied
+          TEST_COUNT=$(find "${{ github.workspace }}/tests/e2e" -name "*.spec.ts" | wc -l)
+          if [ "$TEST_COUNT" -eq 0 ]; then
+            echo "Error: No test files found in ${{ github.workspace }}/tests/e2e"
+            exit 1
+          fi
+          if ! cp "${{ github.workspace }}/tests/e2e"/*.spec.ts tests/e2e/ 2>/dev/null; then
+            echo "Error: Failed to copy test files"
+            exit 1
+          fi
+          # Verify files were copied
+          COPIED_COUNT=$(find tests/e2e -name "*.spec.ts" | wc -l)
+          if [ "$COPIED_COUNT" -eq 0 ]; then
+            echo "Error: No test files found after copy"
+            exit 1
+          fi
+          echo "Copied $COPIED_COUNT test file(s)"
+          # Config is copied to root as playwright.config.ts, Playwright will find it automatically
+          pnpm exec playwright test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: /tmp/e2e-test/test-kv-store/app/playwright-report/
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Stop merod
+          if [ -f /tmp/merod-pid ]; then
+            kill $(cat /tmp/merod-pid) 2>/dev/null || true
+          fi
+          # Stop vite
+          if [ -f /tmp/vite-pid ]; then
+            kill $(cat /tmp/vite-pid) 2>/dev/null || true
+          fi
+          # Cleanup node data
+          rm -rf /tmp/e2e-test/node-data || true

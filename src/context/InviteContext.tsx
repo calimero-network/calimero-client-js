@@ -32,7 +32,7 @@ export const InviteContext: React.FC = () => {
     const fetchContextsResponse: ResponseData<GetContextsResponse> =
       await apiClient.node().getContexts();
     const contexts =
-      fetchContextsResponse.data?.contexts.filter(
+      fetchContextsResponse.data?.data?.contexts.filter(
         (context) => context.applicationId === applicationId,
       ) ?? [];
     setContexts(contexts);

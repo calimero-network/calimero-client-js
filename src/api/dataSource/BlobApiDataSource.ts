@@ -1,5 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
-import { HttpClient } from '../httpClient';
+import { HttpClient } from '@calimero-network/mero-js';
+import { withResponseData } from '../http-utils';
 import {
   BlobApi,
   BlobUploadResponse,
@@ -20,62 +21,69 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
     return getAppEndpointKey();
   }
 
+  private validateBaseUrl(): ApiResponse<never> | null {
+    if (!this.baseUrl) {
+      return Promise.resolve({
+        data: null,
+        error: {
+          code: 400,
+          message: 'Node URL not configured. Please set the app endpoint key.',
+        },
+      });
+    }
+    return null;
+  }
+
   async uploadBlob(
     file: File,
     onProgress?: (progress: number) => void,
     expectedHash?: string,
   ): ApiResponse<BlobUploadResponse> {
-    try {
-      const fileArrayBuffer = await file.arrayBuffer();
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    const fileArrayBuffer = await file.arrayBuffer();
 
-      let url = this.buildUrl('admin-api/blobs', this.baseUrl).toString();
-      const params = new URLSearchParams();
-      if (expectedHash) {
-        params.append('hash', expectedHash);
-      }
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      // Use HttpClient PUT method with binary data and progress tracking
-      const response = await this.client.put<RawBlobUploadResponse>(
-        url,
-        fileArrayBuffer,
-        [{ 'Content-Type': 'application/octet-stream' }],
-        false,
-        onProgress,
-      );
-
-      if (response.error) {
-        return {
-          data: null,
-          error: response.error,
-        };
-      }
-
-      // Transform snake_case to camelCase
-      const transformedResponse: BlobUploadResponse = {
-        blobId: response.data!.blob_id,
-        size: response.data!.size,
-      };
-
-      return {
-        data: transformedResponse,
-        error: null,
-      };
-    } catch (error) {
-      return {
-        data: null,
-        error: {
-          code: 500,
-          message:
-            error instanceof Error ? error.message : 'Failed to upload blob',
-        },
-      };
+    let url = this.buildUrl('admin-api/blobs', this.baseUrl!).toString();
+    const params = new URLSearchParams();
+    if (expectedHash) {
+      params.append('hash', expectedHash);
     }
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    // Note: mero-js doesn't support upload progress callback, so onProgress is ignored
+    const response = await withResponseData(() =>
+      this.client.put<RawBlobUploadResponse>(url, fileArrayBuffer, {
+        headers: { 'Content-Type': 'application/octet-stream' },
+      }),
+    );
+
+    if (response.error) {
+      return Promise.resolve({
+        data: null,
+        error: response.error,
+      });
+    }
+
+    // Transform snake_case to camelCase
+    const transformedResponse: BlobUploadResponse = {
+      blobId: response.data!.blob_id,
+      size: response.data!.size,
+    };
+
+    return Promise.resolve({
+      data: transformedResponse,
+      error: null,
+    });
   }
 
   async downloadBlob(blobId: string, contextId: string): Promise<Blob> {
+    if (!this.baseUrl) {
+      throw new Error(
+        'Node URL not configured. Please set the app endpoint key.',
+      );
+    }
     let url = this.buildUrl(
       `admin-api/blobs/${blobId}`,
       this.baseUrl,
@@ -87,122 +95,84 @@ export class BlobApiDataSource extends BaseApiDataSource implements BlobApi {
       url += `?${params.toString()}`;
     }
 
-    const response = await this.client.get<ArrayBuffer>(url, undefined, false, {
-      responseType: 'arraybuffer',
+    const arrayBuffer = await this.client.get<ArrayBuffer>(url, {
+      parse: 'arrayBuffer',
     });
 
-    if (response.error) {
-      throw new Error(
-        `Failed to download blob: ${response.error.code} ${response.error.message}`,
-      );
-    }
-
-    return new Blob([response.data!]);
+    return new Blob([arrayBuffer]);
   }
 
   async getBlobMetadata(blobId: string): ApiResponse<BlobMetadataResponse> {
-    try {
-      // Use HttpClient HEAD method that now returns headers
-      const response = await this.client.head(
-        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
-      );
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    const response = await withResponseData(() =>
+      this.client.head(
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl!),
+      ),
+    );
 
-      if (response.error) {
-        return {
-          data: null,
-          error: response.error,
-        };
-      }
-
-      // Extract metadata from response headers
-      const headers = response.data!.headers;
-      const contentLength = headers['content-length'];
-      const size = contentLength ? parseInt(contentLength, 10) : 0;
-      const fileType =
-        headers['x-blob-mime-type'] || headers['content-type'] || 'unknown';
-      const responseBlobId = headers['x-blob-id'];
-
-      return {
-        data: {
-          blobId: responseBlobId || blobId,
-          size,
-          fileType,
-        },
-        error: null,
-      };
-    } catch (error) {
-      console.error('getBlobMetadata failed:', error);
-      return {
+    if (response.error) {
+      return Promise.resolve({
         data: null,
-        error: {
-          code: 500,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'An unexpected error occurred',
-        },
-      };
+        error: response.error,
+      });
     }
+
+    // Extract metadata from response headers
+    const headers = response.data!.headers;
+    const contentLength = headers['content-length'];
+    const size = contentLength ? parseInt(contentLength, 10) : 0;
+    const fileType =
+      headers['x-blob-mime-type'] || headers['content-type'] || 'unknown';
+    const responseBlobId = headers['x-blob-id'];
+
+    return Promise.resolve({
+      data: {
+        blobId: responseBlobId || blobId,
+        size,
+        fileType,
+      },
+      error: null,
+    });
   }
 
   async listBlobs(): ApiResponse<BlobListResponseData> {
-    try {
-      const response = await this.client.get<RawBlobListResponseData>(
-        this.buildUrl('admin-api/blobs', this.baseUrl),
-      );
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    const response = await withResponseData(() =>
+      this.client.get<RawBlobListResponseData>(
+        this.buildUrl('admin-api/blobs', this.baseUrl!),
+      ),
+    );
 
-      if (response.data) {
-        // Transform snake_case to camelCase
-        const transformedData: BlobListResponseData = {
-          blobs: response.data.blobs.map((blob) => ({
-            blobId: blob.blob_id,
-            size: blob.size,
-          })),
-        };
-
-        return {
-          data: transformedData,
-          error: null,
-        };
-      }
-
-      return {
+    if (response.error) {
+      return Promise.resolve({
         data: null,
         error: response.error,
-      };
-    } catch (error) {
-      console.error('listBlobs failed:', error);
-      return {
-        data: null,
-        error: {
-          code: 500,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'An unexpected error occurred',
-        },
-      };
+      });
     }
+
+    // Transform snake_case to camelCase
+    const transformedData: BlobListResponseData = {
+      blobs: response.data!.blobs.map((blob) => ({
+        blobId: blob.blob_id,
+        size: blob.size,
+      })),
+    };
+
+    return Promise.resolve({
+      data: transformedData,
+      error: null,
+    });
   }
 
   async deleteBlob(blobId: string): ApiResponse<void> {
-    try {
-      const response = await this.client.delete<void>(
-        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl),
-      );
-      return response;
-    } catch (error) {
-      console.error('deleteBlob failed:', error);
-      return {
-        data: null,
-        error: {
-          code: 500,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'An unexpected error occurred',
-        },
-      };
-    }
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.delete<void>(
+        this.buildUrl(`admin-api/blobs/${blobId}`, this.baseUrl!),
+      ),
+    );
   }
 }

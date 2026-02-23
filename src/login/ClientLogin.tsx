@@ -112,7 +112,10 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         return;
       }
 
-      updateState({ contexts: response.data?.contexts, isLoading: false });
+      updateState({
+        contexts: response.data?.data?.contexts,
+        isLoading: false,
+      });
     } catch (error) {
       updateState({
         errorMessage: 'Failed to fetch contexts',
@@ -133,7 +136,7 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
         return;
       }
 
-      updateState({ contextIdentities: response.data.identities });
+      updateState({ contextIdentities: response.data.data.identities });
     } catch (error) {
       updateState({ errorMessage: 'Failed to fetch context identities' });
     }
@@ -147,10 +150,12 @@ export const ClientLogin: React.FC<ClientLoginProps> = ({
 
   const login = useCallback(async () => {
     const host = new URL(nodeServerUrl).origin;
+    // Strip hash fragment from callback URL - auth service will add tokens to hash
+    const callbackUrlWithoutHash = window.location.href.split('#')[0];
 
     apiClient.auth().login({
       url: host,
-      callbackUrl: window.location.href,
+      callbackUrl: callbackUrlWithoutHash,
       permissions: permissions,
       applicationId: clientApplicationId,
       applicationPath: clientApplicationPath,

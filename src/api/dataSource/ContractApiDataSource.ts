@@ -1,5 +1,6 @@
 import { ApiResponse } from '../../types/api-response';
-import { HttpClient } from '../httpClient';
+import { HttpClient } from '@calimero-network/mero-js';
+import { withResponseData } from '../http-utils';
 import {
   ContextStorageEntry,
   ContractApi,
@@ -23,6 +24,19 @@ export class ContractApiDataSource
     return getAppEndpointKey();
   }
 
+  private validateBaseUrl(): ApiResponse<never> | null {
+    if (!this.baseUrl) {
+      return Promise.resolve({
+        data: null,
+        error: {
+          code: 400,
+          message: 'Node URL not configured. Please set the app endpoint key.',
+        },
+      });
+    }
+    return null;
+  }
+
   private get contextId(): string {
     const id = getContextId();
     if (!id) {
@@ -34,124 +48,103 @@ export class ContractApiDataSource
   }
 
   async getProposals(request: GetProposalsRequest): ApiResponse<Proposal[]> {
-    try {
-      return await this.client.post<Proposal[]>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.post<Proposal[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
         request,
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalApprovers(proposalId: string): ApiResponse<string[]> {
-    try {
-      return await this.client.get<string[]>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.get<string[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/users`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalApprovalCount(
     proposalId: string,
   ): ApiResponse<ProposalApprovalCount> {
-    try {
-      return await this.client.get<ProposalApprovalCount>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.get<ProposalApprovalCount>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}/approvals/count`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getNumOfProposals(): ApiResponse<number> {
-    try {
-      return await this.client.get<number>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.get<number>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/count`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getProposalDetails(proposalId: string): ApiResponse<Proposal> {
-    try {
-      return await this.client.get<Proposal>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.get<Proposal>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/${proposalId}`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getContextValue(key: string): ApiResponse<StorageEntry> {
-    try {
-      return await this.client.post<StorageEntry>(
-        this.buildUrl(`admin-api/contexts/${this.contextId}`, this.baseUrl),
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.post<StorageEntry>(
+        this.buildUrl(`admin-api/contexts/${this.contextId}`, this.baseUrl!),
         {
           key,
         },
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 
   async getContextStorageEntries(
     offset: number,
     limit: number,
   ): ApiResponse<ContextStorageEntry[]> {
-    try {
-      return await this.client.post<ContextStorageEntry[]>(
+    const validationError = this.validateBaseUrl();
+    if (validationError) return validationError;
+    return withResponseData(() =>
+      this.client.post<ContextStorageEntry[]>(
         this.buildUrl(
           `admin-api/contexts/${this.contextId}/proposals/context-storage-entries`,
-          this.baseUrl,
+          this.baseUrl!,
         ),
         {
           offset,
           limit,
         },
-      );
-    } catch (error) {
-      return {
-        data: null,
-        error: error as Error,
-      };
-    }
+      ),
+    );
   }
 }
