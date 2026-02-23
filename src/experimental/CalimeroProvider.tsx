@@ -217,7 +217,7 @@ export const CalimeroProvider: React.FC<CalimeroProviderProps> = ({
         }
         apiClient.auth().login({
           url,
-          callbackUrl: window.location.href,
+          callbackUrl: callbackUrlWithoutHash,
           applicationId: clientApplicationId,
           permissions,
           applicationPath,
