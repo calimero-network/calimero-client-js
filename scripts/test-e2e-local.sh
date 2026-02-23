@@ -7,6 +7,17 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Parse arguments
+NO_CLEANUP=false
+for arg in "$@"; do
+  case $arg in
+    --no-cleanup)
+      NO_CLEANUP=true
+      shift
+      ;;
+  esac
+done
+
 # Configuration
 TEST_DIR="${TEST_DIR:-/tmp/e2e-test-calimero-client}"
 FRONTEND_PORT=5173
@@ -29,7 +40,9 @@ cleanup() {
   echo -e "${GREEN}Cleanup complete${NC}"
 }
 
-trap cleanup EXIT
+if [ "$NO_CLEANUP" = false ]; then
+  trap cleanup EXIT
+fi
 
 # Check prerequisites
 echo -e "${GREEN}Checking prerequisites...${NC}"
@@ -221,8 +234,12 @@ pnpm exec playwright test || TEST_RESULT=$?
 
 echo -e "${GREEN}E2E test complete!${NC}"
 
-# Cleanup after tests
-cleanup
+if [ "$NO_CLEANUP" = true ]; then
+  echo "SERVERS LEFT RUNNING - Merod PID: $MEROD_PID, Vite PID: $VITE_PID"
+  echo "Skipping cleanup - servers left running"
+else
+  cleanup
+fi
 
 # Exit with test result code
 exit $TEST_RESULT
