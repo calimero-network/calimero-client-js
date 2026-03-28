@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import Spinner from '../components/loader/Spinner';
 import { apiClient } from '../api';
 import { ResponseData } from '../types';
-import { Context, GetContextsResponse } from '../api/nodeApi';
+import {
+  Context,
+  GetContextsResponse,
+  InviteToContextResponse,
+} from '../api/nodeApi';
 import { getApplicationId } from '../storage';
 import {
   Button,
@@ -19,8 +23,8 @@ import {
 export const InviteContext: React.FC = () => {
   const applicationId = getApplicationId();
   const [contextId, setContextId] = useState<string>('');
-  const [invitatorKey, setInvitatorKey] = useState<string>('');
-  const [inviteeKey, setInviteeKey] = useState<string>('');
+  const [inviterKey, setInviterKey] = useState<string>('');
+  const [validForSeconds, setValidForSeconds] = useState<number>(3600);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [invitation, setInvitation] = useState<string | null>(null);
@@ -49,18 +53,18 @@ export const InviteContext: React.FC = () => {
     setError(null);
     setInvitation(null);
     setIsLoading(true);
-    const response: ResponseData<string> = await apiClient
+    const response: ResponseData<InviteToContextResponse> = await apiClient
       .node()
-      .contextInvite(contextId, invitatorKey, inviteeKey);
+      .contextInvite(contextId, inviterKey, validForSeconds);
     if (response.error) {
       setError(response.error.message);
     } else {
-      if (response.data == null) {
+      if (response.data?.data == null) {
         setError('Failed to invite to context.');
         setIsLoading(false);
         return;
       }
-      setInvitation(response.data);
+      setInvitation(JSON.stringify(response.data.data));
     }
     setIsLoading(false);
   };
@@ -98,17 +102,17 @@ export const InviteContext: React.FC = () => {
         <FormGroup>
           <FormInput
             type="text"
-            value={invitatorKey}
-            onChange={(e) => setInvitatorKey(e.target.value)}
+            value={inviterKey}
+            onChange={(e) => setInviterKey(e.target.value)}
             placeholder="Inviter Public Key"
           />
         </FormGroup>
         <FormGroup>
           <FormInput
-            type="text"
-            value={inviteeKey}
-            onChange={(e) => setInviteeKey(e.target.value)}
-            placeholder="Invitee Public Key"
+            type="number"
+            value={validForSeconds}
+            onChange={(e) => setValidForSeconds(Number(e.target.value))}
+            placeholder="Valid for (seconds)"
           />
         </FormGroup>
         {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -123,7 +127,7 @@ export const InviteContext: React.FC = () => {
         <Button
           type="submit"
           className="button-rounded button-size-md"
-          disabled={isLoading || !invitatorKey || !inviteeKey}
+          disabled={isLoading || !inviterKey}
         >
           {isLoading ? <Spinner /> : 'Create Invitation'}
         </Button>

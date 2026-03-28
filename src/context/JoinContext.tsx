@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Spinner from '../components/loader/Spinner';
 import { apiClient } from '../api';
-import { JoinContextResponse } from '../api/nodeApi';
+import { JoinContextResponse, SignedOpenInvitation } from '../api/nodeApi';
 import { ResponseData } from '../types';
 import {
   Button,
@@ -14,7 +14,7 @@ import {
 } from './Components';
 
 export const JoinContext: React.FC = () => {
-  const [identityPrivateKey, setIdentityPrivateKey] = useState<string>('');
+  const [newMemberPublicKey, setNewMemberPublicKey] = useState<string>('');
   const [joinPayload, setJoinPayload] = useState<string>('');
   const [joinError, setJoinError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,9 +25,19 @@ export const JoinContext: React.FC = () => {
     setIsLoading(true);
     setJoinError('');
     setIsSuccess(false);
+
+    let invitation: SignedOpenInvitation;
+    try {
+      invitation = JSON.parse(joinPayload);
+    } catch {
+      setJoinError('Invalid invitation payload — must be valid JSON.');
+      setIsLoading(false);
+      return;
+    }
+
     const response: ResponseData<JoinContextResponse> = await apiClient
       .node()
-      .joinContext(joinPayload);
+      .joinContext(invitation, newMemberPublicKey);
     if (response.error) {
       setJoinError(response.error.message);
     } else {
@@ -43,15 +53,15 @@ export const JoinContext: React.FC = () => {
     <div className="join-tab">
       <Heading2>Join Existing Context</Heading2>
       <Paragraph>
-        To join context you need to have invitation payload.
+        To join a context you need an invitation payload and your public key.
       </Paragraph>
       <form onSubmit={handleJoinSubmit}>
         <FormGroup>
           <FormInput
             type="text"
-            value={identityPrivateKey}
-            onChange={(e) => setIdentityPrivateKey(e.target.value)}
-            placeholder="Enter your identity private key"
+            value={newMemberPublicKey}
+            onChange={(e) => setNewMemberPublicKey(e.target.value)}
+            placeholder="Enter your public key"
           />
         </FormGroup>
         <FormGroup>
@@ -59,7 +69,7 @@ export const JoinContext: React.FC = () => {
             type="text"
             value={joinPayload}
             onChange={(e) => setJoinPayload(e.target.value)}
-            placeholder="Paste invitation payload"
+            placeholder="Paste invitation payload (JSON)"
           />
         </FormGroup>
         {joinError && <ErrorMessage>{joinError}</ErrorMessage>}
@@ -69,7 +79,7 @@ export const JoinContext: React.FC = () => {
         <Button
           type="submit"
           className="button-rounded button-size-md"
-          disabled={isLoading || !identityPrivateKey || !joinPayload}
+          disabled={isLoading || !newMemberPublicKey || !joinPayload}
         >
           {isLoading ? <Spinner /> : 'Join'}
         </Button>

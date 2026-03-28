@@ -39,19 +39,20 @@ export interface NodeIdentity {
 export interface InvitationFromMember {
   inviterIdentity: string;
   contextId: string;
-  expirationHeight: number;
+  expirationTimestamp: number;
   secretSalt?: Uint8Array;
-  protocol: string;
-  network: string;
-  contractId: string;
 }
 
 export interface SignedOpenInvitation {
   invitation: InvitationFromMember;
   inviterSignature: string;
+  applicationId?: number[];
+  blobId?: number[];
+  source?: string;
+  groupId?: number[];
 }
 
-export interface ContextInviteByOpenInvitationResponse {
+export interface InviteToContextResponse {
   data: SignedOpenInvitation | null;
 }
 
@@ -121,7 +122,6 @@ export interface NodeApi {
   createContext(
     applicationId: string,
     jsonParams: string,
-    protocol: string,
   ): ApiResponse<CreateContextResponse>;
   fetchContextIdentities(
     contextId: string,
@@ -129,16 +129,10 @@ export interface NodeApi {
   createNewIdentity(): ApiResponse<NodeIdentity>;
   contextInvite(
     contextId: string,
-    inviterPublicKey: string,
-    inviteePublicKey: string,
-  ): ApiResponse<string>;
-  contextInviteByOpenInvitation(
-    contextId: string,
     inviterId: string,
-    validForBlocks: number,
-  ): ApiResponse<ContextInviteByOpenInvitationResponse>;
-  joinContext(invitationPayload: string): ApiResponse<JoinContextResponse>;
-  joinContextByOpenInvitation(
+    validForSeconds: number,
+  ): ApiResponse<InviteToContextResponse>;
+  joinContext(
     invitation: SignedOpenInvitation,
     newMemberPublicKey: string,
   ): ApiResponse<JoinContextResponse>;

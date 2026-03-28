@@ -351,27 +351,23 @@ The `AccessTokenWrapper` component simplifies token management by:
 
 This wrapper should be placed at a high level in your component tree to ensure all child components have access to the authentication context.
 
-## Working with Multiple Blockchain Protocols
+## Working with Contexts
 
-The Calimero SDK supports multiple blockchain protocols including NEAR, Ethereum, Starknet, Stellar, and ICP. To work with these different protocols, you'll need to understand contexts and how the authentication flow works.
+Contexts represent application environments in Calimero. Here's how to create and work with them.
 
-### Understanding Contexts and Protocols
+### Understanding Contexts
 
-A "context" in Calimero represents an environment configured for a specific blockchain protocol. Here's how to create and work with contexts:
+A "context" in Calimero represents an environment for running your application. Here's how to create and work with contexts:
 
-#### 1. Creating a Context for a Specific Protocol
+#### 1. Creating a Context
 
 ```typescript
 import { apiClient } from '@calimero-network/calimero-client';
 
-// Create a new context for the NEAR protocol
-async function createNearContext() {
+async function createNewContext() {
   const applicationId = getApplicationId();
-  const protocol = 'near'; // Options: 'near', 'ethereum', 'starknet', 'stellar', 'icp'
 
-  const response = await apiClient
-    .node()
-    .createContext(applicationId, protocol);
+  const response = await apiClient.node().createContext(applicationId, '');
 
   if (response.error) {
     console.error('Failed to create context:', response.error.message);
@@ -382,7 +378,7 @@ async function createNearContext() {
 }
 
 // Example usage
-const context = await createNearContext();
+const context = await createNewContext();
 console.log('Created context:', context.contextId);
 ```
 
@@ -409,7 +405,7 @@ async function listContexts() {
 // Example usage
 const contexts = await listContexts();
 contexts.forEach((context) => {
-  console.log(`Context ID: ${context.id}, Protocol: ${context.protocol}`);
+  console.log(`Context ID: ${context.id}`);
 });
 ```
 
@@ -484,9 +480,9 @@ const redirectToDashboardLogin = () => {
    - Refreshes tokens when they expire
    - Provides access to the context ID and executor public key for operations
 
-### Example: Complete Multi-Protocol Implementation
+### Example: Complete Context Management
 
-Here's a complete example showing how to integrate multiple protocols:
+Here's a complete example showing how to manage contexts:
 
 ```typescript
 import React, { useState, useEffect } from 'react';
@@ -499,25 +495,21 @@ import {
   setApplicationId
 } from '@calimero-network/calimero-client';
 
-function MultiProtocolApp() {
+function ContextApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contexts, setContexts] = useState([]);
-  const [selectedProtocol, setSelectedProtocol] = useState('near');
   const [loading, setLoading] = useState(false);
 
-  // Set up required configuration
   useEffect(() => {
     setAppEndpointKey('https://your-calimero-node-url.com');
     setApplicationId('your-application-id');
 
-    // Check if already authenticated
     if (getAccessToken()) {
       setIsAuthenticated(true);
       fetchContexts();
     }
   }, []);
 
-  // Fetch available contexts
   const fetchContexts = async () => {
     setLoading(true);
     try {
@@ -535,18 +527,16 @@ function MultiProtocolApp() {
     setLoading(false);
   };
 
-  // Create a new context with selected protocol
   const createContext = async () => {
     setLoading(true);
     try {
       const applicationId = getApplicationId();
       const response = await apiClient.node().createContext(
         applicationId,
-        selectedProtocol
+        ''
       );
 
       if (!response.error && response.data) {
-        // Refresh the contexts list
         fetchContexts();
       }
     } catch (error) {
@@ -555,7 +545,6 @@ function MultiProtocolApp() {
     setLoading(false);
   };
 
-  // Handle successful login
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     fetchContexts();
@@ -572,20 +561,10 @@ function MultiProtocolApp() {
 
   return (
     <div className="app-container">
-      <h1>Your Multi-Protocol Application</h1>
+      <h1>Your Application</h1>
 
       <div className="context-creator">
         <h2>Create New Context</h2>
-        <select
-          value={selectedProtocol}
-          onChange={(e) => setSelectedProtocol(e.target.value)}
-        >
-          <option value="near">NEAR</option>
-          <option value="ethereum">Ethereum</option>
-          <option value="starknet">Starknet</option>
-          <option value="stellar">Stellar</option>
-          <option value="icp">ICP</option>
-        </select>
         <button
           onClick={createContext}
           disabled={loading}
@@ -602,8 +581,7 @@ function MultiProtocolApp() {
           <ul>
             {contexts.map(context => (
               <li key={context.id}>
-                <strong>ID:</strong> {context.id}<br />
-                <strong>Protocol:</strong> {context.protocol}
+                <strong>ID:</strong> {context.id}
               </li>
             ))}
           </ul>
@@ -613,7 +591,7 @@ function MultiProtocolApp() {
   );
 }
 
-export default MultiProtocolApp;
+export default ContextApp;
 ```
 
 ## Usage Examples

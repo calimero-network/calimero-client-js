@@ -19,7 +19,7 @@ import {
   ContextStorage,
   CapabilitiesRequest,
   CheckAuthResponse,
-  ContextInviteByOpenInvitationResponse,
+  InviteToContextResponse,
   SignedOpenInvitation,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
@@ -70,7 +70,6 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   async createContext(
     applicationId: string,
     jsonParams: string,
-    protocol: string,
   ): ApiResponse<CreateContextResponse> {
     const initializationParams =
       jsonParams === '' ? [] : Array.from(new TextEncoder().encode(jsonParams));
@@ -81,7 +80,6 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
         {
           applicationId,
           initializationParams,
-          protocol,
         },
       );
       return response;
@@ -136,16 +134,16 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
 
   async contextInvite(
     contextId: string,
-    inviterPublicKey: string,
-    inviteePublicKey: string,
-  ): ApiResponse<string> {
+    inviterId: string,
+    validForSeconds: number,
+  ): ApiResponse<InviteToContextResponse> {
     try {
-      const response = await this.client.post<string>(
+      const response = await this.client.post<InviteToContextResponse>(
         this.buildUrl('admin-api/contexts/invite', this.baseUrl),
         {
-          contextId: contextId,
-          inviterId: inviterPublicKey,
-          inviteeId: inviteePublicKey,
+          contextId,
+          inviterId,
+          validForSeconds,
         },
       );
       return response;
@@ -155,68 +153,16 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
     }
   }
 
-  async contextInviteByOpenInvitation(
-    contextId: string,
-    inviterId: string,
-    validForBlocks: number,
-  ): ApiResponse<ContextInviteByOpenInvitationResponse> {
-    try {
-      const response =
-        await this.client.post<ContextInviteByOpenInvitationResponse>(
-          this.buildUrl(
-            'admin-api/contexts/invite_by_open_invitation',
-            this.baseUrl,
-          ),
-          {
-            contextId,
-            inviterId,
-            validForBlocks,
-          },
-        );
-      return response;
-    } catch (error) {
-      console.error('Error creating open invitation:', error);
-      return {
-        error: { code: 500, message: 'Failed to create open invitation.' },
-      };
-    }
-  }
-
-  async joinContextByOpenInvitation(
+  async joinContext(
     invitation: SignedOpenInvitation,
     newMemberPublicKey: string,
   ): ApiResponse<JoinContextResponse> {
     try {
       const response = await this.client.post<JoinContextResponse>(
-        this.buildUrl(
-          'admin-api/contexts/join_by_open_invitation',
-          this.baseUrl,
-        ),
+        this.buildUrl('admin-api/contexts/join', this.baseUrl),
         {
           invitation,
           newMemberPublicKey,
-        },
-      );
-      return response;
-    } catch (error) {
-      console.error('Error joining context by open invitation:', error);
-      return {
-        error: {
-          code: 500,
-          message: 'Failed to join context by open invitation.',
-        },
-      };
-    }
-  }
-
-  async joinContext(
-    invitationPayload: string,
-  ): ApiResponse<JoinContextResponse> {
-    try {
-      const response = await this.client.post<JoinContextResponse>(
-        this.buildUrl('admin-api/contexts/join', this.baseUrl),
-        {
-          invitationPayload,
         },
       );
       return response;
