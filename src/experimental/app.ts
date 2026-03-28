@@ -105,9 +105,7 @@ export class CalimeroApplication implements CalimeroApp {
     return { success: true, result: response.result?.output };
   }
 
-  async createContext(
-    initParams?: Record<string, unknown>,
-  ): Promise<Context> {
+  async createContext(initParams?: Record<string, unknown>): Promise<Context> {
     const response = await this.apiClient
       .node()
       .createContext(

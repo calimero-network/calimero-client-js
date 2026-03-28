@@ -55,10 +55,4 @@ const rpcClient = new JsonRpcClient(new AxiosHttpClient(axios));
 
 export type { ApiClient };
 
-export {
-  apiClient,
-  authClient,
-  adminClient,
-  rpcClient,
-  blobClient,
-};
+export { apiClient, authClient, adminClient, rpcClient, blobClient };

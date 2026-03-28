@@ -39,9 +39,7 @@ export const CreateContext: React.FC = () => {
   const handleCreateContext = async () => {
     setError(null);
     setIsLoading(true);
-    const fetchData = await apiClient
-      .node()
-      .createContext(applicationId, '');
+    const fetchData = await apiClient.node().createContext(applicationId, '');
 
     if (fetchData.error) {
       setError(fetchData.error.message);

@@ -367,9 +367,7 @@ import { apiClient } from '@calimero-network/calimero-client';
 async function createNewContext() {
   const applicationId = getApplicationId();
 
-  const response = await apiClient
-    .node()
-    .createContext(applicationId, '');
+  const response = await apiClient.node().createContext(applicationId, '');
 
   if (response.error) {
     console.error('Failed to create context:', response.error.message);
