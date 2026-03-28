@@ -7,7 +7,6 @@ import Spinner from '../components/loader/Spinner';
 import { DeleteIcon } from '../components';
 import {
   Button,
-  DropdownSelector,
   ErrorMessage,
   FlexContainer,
   Heading2,
@@ -20,7 +19,6 @@ import {
 export const CreateContext: React.FC = () => {
   const applicationId = getApplicationId();
   const [contexts, setContexts] = useState<Context[]>([]);
-  const [selectedProtocol, setSelectedProtocol] = useState<string>('near');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -43,7 +41,7 @@ export const CreateContext: React.FC = () => {
     setIsLoading(true);
     const fetchData = await apiClient
       .node()
-      .createContext(applicationId, '', selectedProtocol);
+      .createContext(applicationId, '');
 
     if (fetchData.error) {
       setError(fetchData.error.message);
@@ -68,20 +66,7 @@ export const CreateContext: React.FC = () => {
     <div className="create-tab">
       <Heading2>Create Context</Heading2>
       <Paragraph>Application ID: {applicationId}</Paragraph>
-      <label>Choose Protocol:</label>
       <FlexContainer>
-        <div>
-          <DropdownSelector
-            value={selectedProtocol}
-            onChange={(e) => setSelectedProtocol(e.target.value)}
-          >
-            <option value="near">NEAR</option>
-            <option value="ethereum">Ethereum</option>
-            <option value="starknet">Starknet</option>
-            <option value="stellar">Stellar</option>
-            <option value="icp">ICP</option>
-          </DropdownSelector>
-        </div>
         <Button
           disabled={isLoading}
           onClick={handleCreateContext}

@@ -6,8 +6,6 @@ import { ExperimentalSSE } from './sse';
 import {
   Context,
   CalimeroApp,
-  Protocol,
-  ProtocolID,
   ExecutionResponse,
   SubscriptionEvent,
   EventStreamMode,
@@ -108,7 +106,6 @@ export class CalimeroApplication implements CalimeroApp {
   }
 
   async createContext(
-    protocol: ProtocolID = Protocol.NEAR,
     initParams?: Record<string, unknown>,
   ): Promise<Context> {
     const response = await this.apiClient
@@ -116,7 +113,6 @@ export class CalimeroApplication implements CalimeroApp {
       .createContext(
         this.clientApplicationId,
         JSON.stringify(initParams || {}),
-        protocol,
       );
 
     if (response.error) {

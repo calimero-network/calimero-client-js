@@ -201,11 +201,9 @@ export interface CalimeroApp {
 
   /**
    * Creates a new context for this application.
-   * @param protocol - Optional execution layer (e.g., NEAR, ICP, ETH).
    * @param initParams - Optional parameters for context initialization.
    */
   createContext(
-    protocol?: ProtocolID,
     initParams?: Record<string, unknown>,
   ): Promise<Context>;
 
