@@ -1,13 +1,3 @@
-// Supported protocols for context creation
-export enum Protocol {
-  ETHEREUM = 'ethereum',
-  ICP = 'icp',
-  NEAR = 'near',
-  STARKNET = 'starknet',
-  STELLAR = 'stellar',
-}
-export type ProtocolID = Protocol | string;
-
 export enum AppMode {
   MultiContext = 'multi-context',
   SingleContext = 'single-context',
@@ -203,9 +193,7 @@ export interface CalimeroApp {
    * Creates a new context for this application.
    * @param initParams - Optional parameters for context initialization.
    */
-  createContext(
-    initParams?: Record<string, unknown>,
-  ): Promise<Context>;
+  createContext(initParams?: Record<string, unknown>): Promise<Context>;
 
   /**
    * Deletes a specific context.
