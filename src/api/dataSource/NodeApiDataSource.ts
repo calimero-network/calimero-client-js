@@ -21,6 +21,18 @@ import {
   CheckAuthResponse,
   InviteToContextResponse,
   SignedOpenInvitation,
+  CreateGroupRequest,
+  CreateGroupResponse,
+  ListGroupsResponse,
+  GroupInfoResponse,
+  ListGroupMembersResponse,
+  AddGroupMembersRequest,
+  RemoveGroupMembersRequest,
+  ListGroupContextsResponse,
+  GroupInvitationResponse,
+  JoinGroupRequest,
+  JoinGroupResponse,
+  MemberCapabilities,
 } from '../nodeApi';
 import { HttpClient } from '../httpClient';
 import { getAppEndpointKey } from '../../storage';
@@ -343,5 +355,205 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
       this.buildUrl('admin-api/is-authed', this.baseUrl),
     );
     return response;
+  }
+
+  // ── Group Management ──
+
+  async listGroups(): ApiResponse<ListGroupsResponse> {
+    try {
+      return await this.client.get<ListGroupsResponse>(
+        this.buildUrl('admin-api/groups', this.baseUrl),
+      );
+    } catch (error) {
+      console.error('Error listing groups:', error);
+      return { error: { code: 500, message: 'Failed to list groups.' } };
+    }
+  }
+
+  async createGroup(
+    request: CreateGroupRequest,
+  ): ApiResponse<CreateGroupResponse> {
+    try {
+      return await this.client.post<CreateGroupResponse>(
+        this.buildUrl('admin-api/groups', this.baseUrl),
+        request,
+      );
+    } catch (error) {
+      console.error('Error creating group:', error);
+      return { error: { code: 500, message: 'Failed to create group.' } };
+    }
+  }
+
+  async getGroupInfo(groupId: string): ApiResponse<GroupInfoResponse> {
+    try {
+      return await this.client.get<GroupInfoResponse>(
+        this.buildUrl(`admin-api/groups/${groupId}`, this.baseUrl),
+      );
+    } catch (error) {
+      console.error('Error getting group info:', error);
+      return { error: { code: 500, message: 'Failed to get group info.' } };
+    }
+  }
+
+  async deleteGroup(groupId: string): ApiResponse<void> {
+    try {
+      return await this.client.delete<void>(
+        this.buildUrl(`admin-api/groups/${groupId}`, this.baseUrl),
+      );
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      return { error: { code: 500, message: 'Failed to delete group.' } };
+    }
+  }
+
+  async listGroupMembers(
+    groupId: string,
+  ): ApiResponse<ListGroupMembersResponse> {
+    try {
+      return await this.client.get<ListGroupMembersResponse>(
+        this.buildUrl(`admin-api/groups/${groupId}/members`, this.baseUrl),
+      );
+    } catch (error) {
+      console.error('Error listing group members:', error);
+      return { error: { code: 500, message: 'Failed to list group members.' } };
+    }
+  }
+
+  async addGroupMembers(
+    groupId: string,
+    request: AddGroupMembersRequest,
+  ): ApiResponse<void> {
+    try {
+      return await this.client.post<void>(
+        this.buildUrl(`admin-api/groups/${groupId}/members`, this.baseUrl),
+        request,
+      );
+    } catch (error) {
+      console.error('Error adding group members:', error);
+      return { error: { code: 500, message: 'Failed to add group members.' } };
+    }
+  }
+
+  async removeGroupMembers(
+    groupId: string,
+    request: RemoveGroupMembersRequest,
+  ): ApiResponse<void> {
+    try {
+      return await this.client.post<void>(
+        this.buildUrl(
+          `admin-api/groups/${groupId}/members/remove`,
+          this.baseUrl,
+        ),
+        request,
+      );
+    } catch (error) {
+      console.error('Error removing group members:', error);
+      return {
+        error: { code: 500, message: 'Failed to remove group members.' },
+      };
+    }
+  }
+
+  async listGroupContexts(
+    groupId: string,
+  ): ApiResponse<ListGroupContextsResponse> {
+    try {
+      return await this.client.get<ListGroupContextsResponse>(
+        this.buildUrl(`admin-api/groups/${groupId}/contexts`, this.baseUrl),
+      );
+    } catch (error) {
+      console.error('Error listing group contexts:', error);
+      return {
+        error: { code: 500, message: 'Failed to list group contexts.' },
+      };
+    }
+  }
+
+  async joinGroupContext(
+    groupId: string,
+    contextId: string,
+  ): ApiResponse<JoinContextResponse> {
+    try {
+      return await this.client.post<JoinContextResponse>(
+        this.buildUrl(
+          `admin-api/groups/${groupId}/join-context`,
+          this.baseUrl,
+        ),
+        { contextId },
+      );
+    } catch (error) {
+      console.error('Error joining group context:', error);
+      return {
+        error: { code: 500, message: 'Failed to join group context.' },
+      };
+    }
+  }
+
+  async createGroupInvitation(
+    groupId: string,
+  ): ApiResponse<GroupInvitationResponse> {
+    try {
+      return await this.client.post<GroupInvitationResponse>(
+        this.buildUrl(`admin-api/groups/${groupId}/invite`, this.baseUrl),
+        {},
+      );
+    } catch (error) {
+      console.error('Error creating group invitation:', error);
+      return {
+        error: { code: 500, message: 'Failed to create group invitation.' },
+      };
+    }
+  }
+
+  async joinGroup(request: JoinGroupRequest): ApiResponse<JoinGroupResponse> {
+    try {
+      return await this.client.post<JoinGroupResponse>(
+        this.buildUrl('admin-api/groups/join', this.baseUrl),
+        request,
+      );
+    } catch (error) {
+      console.error('Error joining group:', error);
+      return { error: { code: 500, message: 'Failed to join group.' } };
+    }
+  }
+
+  async setMemberCapabilities(
+    groupId: string,
+    memberId: string,
+    capabilities: number,
+  ): ApiResponse<void> {
+    try {
+      return await this.client.put<void>(
+        this.buildUrl(
+          `admin-api/groups/${groupId}/members/${memberId}/capabilities`,
+          this.baseUrl,
+        ),
+        { capabilities },
+      );
+    } catch (error) {
+      console.error('Error setting member capabilities:', error);
+      return {
+        error: { code: 500, message: 'Failed to set member capabilities.' },
+      };
+    }
+  }
+
+  async getMemberCapabilities(
+    groupId: string,
+    memberId: string,
+  ): ApiResponse<MemberCapabilities> {
+    try {
+      return await this.client.get<MemberCapabilities>(
+        this.buildUrl(
+          `admin-api/groups/${groupId}/members/${memberId}/capabilities`,
+          this.baseUrl,
+        ),
+      );
+    } catch (error) {
+      console.error('Error getting member capabilities:', error);
+      return {
+        error: { code: 500, message: 'Failed to get member capabilities.' },
+      };
+    }
   }
 }

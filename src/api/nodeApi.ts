@@ -105,6 +105,85 @@ export interface ContextStorage {
   sizeInBytes: number;
 }
 
+// ── Group Management ──
+
+export type GroupMemberRole = 'Admin' | 'Member' | 'ReadOnly';
+
+export interface GroupInfo {
+  groupId: string;
+  appKey: string;
+  targetApplicationId: string;
+  upgradePolicy: string;
+  memberCount: number;
+  contextCount: number;
+  alias?: string;
+}
+
+export interface GroupMember {
+  identity: string;
+  role: GroupMemberRole;
+  alias?: string;
+}
+
+export interface GroupContext {
+  contextId: string;
+  alias?: string;
+}
+
+export interface CreateGroupRequest {
+  applicationId: string;
+  parentGroupId?: string;
+  upgradePolicy?: string;
+  alias?: string;
+}
+
+export interface CreateGroupResponse {
+  data: { groupId: string };
+}
+
+export interface ListGroupsResponse {
+  data: GroupInfo[];
+}
+
+export interface GroupInfoResponse {
+  data: GroupInfo;
+}
+
+export interface ListGroupMembersResponse {
+  data: GroupMember[];
+  selfIdentity: string;
+}
+
+export interface ListGroupContextsResponse {
+  data: GroupContext[];
+}
+
+export interface AddGroupMembersRequest {
+  members: Array<{ identity: string; role: GroupMemberRole }>;
+}
+
+export interface RemoveGroupMembersRequest {
+  members: string[];
+}
+
+export interface GroupInvitationResponse {
+  data: SignedOpenInvitation;
+}
+
+export interface JoinGroupRequest {
+  invitation: SignedOpenInvitation;
+  groupAlias?: string;
+}
+
+export interface JoinGroupResponse {
+  groupId: string;
+  memberIdentity: string;
+}
+
+export interface MemberCapabilities {
+  capabilities: number;
+}
+
 export interface CapabilitiesRequest {
   capabilities: Array<[string, string]>; // [ContextIdentity, Capability]
   signer_id: string;
@@ -166,4 +245,37 @@ export interface NodeApi {
     request: CapabilitiesRequest,
   ): ApiResponse<void>;
   checkAuth(): ApiResponse<CheckAuthResponse>;
+
+  // Group Management
+  listGroups(): ApiResponse<ListGroupsResponse>;
+  createGroup(request: CreateGroupRequest): ApiResponse<CreateGroupResponse>;
+  getGroupInfo(groupId: string): ApiResponse<GroupInfoResponse>;
+  deleteGroup(groupId: string): ApiResponse<void>;
+  listGroupMembers(groupId: string): ApiResponse<ListGroupMembersResponse>;
+  addGroupMembers(
+    groupId: string,
+    request: AddGroupMembersRequest,
+  ): ApiResponse<void>;
+  removeGroupMembers(
+    groupId: string,
+    request: RemoveGroupMembersRequest,
+  ): ApiResponse<void>;
+  listGroupContexts(groupId: string): ApiResponse<ListGroupContextsResponse>;
+  joinGroupContext(
+    groupId: string,
+    contextId: string,
+  ): ApiResponse<JoinContextResponse>;
+  createGroupInvitation(
+    groupId: string,
+  ): ApiResponse<GroupInvitationResponse>;
+  joinGroup(request: JoinGroupRequest): ApiResponse<JoinGroupResponse>;
+  setMemberCapabilities(
+    groupId: string,
+    memberId: string,
+    capabilities: number,
+  ): ApiResponse<void>;
+  getMemberCapabilities(
+    groupId: string,
+    memberId: string,
+  ): ApiResponse<MemberCapabilities>;
 }
