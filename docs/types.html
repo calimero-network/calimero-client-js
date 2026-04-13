@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calimero | Client JS — Types</title>
+<link rel="stylesheet" href="styles.css">
+<meta name="theme-color" content="#0d1117">
+</head>
+<body>
+<div class="main">
+<div class="content">
+<div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Types</span></div>
+
+<h1>Type Reference</h1>
+<p class="page-subtitle">TypeScript interfaces and types exported from calimero-client</p>
+
+<div class="card ga">
+<h2>Client Configuration</h2>
+<div class="typedef">
+<span class="kw">interface</span> <span class="ty">ClientConfig</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">nodeUrl</span>: <span class="ty">string</span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Calimero node base URL</span><br>
+&nbsp;&nbsp;<span class="field">contextId</span>: <span class="ty">string</span>;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Active context ID</span><br>
+&nbsp;&nbsp;<span class="field">timeout</span>?: <span class="ty">number</span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Request timeout ms (default 30000)</span><br>
+&#125;<br><br>
+<span class="kw">interface</span> <span class="ty">WsClientConfig</span> <span class="kw">extends</span> <span class="ty">ClientConfig</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">reconnect</span>?: <span class="ty">boolean</span>;&nbsp;&nbsp;<span class="comment">// Auto-reconnect on disconnect (default true)</span><br>
+&nbsp;&nbsp;<span class="field">reconnectMs</span>?: <span class="ty">number</span>;<span class="comment">// Delay between reconnects (default 2000)</span><br>
+&#125;
+</div>
+</div>
+
+<div class="card gb">
+<h2>RPC Types</h2>
+<div class="typedef">
+<span class="kw">interface</span> <span class="ty">RpcRequest</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">method</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">args</span>: <span class="ty">Record</span>&lt;<span class="ty">string</span>, <span class="ty">unknown</span>&gt;;<br>
+&#125;<br><br>
+<span class="kw">interface</span> <span class="ty">RpcResponse</span>&lt;<span class="ty">T</span> = <span class="ty">unknown</span>&gt; &#123;<br>
+&nbsp;&nbsp;<span class="field">result</span>?: <span class="ty">T</span>;<br>
+&nbsp;&nbsp;<span class="field">error</span>?: &#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">code</span>: <span class="ty">number</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">message</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;&#125;;<br>
+&#125;
+</div>
+</div>
+
+<div class="card gc">
+<h2>Event Types</h2>
+<div class="typedef">
+<span class="kw">interface</span> <span class="ty">NodeEvent</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">contextId</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">eventType</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">payload</span>: <span class="ty">unknown</span>;<br>
+&nbsp;&nbsp;<span class="field">timestamp</span>: <span class="ty">number</span>;<br>
+&#125;<br><br>
+<span class="kw">interface</span> <span class="ty">SubscribeOptions</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">onEvent</span>: (<span class="field">event</span>: <span class="ty">NodeEvent</span>) =&gt; <span class="ty">void</span>;<br>
+&nbsp;&nbsp;<span class="field">onError</span>?: (<span class="field">err</span>: <span class="ty">Error</span>) =&gt; <span class="ty">void</span>;<br>
+&nbsp;&nbsp;<span class="field">onClose</span>?: () =&gt; <span class="ty">void</span>;<br>
+&#125;<br><br>
+<span class="kw">type</span> <span class="ty">Unsubscribe</span> = () =&gt; <span class="ty">void</span>;
+</div>
+</div>
+
+<div class="card gd">
+<h2>Admin Data Types</h2>
+<div class="typedef">
+<span class="kw">interface</span> <span class="ty">Context</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">id</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">applicationId</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">rootHash</span>: <span class="ty">string</span>;<br>
+&#125;<br><br>
+<span class="kw">interface</span> <span class="ty">Application</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">id</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">name</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">version</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">metadata</span>: &#123; <span class="field">links</span>: &#123; <span class="field">frontend</span>?: <span class="ty">string</span> &#125; &#125;;<br>
+&#125;<br><br>
+<span class="kw">interface</span> <span class="ty">Identity</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">publicKey</span>: <span class="ty">string</span>;<br>
+&#125;
+</div>
+</div>
+
+</div>
+</div>
+<script src="nav.js"></script>
+</body>
+</html>

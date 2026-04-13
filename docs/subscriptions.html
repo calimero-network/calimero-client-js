@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calimero | Client JS — Subscriptions</title>
+<link rel="stylesheet" href="styles.css">
+<meta name="theme-color" content="#0d1117">
+</head>
+<body>
+<div class="main">
+<div class="content">
+<div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Subscriptions</span></div>
+
+<h1>Subscriptions</h1>
+<p class="page-subtitle">Real-time event streaming with SubscriptionsClient over WebSocket</p>
+
+<div class="card ga">
+<h2>Setup</h2>
+<div class="typedef">
+<span class="kw">import</span> &#123; <span class="ty">WsSubscriptionsClient</span> &#125; <span class="kw">from</span> <span class="comment">'@calimero-network/calimero-client'</span>;<br><br>
+<span class="kw">const</span> <span class="field">subs</span> = <span class="kw">new</span> <span class="ty">WsSubscriptionsClient</span>(&#123;<br>
+&nbsp;&nbsp;<span class="field">nodeUrl</span>: <span class="comment">'ws://localhost:2428'</span>,<span class="comment">// WebSocket URL</span><br>
+&nbsp;&nbsp;<span class="field">contextId</span>: <span class="comment">'ctx_abc...'</span>,<br>
+&#125;);<br><br>
+<span class="field">subs</span>.<span class="ty">setToken</span>(<span class="field">accessToken</span>);
+</div>
+</div>
+
+<div class="card gb">
+<h2>Subscribing to Events</h2>
+<div class="typedef">
+<span class="comment">// Subscribe — returns an unsubscribe function</span><br>
+<span class="kw">const</span> <span class="field">unsub</span> = <span class="field">subs</span>.<span class="ty">subscribe</span>(&#123;<br>
+&nbsp;&nbsp;<span class="field">onEvent</span>: (<span class="field">event</span>) =&gt; &#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.<span class="ty">log</span>(<span class="comment">'Received:'</span>, event.<span class="field">eventType</span>, event.<span class="field">payload</span>);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (<span class="field">event</span>.<span class="field">eventType</span> === <span class="comment">'StateMutation'</span>) &#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ty">reloadData</span>();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#125;<br>
+&nbsp;&nbsp;&#125;,<br>
+&nbsp;&nbsp;<span class="field">onError</span>: (<span class="field">err</span>) =&gt; console.<span class="ty">error</span>(<span class="comment">'WS error:'</span>, <span class="field">err</span>),<br>
+&nbsp;&nbsp;<span class="field">onClose</span>: () =&gt; console.<span class="ty">log</span>(<span class="comment">'Connection closed'</span>),<br>
+&#125;);<br><br>
+<span class="comment">// Stop and close connection:</span><br>
+<span class="field">unsub</span>();
+</div>
+</div>
+
+<div class="card gc">
+<h2>Event Shape</h2>
+<div class="typedef">
+<span class="kw">interface</span> <span class="ty">NodeEvent</span> &#123;<br>
+&nbsp;&nbsp;<span class="field">contextId</span>: <span class="ty">string</span>;<br>
+&nbsp;&nbsp;<span class="field">eventType</span>: <span class="ty">string</span>;&nbsp;&nbsp;<span class="comment">// 'StateMutation', 'ContextCreated', …</span><br>
+&nbsp;&nbsp;<span class="field">payload</span>: <span class="ty">unknown</span>;&nbsp;<span class="comment">// event-specific data (JSON)</span><br>
+&nbsp;&nbsp;<span class="field">timestamp</span>: <span class="ty">number</span>;<span class="comment">// Unix timestamp ms</span><br>
+&#125;
+</div>
+</div>
+
+<div class="card gd">
+<h2>React Integration Pattern</h2>
+<div class="typedef">
+<span class="kw">function</span> <span class="ty">useNodeEvents</span>(<span class="field">contextId</span>: <span class="ty">string</span>) &#123;<br>
+&nbsp;&nbsp;<span class="kw">const</span> [<span class="field">events</span>, <span class="field">setEvents</span>] = useState&lt;<span class="ty">NodeEvent</span>[]&gt;([]);<br><br>
+&nbsp;&nbsp;useEffect(() =&gt; &#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> <span class="field">subs</span> = <span class="kw">new</span> <span class="ty">WsSubscriptionsClient</span>(&#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">nodeUrl</span>: <span class="comment">'ws://localhost:2428'</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">contextId</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> <span class="field">unsub</span> = <span class="field">subs</span>.<span class="ty">subscribe</span>(&#123;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">onEvent</span>: (<span class="field">e</span>) =&gt; <span class="field">setEvents</span>(<span class="field">prev</span> =&gt; [...<span class="field">prev</span>, <span class="field">e</span>]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#125;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="field">unsub</span>; <span class="comment">// cleanup on unmount</span><br>
+&nbsp;&nbsp;&#125;, [<span class="field">contextId</span>]);<br><br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="field">events</span>;<br>
+&#125;
+</div>
+</div>
+
+</div>
+</div>
+<script src="nav.js"></script>
+</body>
+</html>
