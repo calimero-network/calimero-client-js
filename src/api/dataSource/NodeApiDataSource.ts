@@ -475,10 +475,7 @@ export class NodeApiDataSource extends BaseApiDataSource implements NodeApi {
   ): ApiResponse<JoinContextResponse> {
     try {
       return await this.client.post<JoinContextResponse>(
-        this.buildUrl(
-          `admin-api/groups/${groupId}/join-context`,
-          this.baseUrl,
-        ),
+        this.buildUrl(`admin-api/groups/${groupId}/join-context`, this.baseUrl),
         { contextId },
       );
     } catch (error) {

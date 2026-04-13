@@ -265,9 +265,7 @@ export interface NodeApi {
     groupId: string,
     contextId: string,
   ): ApiResponse<JoinContextResponse>;
-  createGroupInvitation(
-    groupId: string,
-  ): ApiResponse<GroupInvitationResponse>;
+  createGroupInvitation(groupId: string): ApiResponse<GroupInvitationResponse>;
   joinGroup(request: JoinGroupRequest): ApiResponse<JoinGroupResponse>;
   setMemberCapabilities(
     groupId: string,

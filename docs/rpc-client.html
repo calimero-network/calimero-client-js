@@ -1,76 +1,162 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calimero | Client JS — RPC Client</title>
-<link rel="stylesheet" href="styles.css">
-<meta name="theme-color" content="#0d1117">
-</head>
-<body>
-<div class="main">
-<div class="content">
-<div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>RPC Client</span></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Client JS — RPC Client</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>RPC Client</span>
+        </div>
 
-<h1>RPC Client</h1>
-<p class="page-subtitle">Execute WASM application methods — query and mutate</p>
+        <h1>RPC Client</h1>
+        <p class="page-subtitle">
+          Execute WASM application methods — query and mutate
+        </p>
 
-<div class="card ga">
-<h2>Setup</h2>
-<div class="typedef">
-<span class="kw">import</span> &#123; <span class="ty">RpcClient</span>, <span class="ty">WsSubscriptionsClient</span> &#125; <span class="kw">from</span> <span class="comment">'@calimero-network/calimero-client'</span>;<br><br>
-<span class="kw">const</span> <span class="field">rpc</span> = <span class="kw">new</span> <span class="ty">RpcClient</span>(&#123;<br>
-&nbsp;&nbsp;<span class="field">nodeUrl</span>: <span class="comment">'http://localhost:2428'</span>,<br>
-&nbsp;&nbsp;<span class="field">contextId</span>: <span class="comment">'ctx_abc...'</span>,<br>
-&#125;);<br><br>
-<span class="comment">// Set access token (obtained from auth flow):</span><br>
-<span class="field">rpc</span>.<span class="ty">setToken</span>(<span class="field">accessToken</span>);
-</div>
-</div>
+        <div class="card ga">
+          <h2>Setup</h2>
+          <div class="typedef">
+            <span class="kw">import</span> &#123;
+            <span class="ty">RpcClient</span>,
+            <span class="ty">WsSubscriptionsClient</span> &#125;
+            <span class="kw">from</span>
+            <span class="comment">'@calimero-network/calimero-client'</span
+            >;<br /><br />
+            <span class="kw">const</span> <span class="field">rpc</span> =
+            <span class="kw">new</span>
+            <span class="ty">RpcClient</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">nodeUrl</span>:
+            <span class="comment">'http://localhost:2428'</span>,<br />
+            &nbsp;&nbsp;<span class="field">contextId</span>:
+            <span class="comment">'ctx_abc...'</span>,<br />
+            &#125;);<br /><br />
+            <span class="comment"
+              >// Set access token (obtained from auth flow):</span
+            ><br />
+            <span class="field">rpc</span>.<span class="ty">setToken</span
+            >(<span class="field">accessToken</span>);
+          </div>
+        </div>
 
-<div class="card gb">
-<h2>Methods</h2>
-<div class="fr"><div class="fp">rpc.query(method, args)</div><div class="fd">Execute a read-only WASM method. Returns the JSON-parsed response body. <span class="code">args</span>: plain JS object.</div></div>
-<div class="fr"><div class="fp">rpc.mutate(method, args)</div><div class="fd">Execute a state-mutating WASM method. Same signature as <span class="code">query</span>.</div></div>
-<div class="fr"><div class="fp">rpc.setToken(token)</div><div class="fd">Set or update the JWT access token used for authentication.</div></div>
-<div class="fr"><div class="fp">rpc.setContextId(id)</div><div class="fd">Change the active context. Subsequent calls use the new context ID.</div></div>
-</div>
+        <div class="card gb">
+          <h2>Methods</h2>
+          <div class="fr">
+            <div class="fp">rpc.query(method, args)</div>
+            <div class="fd">
+              Execute a read-only WASM method. Returns the JSON-parsed response
+              body. <span class="code">args</span>: plain JS object.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">rpc.mutate(method, args)</div>
+            <div class="fd">
+              Execute a state-mutating WASM method. Same signature as
+              <span class="code">query</span>.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">rpc.setToken(token)</div>
+            <div class="fd">
+              Set or update the JWT access token used for authentication.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">rpc.setContextId(id)</div>
+            <div class="fd">
+              Change the active context. Subsequent calls use the new context
+              ID.
+            </div>
+          </div>
+        </div>
 
-<div class="card gc">
-<h2>Calling WASM Methods</h2>
-<div class="typedef">
-<span class="comment">// Query — read-only</span><br>
-<span class="kw">const</span> <span class="field">posts</span> = <span class="kw">await</span> <span class="field">rpc</span>.<span class="ty">query</span>(<span class="comment">'get_posts'</span>, &#123;&#125;);<br>
-console.<span class="ty">log</span>(<span class="field">posts</span>);<br><br>
-<span class="comment">// Mutate — state change</span><br>
-<span class="kw">await</span> <span class="field">rpc</span>.<span class="ty">mutate</span>(<span class="comment">'create_post'</span>, &#123;<br>
-&nbsp;&nbsp;<span class="field">title</span>: <span class="comment">'Hello World'</span>,<br>
-&nbsp;&nbsp;<span class="field">body</span>: <span class="comment">'Content here'</span>,<br>
-&#125;);<br><br>
-<span class="comment">// With typed return value</span><br>
-<span class="kw">const</span> <span class="field">post</span> = <span class="kw">await</span> <span class="field">rpc</span>.<span class="ty">query</span>&lt;<span class="ty">Post</span>&gt;(<span class="comment">'get_post'</span>, &#123; <span class="field">id</span>: <span class="field">42</span> &#125;);
-</div>
-</div>
+        <div class="card gc">
+          <h2>Calling WASM Methods</h2>
+          <div class="typedef">
+            <span class="comment">// Query — read-only</span><br />
+            <span class="kw">const</span> <span class="field">posts</span> =
+            <span class="kw">await</span> <span class="field">rpc</span>.<span
+              class="ty"
+              >query</span
+            >(<span class="comment">'get_posts'</span>, &#123;&#125;);<br />
+            console.<span class="ty">log</span>(<span class="field">posts</span
+            >);<br /><br />
+            <span class="comment">// Mutate — state change</span><br />
+            <span class="kw">await</span> <span class="field">rpc</span>.<span
+              class="ty"
+              >mutate</span
+            >(<span class="comment">'create_post'</span>, &#123;<br />
+            &nbsp;&nbsp;<span class="field">title</span>:
+            <span class="comment">'Hello World'</span>,<br />
+            &nbsp;&nbsp;<span class="field">body</span>:
+            <span class="comment">'Content here'</span>,<br />
+            &#125;);<br /><br />
+            <span class="comment">// With typed return value</span><br />
+            <span class="kw">const</span> <span class="field">post</span> =
+            <span class="kw">await</span> <span class="field">rpc</span>.<span
+              class="ty"
+              >query</span
+            >&lt;<span class="ty">Post</span>&gt;(<span class="comment"
+              >'get_post'</span
+            >, &#123; <span class="field">id</span>:
+            <span class="field">42</span> &#125;);
+          </div>
+        </div>
 
-<div class="card gd">
-<h2>Error Handling</h2>
-<div class="typedef">
-<span class="kw">try</span> &#123;<br>
-&nbsp;&nbsp;<span class="kw">await</span> <span class="field">rpc</span>.<span class="ty">mutate</span>(<span class="comment">'create_post'</span>, &#123; <span class="field">title</span>: <span class="comment">''</span> &#125;);<br>
-&#125; <span class="kw">catch</span> (<span class="field">err</span>) &#123;<br>
-&nbsp;&nbsp;<span class="kw">if</span> (<span class="field">err</span>.<span class="field">status</span> === <span class="field">401</span>) &#123;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Token expired — refresh and retry</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> <span class="field">newToken</span> = <span class="kw">await</span> <span class="ty">refreshToken</span>();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">rpc</span>.<span class="ty">setToken</span>(<span class="field">newToken</span>);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">await</span> <span class="field">rpc</span>.<span class="ty">mutate</span>(<span class="comment">'create_post'</span>, &#123; <span class="field">title</span>: <span class="comment">''</span> &#125;);<br>
-&nbsp;&nbsp;&#125; <span class="kw">else if</span> (<span class="field">err</span>.<span class="field">status</span> === <span class="field">400</span>) &#123;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;console.<span class="ty">error</span>(<span class="comment">'Bad request:'</span>, <span class="field">err</span>.<span class="field">body</span>);<br>
-&nbsp;&nbsp;&#125;<br>
-&#125;
-</div>
-</div>
-
-</div>
-</div>
-<script src="nav.js"></script>
-</body>
+        <div class="card gd">
+          <h2>Error Handling</h2>
+          <div class="typedef">
+            <span class="kw">try</span> &#123;<br />
+            &nbsp;&nbsp;<span class="kw">await</span>
+            <span class="field">rpc</span>.<span class="ty">mutate</span>(<span
+              class="comment"
+              >'create_post'</span
+            >, &#123; <span class="field">title</span>:
+            <span class="comment">''</span> &#125;);<br />
+            &#125; <span class="kw">catch</span> (<span class="field">err</span
+            >) &#123;<br />
+            &nbsp;&nbsp;<span class="kw">if</span> (<span class="field"
+              >err</span
+            >.<span class="field">status</span> ===
+            <span class="field">401</span>) &#123;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"
+              >// Token expired — refresh and retry</span
+            ><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span>
+            <span class="field">newToken</span> = <span class="kw">await</span>
+            <span class="ty">refreshToken</span>();<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="field">rpc</span>.<span
+              class="ty"
+              >setToken</span
+            >(<span class="field">newToken</span>);<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">await</span>
+            <span class="field">rpc</span>.<span class="ty">mutate</span>(<span
+              class="comment"
+              >'create_post'</span
+            >, &#123; <span class="field">title</span>:
+            <span class="comment">''</span> &#125;);<br />
+            &nbsp;&nbsp;&#125; <span class="kw">else if</span> (<span
+              class="field"
+              >err</span
+            >.<span class="field">status</span> ===
+            <span class="field">400</span>) &#123;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;console.<span class="ty">error</span>(<span
+              class="comment"
+              >'Bad request:'</span
+            >, <span class="field">err</span>.<span class="field">body</span
+            >);<br />
+            &nbsp;&nbsp;&#125;<br />
+            &#125;
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
 </html>
