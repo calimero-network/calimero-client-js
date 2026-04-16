@@ -19,7 +19,14 @@
         <h1>Blob API</h1>
         <p class="page-subtitle">
           Binary file upload, download, and metadata — accessed via
-          <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--green)">apiClient.blob()</span>
+          <span
+            style="
+              font-family: var(--font-mono);
+              font-size: 0.8rem;
+              color: var(--green);
+            "
+            >apiClient.blob()</span
+          >
         </p>
 
         <!-- Upload -->
@@ -29,23 +36,51 @@
             <div class="fp">uploadBlob(file, onProgress?, expectedHash?)</div>
             <div class="fd">
               Upload a <span class="code">File</span> object via HTTP PUT.
-              Optional <span class="code">onProgress</span> callback receives a 0–100 number.
-              Optional <span class="code">expectedHash</span> for server-side integrity verification.
-              Returns <span class="code">&#123; blobId, size &#125;</span>.
+              Optional <span class="code">onProgress</span> callback receives a
+              0–100 number. Optional <span class="code">expectedHash</span> for
+              server-side integrity verification. Returns
+              <span class="code">&#123; blobId, size &#125;</span>.
             </div>
           </div>
 
-          <div class="typedef" style="margin-top:16px">
-            <span class="kw">import</span> &#123; <span class="ty">apiClient</span> &#125; <span class="kw">from</span> <span class="comment">'@calimero-network/calimero-client'</span>;<br /><br />
+          <div class="typedef" style="margin-top: 16px">
+            <span class="kw">import</span> &#123;
+            <span class="ty">apiClient</span> &#125;
+            <span class="kw">from</span>
+            <span class="comment">'@calimero-network/calimero-client'</span
+            >;<br /><br />
             <span class="comment">// From a file input element</span><br />
-            <span class="kw">const</span> <span class="field">file</span>: <span class="ty">File</span> = <span class="field">input</span>.<span class="field">files</span>[<span class="field">0</span>];<br /><br />
-            <span class="kw">const</span> <span class="field">res</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">blob</span>().<span class="ty">uploadBlob</span>(<br />
+            <span class="kw">const</span> <span class="field">file</span>:
+            <span class="ty">File</span> =
+            <span class="field">input</span>.<span class="field">files</span
+            >[<span class="field">0</span>];<br /><br />
+            <span class="kw">const</span> <span class="field">res</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">blob</span
+            >().<span class="ty">uploadBlob</span>(<br />
             &nbsp;&nbsp;<span class="field">file</span>,<br />
-            &nbsp;&nbsp;(<span class="field">pct</span>) =&gt; console.<span class="ty">log</span>(<span class="comment">`Upload: ${<span class="field">pct</span>}%`</span>),<br />
+            &nbsp;&nbsp;(<span class="field">pct</span>) =&gt; console.<span
+              class="ty"
+              >log</span
+            >(<span class="comment"
+              >`Upload: ${<span class="field">pct</span>}%`</span
+            >),<br />
             );<br /><br />
-            <span class="kw">if</span> (!<span class="field">res</span>.<span class="field">error</span>) &#123;<br />
-            &nbsp;&nbsp;console.<span class="ty">log</span>(<span class="comment">'Blob ID:'</span>, <span class="field">res</span>.<span class="field">data</span>.<span class="field">blobId</span>);<br />
-            &nbsp;&nbsp;console.<span class="ty">log</span>(<span class="comment">'Size:'</span>, <span class="field">res</span>.<span class="field">data</span>.<span class="field">size</span>, <span class="comment">'bytes'</span>);<br />
+            <span class="kw">if</span> (!<span class="field">res</span>.<span
+              class="field"
+              >error</span
+            >) &#123;<br />
+            &nbsp;&nbsp;console.<span class="ty">log</span>(<span
+              class="comment"
+              >'Blob ID:'</span
+            >, <span class="field">res</span>.<span class="field">data</span
+            >.<span class="field">blobId</span>);<br />
+            &nbsp;&nbsp;console.<span class="ty">log</span>(<span
+              class="comment"
+              >'Size:'</span
+            >, <span class="field">res</span>.<span class="field">data</span
+            >.<span class="field">size</span>,
+            <span class="comment">'bytes'</span>);<br />
             &#125;
           </div>
         </div>
@@ -56,20 +91,36 @@
           <div class="fr">
             <div class="fp">downloadBlob(blobId, contextId)</div>
             <div class="fd">
-              Download a blob as a browser <span class="code">Blob</span> object.
-              Throws on error (unlike other methods which return an error object).
+              Download a blob as a browser
+              <span class="code">Blob</span> object. Throws on error (unlike
+              other methods which return an error object).
             </div>
           </div>
 
-          <div class="typedef" style="margin-top:16px">
-            <span class="comment">// Download and trigger browser save dialog</span><br />
-            <span class="kw">const</span> <span class="field">blob</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">blob</span>().<span class="ty">downloadBlob</span>(<span class="field">blobId</span>, <span class="field">contextId</span>);<br /><br />
-            <span class="kw">const</span> <span class="field">url</span> = <span class="ty">URL</span>.<span class="ty">createObjectURL</span>(<span class="field">blob</span>);<br />
-            <span class="kw">const</span> <span class="field">a</span> = <span class="field">document</span>.<span class="ty">createElement</span>(<span class="comment">'a'</span>);<br />
-            <span class="field">a</span>.<span class="field">href</span> = <span class="field">url</span>;<br />
-            <span class="field">a</span>.<span class="field">download</span> = <span class="comment">'file'</span>;<br />
+          <div class="typedef" style="margin-top: 16px">
+            <span class="comment"
+              >// Download and trigger browser save dialog</span
+            ><br />
+            <span class="kw">const</span> <span class="field">blob</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">blob</span
+            >().<span class="ty">downloadBlob</span>(<span class="field"
+              >blobId</span
+            >, <span class="field">contextId</span>);<br /><br />
+            <span class="kw">const</span> <span class="field">url</span> =
+            <span class="ty">URL</span>.<span class="ty">createObjectURL</span
+            >(<span class="field">blob</span>);<br />
+            <span class="kw">const</span> <span class="field">a</span> =
+            <span class="field">document</span>.<span class="ty"
+              >createElement</span
+            >(<span class="comment">'a'</span>);<br />
+            <span class="field">a</span>.<span class="field">href</span> =
+            <span class="field">url</span>;<br />
+            <span class="field">a</span>.<span class="field">download</span> =
+            <span class="comment">'file'</span>;<br />
             <span class="field">a</span>.<span class="ty">click</span>();<br />
-            <span class="ty">URL</span>.<span class="ty">revokeObjectURL</span>(<span class="field">url</span>);
+            <span class="ty">URL</span>.<span class="ty">revokeObjectURL</span
+            >(<span class="field">url</span>);
           </div>
         </div>
 
@@ -78,26 +129,58 @@
           <h2>List, Metadata &amp; Delete</h2>
           <div class="fr">
             <div class="fp">listBlobs()</div>
-            <div class="fd">List all blobs stored on the node. Returns <span class="code">&#123; blobs: &#123; blobId, size &#125;[] &#125;</span>.</div>
+            <div class="fd">
+              List all blobs stored on the node. Returns
+              <span class="code"
+                >&#123; blobs: &#123; blobId, size &#125;[] &#125;</span
+              >.
+            </div>
           </div>
           <div class="fr">
             <div class="fp">getBlobMetadata(blobId)</div>
-            <div class="fd">Fetch metadata via HTTP HEAD. Returns <span class="code">&#123; blobId, size, fileType &#125;</span> extracted from response headers.</div>
+            <div class="fd">
+              Fetch metadata via HTTP HEAD. Returns
+              <span class="code">&#123; blobId, size, fileType &#125;</span>
+              extracted from response headers.
+            </div>
           </div>
           <div class="fr">
             <div class="fp">deleteBlob(blobId)</div>
             <div class="fd">Permanently delete a blob by ID.</div>
           </div>
 
-          <div class="typedef" style="margin-top:16px">
+          <div class="typedef" style="margin-top: 16px">
             <span class="comment">// List all blobs</span><br />
-            <span class="kw">const</span> <span class="field">list</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">blob</span>().<span class="ty">listBlobs</span>();<br />
-            <span class="field">list</span>.<span class="field">data</span>?.<span class="field">blobs</span>.<span class="ty">forEach</span>((<span class="field">b</span>) =&gt; console.<span class="ty">log</span>(<span class="field">b</span>.<span class="field">blobId</span>, <span class="field">b</span>.<span class="field">size</span>));<br /><br />
-            <span class="comment">// Check metadata without downloading</span><br />
-            <span class="kw">const</span> <span class="field">meta</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">blob</span>().<span class="ty">getBlobMetadata</span>(<span class="field">blobId</span>);<br />
-            console.<span class="ty">log</span>(<span class="field">meta</span>.<span class="field">data</span>?.<span class="field">fileType</span>, <span class="field">meta</span>.<span class="field">data</span>?.<span class="field">size</span>);<br /><br />
+            <span class="kw">const</span> <span class="field">list</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">blob</span
+            >().<span class="ty">listBlobs</span>();<br />
+            <span class="field">list</span>.<span class="field">data</span
+            >?.<span class="field">blobs</span>.<span class="ty">forEach</span
+            >((<span class="field">b</span>) =&gt; console.<span class="ty"
+              >log</span
+            >(<span class="field">b</span>.<span class="field">blobId</span>,
+            <span class="field">b</span>.<span class="field">size</span
+            >));<br /><br />
+            <span class="comment">// Check metadata without downloading</span
+            ><br />
+            <span class="kw">const</span> <span class="field">meta</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">blob</span
+            >().<span class="ty">getBlobMetadata</span>(<span class="field"
+              >blobId</span
+            >);<br />
+            console.<span class="ty">log</span>(<span class="field">meta</span
+            >.<span class="field">data</span>?.<span class="field"
+              >fileType</span
+            >, <span class="field">meta</span>.<span class="field">data</span
+            >?.<span class="field">size</span>);<br /><br />
             <span class="comment">// Delete</span><br />
-            <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">blob</span>().<span class="ty">deleteBlob</span>(<span class="field">blobId</span>);
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">blob</span
+            >().<span class="ty">deleteBlob</span>(<span class="field"
+              >blobId</span
+            >);
           </div>
         </div>
 
@@ -105,30 +188,78 @@
         <div class="card gd">
           <h2>Types</h2>
           <div class="typedef">
-            <span class="kw">interface</span> <span class="ty">BlobUploadResponse</span> &#123;<br />
-            &nbsp;&nbsp;<span class="field">blobId</span>: <span class="ty">string</span>;<br />
-            &nbsp;&nbsp;<span class="field">size</span>: <span class="ty">number</span>;<br />
+            <span class="kw">interface</span>
+            <span class="ty">BlobUploadResponse</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">blobId</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">size</span>:
+            <span class="ty">number</span>;<br />
             &#125;<br /><br />
-            <span class="kw">interface</span> <span class="ty">BlobMetadataResponse</span> &#123;<br />
-            &nbsp;&nbsp;<span class="field">blobId</span>: <span class="ty">string</span>;<br />
-            &nbsp;&nbsp;<span class="field">size</span>: <span class="ty">number</span>;<br />
-            &nbsp;&nbsp;<span class="field">fileType</span>: <span class="ty">string</span>;&nbsp;&nbsp;<span class="comment">// MIME type from Content-Type or x-blob-mime-type header</span><br />
+            <span class="kw">interface</span>
+            <span class="ty">BlobMetadataResponse</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">blobId</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">size</span>:
+            <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">fileType</span>:
+            <span class="ty">string</span>;&nbsp;&nbsp;<span class="comment"
+              >// MIME type from Content-Type or x-blob-mime-type header</span
+            ><br />
             &#125;<br /><br />
-            <span class="kw">interface</span> <span class="ty">BlobInfo</span> &#123;<br />
-            &nbsp;&nbsp;<span class="field">blobId</span>: <span class="ty">string</span>;<br />
-            &nbsp;&nbsp;<span class="field">size</span>: <span class="ty">number</span>;<br />
+            <span class="kw">interface</span>
+            <span class="ty">BlobInfo</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">blobId</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">size</span>:
+            <span class="ty">number</span>;<br />
             &#125;<br /><br />
-            <span class="kw">interface</span> <span class="ty">BlobApi</span> &#123;<br />
-            &nbsp;&nbsp;<span class="field">uploadBlob</span>(<span class="field">file</span>: <span class="ty">File</span>, <span class="field">onProgress</span>?: (<span class="field">n</span>: <span class="ty">number</span>) =&gt; <span class="ty">void</span>, <span class="field">expectedHash</span>?: <span class="ty">string</span>): <span class="ty">ApiResponse</span>&lt;<span class="ty">BlobUploadResponse</span>&gt;;<br />
-            &nbsp;&nbsp;<span class="field">downloadBlob</span>(<span class="field">blobId</span>: <span class="ty">string</span>, <span class="field">contextId</span>: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">Blob</span>&gt;;<br />
-            &nbsp;&nbsp;<span class="field">getBlobMetadata</span>(<span class="field">blobId</span>: <span class="ty">string</span>): <span class="ty">ApiResponse</span>&lt;<span class="ty">BlobMetadataResponse</span>&gt;;<br />
-            &nbsp;&nbsp;<span class="field">listBlobs</span>(): <span class="ty">ApiResponse</span>&lt;<span class="ty">BlobListResponseData</span>&gt;;<br />
-            &nbsp;&nbsp;<span class="field">deleteBlob</span>(<span class="field">blobId</span>: <span class="ty">string</span>): <span class="ty">ApiResponse</span>&lt;<span class="ty">void</span>&gt;;<br />
+            <span class="kw">interface</span>
+            <span class="ty">BlobApi</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">uploadBlob</span>(<span
+              class="field"
+              >file</span
+            >: <span class="ty">File</span>,
+            <span class="field">onProgress</span>?: (<span class="field">n</span
+            >: <span class="ty">number</span>) =&gt;
+            <span class="ty">void</span>,
+            <span class="field">expectedHash</span>?:
+            <span class="ty">string</span>):
+            <span class="ty">ApiResponse</span>&lt;<span class="ty"
+              >BlobUploadResponse</span
+            >&gt;;<br />
+            &nbsp;&nbsp;<span class="field">downloadBlob</span>(<span
+              class="field"
+              >blobId</span
+            >: <span class="ty">string</span>,
+            <span class="field">contextId</span>:
+            <span class="ty">string</span>):
+            <span class="ty">Promise</span>&lt;<span class="ty">Blob</span
+            >&gt;;<br />
+            &nbsp;&nbsp;<span class="field">getBlobMetadata</span>(<span
+              class="field"
+              >blobId</span
+            >: <span class="ty">string</span>):
+            <span class="ty">ApiResponse</span>&lt;<span class="ty"
+              >BlobMetadataResponse</span
+            >&gt;;<br />
+            &nbsp;&nbsp;<span class="field">listBlobs</span>():
+            <span class="ty">ApiResponse</span>&lt;<span class="ty"
+              >BlobListResponseData</span
+            >&gt;;<br />
+            &nbsp;&nbsp;<span class="field">deleteBlob</span>(<span
+              class="field"
+              >blobId</span
+            >: <span class="ty">string</span>):
+            <span class="ty">ApiResponse</span>&lt;<span class="ty">void</span
+            >&gt;;<br />
             &#125;
           </div>
-          <p style="margin-top:12px; font-size:0.82rem; color:var(--text-dim)">
-            Note: <span class="code">downloadBlob</span> throws on error instead of returning an error object.
-            Wrap in <span class="code">try/catch</span>.
+          <p
+            style="margin-top: 12px; font-size: 0.82rem; color: var(--text-dim)"
+          >
+            Note: <span class="code">downloadBlob</span> throws on error instead
+            of returning an error object. Wrap in
+            <span class="code">try/catch</span>.
           </p>
         </div>
       </div>

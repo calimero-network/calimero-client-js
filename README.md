@@ -16,14 +16,14 @@ The **Calimero TypeScript Client SDK** helps developers interact with decentrali
 
 The SDK exposes five API surfaces through a single `apiClient` singleton:
 
-| Client | Access | Purpose |
-|---|---|---|
-| `RpcClient` | `apiClient.rpc()` | Query and mutate WASM application state via JSON-RPC |
-| `SubscriptionsClient` | `WsSubscriptionsClient` / `SseSubscriptionsClient` | Real-time events over WebSocket or SSE |
-| `NodeApi` | `apiClient.node()` | Contexts, identities, applications, capabilities, group management |
-| `AuthApi` | `apiClient.auth()` | Login redirect, token refresh, challenge auth, client keys |
-| `AdminApi` | `apiClient.admin()` | Root/client key management, permissions, package registry |
-| `BlobApi` | `apiClient.blob()` | Binary file upload (with progress), download, metadata |
+| Client                | Access                                             | Purpose                                                            |
+| --------------------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| `RpcClient`           | `apiClient.rpc()`                                  | Query and mutate WASM application state via JSON-RPC               |
+| `SubscriptionsClient` | `WsSubscriptionsClient` / `SseSubscriptionsClient` | Real-time events over WebSocket or SSE                             |
+| `NodeApi`             | `apiClient.node()`                                 | Contexts, identities, applications, capabilities, group management |
+| `AuthApi`             | `apiClient.auth()`                                 | Login redirect, token refresh, challenge auth, client keys         |
+| `AdminApi`            | `apiClient.admin()`                                | Root/client key management, permissions, package registry          |
+| `BlobApi`             | `apiClient.blob()`                                 | Binary file upload (with progress), download, metadata             |
 
 ## Installation
 
@@ -614,7 +614,9 @@ const apps = await apiClient.node().getInstalledApplications();
 apps.data?.apps.forEach((app) => console.log(app.id, app.version));
 
 // Install from URL
-const installed = await apiClient.node().installApplication('https://example.com/app.wasm');
+const installed = await apiClient
+  .node()
+  .installApplication('https://example.com/app.wasm');
 console.log(installed.data?.applicationId);
 ```
 
@@ -652,7 +654,9 @@ const inv = await apiClient.node().createGroupInvitation(groupId);
 // Send inv.data.data (SignedOpenInvitation) to the new member
 
 // Joiner side
-await apiClient.node().joinGroup({ invitation: signedInv, groupAlias: 'my-group' });
+await apiClient
+  .node()
+  .joinGroup({ invitation: signedInv, groupAlias: 'my-group' });
 
 // List members
 const members = await apiClient.node().listGroupMembers(groupId);
@@ -705,7 +709,9 @@ await apiClient.admin().setKeyPermissions('client_key_id', {
 
 // Browse the package registry
 const packages = await apiClient.admin().getPackages();
-const versions = await apiClient.admin().getPackageVersions('network.calimero.meropass');
+const versions = await apiClient
+  .admin()
+  .getPackageVersions('network.calimero.meropass');
 
 // Install a package version
 const result = await apiClient.admin().installApplication({
@@ -725,10 +731,9 @@ import { apiClient } from '@calimero-network/calimero-client';
 
 // Upload with progress tracking
 const file: File = input.files[0];
-const upload = await apiClient.blob().uploadBlob(
-  file,
-  (pct) => console.log(`Upload: ${pct}%`),
-);
+const upload = await apiClient
+  .blob()
+  .uploadBlob(file, (pct) => console.log(`Upload: ${pct}%`));
 console.log('Blob ID:', upload.data?.blobId);
 
 // Download as a Blob (throws on error)
