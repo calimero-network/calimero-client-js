@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Client JS — TypeScript SDK</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta
+      name="description"
+      content="Calimero TypeScript Client SDK — RpcClient for queries/mutations and SubscriptionsClient for real-time events."
+    />
+    <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="hero">
+          <h1>Calimero <em>Client JS</em></h1>
+          <p class="tagline">
+            TypeScript SDK for interacting with Calimero nodes —
+            <span class="code">RpcClient</span> for queries and mutations,
+            <span class="code">SubscriptionsClient</span> for real-time
+            WebSocket and SSE event streams.
+          </p>
+
+          <div class="g4" style="margin-bottom: 36px">
+            <div class="stat">
+              <div class="v">5</div>
+              <div class="l">API surfaces</div>
+            </div>
+            <div class="stat">
+              <div class="v">TS</div>
+              <div class="l">TypeScript</div>
+            </div>
+            <div class="stat">
+              <div class="v">WS</div>
+              <div class="l">+ SSE support</div>
+            </div>
+            <div class="stat">
+              <div class="v">npm</div>
+              <div class="l">@calimero-network/calimero-client</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card ga">
+          <h2>Start Here</h2>
+          <div class="g3">
+            <div class="step">
+              <div class="n">1</div>
+              <h4>Install</h4>
+              <div class="typedef" style="margin-top: 6px">
+                <span class="comment"
+                  >npm install @calimero-network/calimero-client</span
+                >
+              </div>
+              <p style="margin-top: 8px">
+                Or: <span class="code">yarn add</span> /
+                <span class="code">pnpm add</span>
+              </p>
+            </div>
+            <div class="step">
+              <div class="n">2</div>
+              <h4>Create RpcClient</h4>
+              <div class="typedef" style="margin-top: 6px">
+                <span class="kw">import</span> &#123;
+                <span class="ty">RpcClient</span> &#125;
+                <span class="kw">from</span>
+                <span class="field">'@calimero-network/calimero-client'</span
+                >;<br /><br /><span class="kw">const</span>
+                <span class="field">client</span> = <span class="kw">new</span>
+                <span class="ty">RpcClient</span>(nodeUrl, applicationId);
+              </div>
+            </div>
+            <div class="step">
+              <div class="n">3</div>
+              <h4>Query or Mutate</h4>
+              <div class="typedef" style="margin-top: 6px">
+                <span class="kw">const</span>
+                <span class="field">result</span> =
+                <span class="kw">await</span>
+                <span class="field">client</span>.<span class="ty">query</span
+                >(&#123;<br />&nbsp;&nbsp;<span class="field">method</span>:
+                <span class="comment">'get_value'</span>,<br />&nbsp;&nbsp;<span
+                  class="field"
+                  >args</span
+                >: &#123; <span class="field">key</span>:
+                <span class="comment">'foo'</span> &#125;<br />&#125;);
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card gb">
+          <h2>Architecture</h2>
+          <svg
+            viewBox="0 0 820 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <filter id="glow-cjs">
+                <feDropShadow
+                  dx="0"
+                  dy="0"
+                  stdDeviation="3"
+                  flood-color="#58a6ff"
+                  flood-opacity="0.25"
+                />
+              </filter>
+            </defs>
+
+            <!-- App -->
+            <rect
+              x="20"
+              y="80"
+              width="140"
+              height="80"
+              rx="10"
+              fill="#8b8b9b10"
+              stroke="#8b8b9b"
+              stroke-width="1.2"
+            />
+            <text
+              x="90"
+              y="114"
+              text-anchor="middle"
+              fill="#8b8b9b"
+              font-family="JetBrains Mono"
+              font-size="12"
+              font-weight="700"
+            >
+              Your App
+            </text>
+            <text
+              x="90"
+              y="134"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              Browser / Node.js
+            </text>
+
+            <!-- SDK -->
+            <rect
+              x="220"
+              y="40"
+              width="360"
+              height="180"
+              rx="14"
+              fill="#58a6ff08"
+              stroke="#58a6ff"
+              stroke-width="1.8"
+              filter="url(#glow-cjs)"
+            />
+            <text
+              x="240"
+              y="68"
+              fill="#58a6ff"
+              font-family="JetBrains Mono"
+              font-size="13"
+              font-weight="700"
+            >
+              calimero-client-js
+            </text>
+            <text
+              x="240"
+              y="86"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              @calimero-network/calimero-client
+            </text>
+
+            <rect
+              x="240"
+              y="100"
+              width="150"
+              height="50"
+              rx="8"
+              fill="#3fb95010"
+              stroke="#3fb950"
+              stroke-width="1.2"
+            />
+            <text
+              x="315"
+              y="122"
+              text-anchor="middle"
+              fill="#3fb950"
+              font-family="JetBrains Mono"
+              font-size="11"
+              font-weight="600"
+            >
+              RpcClient
+            </text>
+            <text
+              x="315"
+              y="140"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="9"
+            >
+              query / mutate
+            </text>
+
+            <rect
+              x="410"
+              y="100"
+              width="150"
+              height="50"
+              rx="8"
+              fill="#f778ba10"
+              stroke="#f778ba"
+              stroke-width="1.2"
+            />
+            <text
+              x="485"
+              y="120"
+              text-anchor="middle"
+              fill="#f778ba"
+              font-family="JetBrains Mono"
+              font-size="10"
+              font-weight="600"
+            >
+              SubscriptionsClient
+            </text>
+            <text
+              x="485"
+              y="138"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="9"
+            >
+              WebSocket / SSE
+            </text>
+
+            <text
+              x="240"
+              y="185"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              JWT auth · typed requests/responses · TypeScript
+            </text>
+
+            <!-- Node -->
+            <rect
+              x="640"
+              y="60"
+              width="160"
+              height="140"
+              rx="12"
+              fill="#3fb95008"
+              stroke="#3fb950"
+              stroke-width="1.6"
+            />
+            <text
+              x="720"
+              y="90"
+              text-anchor="middle"
+              fill="#3fb950"
+              font-family="JetBrains Mono"
+              font-size="12"
+              font-weight="700"
+            >
+              Calimero Node
+            </text>
+            <text
+              x="720"
+              y="114"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              JSON-RPC HTTP
+            </text>
+            <text
+              x="720"
+              y="134"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              WebSocket
+            </text>
+            <text
+              x="720"
+              y="154"
+              text-anchor="middle"
+              fill="#6b6b80"
+              font-family="DM Sans"
+              font-size="10"
+            >
+              SSE endpoint
+            </text>
+
+            <!-- Arrows -->
+            <line
+              x1="162"
+              y1="120"
+              x2="218"
+              y2="120"
+              stroke="#8b8b9b"
+              stroke-width="1.5"
+            />
+            <polygon points="218,120 210,116 210,124" fill="#8b8b9b" />
+            <line
+              x1="582"
+              y1="120"
+              x2="638"
+              y2="120"
+              stroke="#58a6ff"
+              stroke-width="1.5"
+            />
+            <polygon points="638,120 630,116 630,124" fill="#58a6ff" />
+            <line
+              x1="582"
+              y1="150"
+              x2="638"
+              y2="150"
+              stroke="#f778ba"
+              stroke-width="1.2"
+              stroke-dasharray="4 3"
+            />
+            <polygon points="638,150 630,146 630,154" fill="#f778ba" />
+          </svg>
+        </div>
+
+        <h2 style="margin-top: 40px">Reference</h2>
+        <div class="g3">
+          <a href="rpc-client.html" class="hero-card">
+            <span class="card-icon" style="color: var(--blue)">&#9670;</span>
+            <h3 style="color: var(--blue)">RpcClient</h3>
+            <p>
+              Constructor, <span class="code">query()</span>,
+              <span class="code">mutate()</span> — request/response shapes,
+              authentication, and error handling.
+            </p>
+          </a>
+          <a href="subscriptions.html" class="hero-card">
+            <span class="card-icon" style="color: var(--pink)">&#9670;</span>
+            <h3 style="color: var(--pink)">SubscriptionsClient</h3>
+            <p>
+              WebSocket and SSE transports,
+              <span class="code">subscribe()</span>, event callbacks, and
+              connection lifecycle.
+            </p>
+          </a>
+          <a href="node-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--green)">&#9670;</span>
+            <h3 style="color: var(--green)">NodeApi</h3>
+            <p>
+              Contexts, identities, applications, capabilities, and full group
+              management — <span class="code">apiClient.node()</span>.
+            </p>
+          </a>
+          <a href="auth-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--orange)">&#9670;</span>
+            <h3 style="color: var(--orange)">AuthApi</h3>
+            <p>
+              Login redirect, token refresh, challenge-based auth, providers,
+              and client key generation —
+              <span class="code">apiClient.auth()</span>.
+            </p>
+          </a>
+          <a href="admin-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--violet)">&#9670;</span>
+            <h3 style="color: var(--violet)">AdminApi</h3>
+            <p>
+              Root/client key management, permissions, package registry, and
+              context queries — <span class="code">apiClient.admin()</span>.
+            </p>
+          </a>
+          <a href="blob-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--amber)">&#9670;</span>
+            <h3 style="color: var(--amber)">BlobApi</h3>
+            <p>
+              Binary file upload with progress, download, metadata, list, and
+              delete — <span class="code">apiClient.blob()</span>.
+            </p>
+          </a>
+          <a href="types.html" class="hero-card">
+            <span class="card-icon" style="color: var(--cyan)">&#9670;</span>
+            <h3 style="color: var(--cyan)">Types</h3>
+            <p>
+              Complete TypeScript type reference — request/response shapes,
+              subscription events, and error types.
+            </p>
+          </a>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>

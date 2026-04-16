@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Client JS — AdminApi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>AdminApi</span>
+        </div>
+
+        <h1>Admin API</h1>
+        <p class="page-subtitle">
+          Key management, permissions, package registry, and context queries —
+          accessed via
+          <span
+            style="
+              font-family: var(--font-mono);
+              font-size: 0.8rem;
+              color: var(--green);
+            "
+            >apiClient.admin()</span
+          >
+        </p>
+
+        <!-- Key management -->
+        <div class="card ga">
+          <h2>Key Management</h2>
+          <p
+            style="
+              margin-bottom: 14px;
+              font-size: 0.875rem;
+              color: var(--text-dim);
+            "
+          >
+            Two-tier key model: <strong>root keys</strong> are identity anchors
+            (one per auth method), <strong>client keys</strong> are scoped
+            tokens derived from root keys.
+          </p>
+
+          <div class="fr">
+            <div class="fp">getRootKeys()</div>
+            <div class="fd">List all root keys on the node.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getClientKeys()</div>
+            <div class="fd">List all client keys across all root keys.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">addRootKey(rootKeyRequest)</div>
+            <div class="fd">
+              Register a new root key. Provide
+              <span class="code">public_key</span>,
+              <span class="code">auth_method</span>, and
+              <span class="code">provider_data</span>.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">revokeRootKey(keyId)</div>
+            <div class="fd">
+              Revoke a root key and all client keys derived from it.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">revokeClientKey(rootKeyId, clientId)</div>
+            <div class="fd">
+              Revoke a specific client key without affecting other keys.
+            </div>
+          </div>
+
+          <div class="typedef" style="margin-top: 16px">
+            <span class="kw">import</span> &#123;
+            <span class="ty">apiClient</span> &#125;
+            <span class="kw">from</span>
+            <span class="comment">'@calimero-network/calimero-client'</span
+            >;<br /><br />
+            <span class="kw">const</span> <span class="field">rootKeys</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">getRootKeys</span>();<br />
+            <span class="field">rootKeys</span>.<span class="field">data</span
+            >?.<span class="ty">forEach</span>((<span class="field">k</span>)
+            =&gt; console.<span class="ty">log</span>(<span class="field"
+              >k</span
+            >.<span class="field">key_id</span>,
+            <span class="field">k</span>.<span class="field">auth_method</span
+            >));<br /><br />
+            <span class="comment">// Revoke a root key</span><br />
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">revokeRootKey</span>(<span class="comment"
+              >'key_id_here'</span
+            >);
+          </div>
+        </div>
+
+        <!-- Permissions -->
+        <div class="card gb">
+          <h2>Permissions</h2>
+          <div class="fr">
+            <div class="fp">setKeyPermissions(keyId, request)</div>
+            <div class="fd">
+              Add or remove permissions on a client key.
+              <span class="code">request.add</span> and
+              <span class="code">request.remove</span> are both optional
+              <span class="code">string[]</span>.
+            </div>
+          </div>
+
+          <div class="typedef" style="margin-top: 16px">
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">setKeyPermissions</span>(<span class="comment"
+              >'client_key_id'</span
+            >, &#123;<br />
+            &nbsp;&nbsp;<span class="field">add</span>: [<span class="comment"
+              >'write'</span
+            >, <span class="comment">'admin'</span>],<br />
+            &nbsp;&nbsp;<span class="field">remove</span>: [<span
+              class="comment"
+              >'read_only'</span
+            >],<br />
+            &#125;);
+          </div>
+        </div>
+
+        <!-- Package management -->
+        <div class="card gc">
+          <h2>Package Management</h2>
+          <p
+            style="
+              margin-bottom: 14px;
+              font-size: 0.875rem;
+              color: var(--text-dim);
+            "
+          >
+            Query the Calimero package registry and install applications from
+            it.
+          </p>
+          <div class="fr">
+            <div class="fp">getPackages()</div>
+            <div class="fd">
+              List all packages available in the registry. Returns
+              <span class="code">&#123; packages: string[] &#125;</span>.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">getPackageVersions(packageName)</div>
+            <div class="fd">
+              List available versions for a package. Returns
+              <span class="code">&#123; versions: string[] &#125;</span>.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">getPackageLatest(packageName)</div>
+            <div class="fd">
+              Get the <span class="code">applicationId</span> of the latest
+              installed version of a package.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">installApplication(request)</div>
+            <div class="fd">
+              Install an application from the registry. Provide
+              <span class="code">url</span>, <span class="code">package</span>,
+              <span class="code">version</span>, and
+              <span class="code">metadata</span>.
+            </div>
+          </div>
+
+          <div class="typedef" style="margin-top: 16px">
+            <span class="kw">const</span> <span class="field">pkgs</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">getPackages</span>();<br />
+            console.<span class="ty">log</span>(<span class="field">pkgs</span
+            >.<span class="field">data</span>?.<span class="field"
+              >packages</span
+            >);<br /><br />
+            <span class="kw">const</span> <span class="field">versions</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">getPackageVersions</span>(<span class="comment"
+              >'network.calimero.meropass'</span
+            >);<br />
+            console.<span class="ty">log</span>(<span class="field"
+              >versions</span
+            >.<span class="field">data</span>?.<span class="field"
+              >versions</span
+            >);<br /><br />
+            <span class="comment">// Install a specific version</span><br />
+            <span class="kw">const</span> <span class="field">result</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">installApplication</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">url</span>:
+            <span class="comment">'https://registry.calimero.network'</span
+            >,<br />
+            &nbsp;&nbsp;<span class="field">package</span>:
+            <span class="comment">'network.calimero.meropass'</span>,<br />
+            &nbsp;&nbsp;<span class="field">version</span>:
+            <span class="comment">'1.0.0'</span>,<br />
+            &nbsp;&nbsp;<span class="field">metadata</span>: [],<br />
+            &#125;);<br />
+            console.<span class="ty">log</span>(<span class="field">result</span
+            >.<span class="field">data</span>?.<span class="field">data</span
+            >.<span class="field">applicationId</span>);
+          </div>
+        </div>
+
+        <!-- Context queries -->
+        <div class="card gd">
+          <h2>Context Queries</h2>
+          <div class="fr">
+            <div class="fp">getContextsForApplication(applicationId)</div>
+            <div class="fd">List all contexts running a given application.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">
+              getContextsWithExecutorsForApplication(applicationId)
+            </div>
+            <div class="fd">
+              Same as above but also includes the list of executor identities
+              per context.
+            </div>
+          </div>
+
+          <div class="typedef" style="margin-top: 16px">
+            <span class="kw">const</span> <span class="field">ctxs</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">getContextsForApplication</span>(<span
+              class="comment"
+              >'app_id'</span
+            >);<br />
+            <span class="field">ctxs</span>.<span class="field">data</span
+            >?.<span class="field">data</span>.<span class="field"
+              >contexts</span
+            >.<span class="ty">forEach</span>((<span class="field">c</span>)
+            =&gt; console.<span class="ty">log</span>(<span class="field"
+              >c</span
+            >.<span class="field">id</span>));<br /><br />
+            <span class="kw">const</span> <span class="field">withExec</span> =
+            <span class="kw">await</span>
+            <span class="field">apiClient</span>.<span class="ty">admin</span
+            >().<span class="ty">getContextsWithExecutorsForApplication</span
+            >(<span class="comment">'app_id'</span>);<br />
+            <span class="field">withExec</span>.<span class="field">data</span
+            >?.<span class="field">contexts</span>.<span class="ty"
+              >forEach</span
+            >((<span class="field">c</span>) =&gt; console.<span class="ty"
+              >log</span
+            >(<span class="field">c</span>.<span class="field">id</span>,
+            <span class="field">c</span>.<span class="field">executors</span>));
+          </div>
+
+          <h3>Types</h3>
+          <div class="typedef">
+            <span class="kw">interface</span>
+            <span class="ty">RootKey</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">key_id</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">public_key</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">auth_method</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">created_at</span>:
+            <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">revoked_at</span>:
+            <span class="ty">number</span>;<br />
+            &#125;<br /><br />
+            <span class="kw">interface</span>
+            <span class="ty">ClientKey</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">client_id</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">root_key_id</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">name</span>:
+            <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">permissions</span>:
+            <span class="ty">string</span>[];<br />
+            &nbsp;&nbsp;<span class="field">created_at</span>:
+            <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">revoked_at</span>?:
+            <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">is_valid</span>:
+            <span class="ty">boolean</span>;<br />
+            &#125;
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>
