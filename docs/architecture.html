@@ -6,6 +6,7 @@
     <title>Calimero | Client JS — Architecture</title>
     <link rel="stylesheet" href="styles.css" />
     <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   </head>
   <body>
     <div class="main">
@@ -17,8 +18,8 @@
 
         <h1>Architecture</h1>
         <p class="page-subtitle">
-          Two-client design — RpcClient for calls, SubscriptionsClient for
-          events
+          Five API surfaces, one shared HTTP client — accessed through the
+          top-level <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--green)">apiClient</span> singleton
         </p>
 
         <div class="card ga">
@@ -26,44 +27,57 @@
           <div class="fr">
             <div class="fp">src/api/</div>
             <div class="fd">
-              Low-level HTTP API helpers. URL construction, request headers,
-              auth token attachment.
+              Five typed API surfaces: <span class="code">NodeApi</span>, <span class="code">AuthApi</span>, <span class="code">AdminApi</span>, <span class="code">BlobApi</span>, and <span class="code">RpcClient</span>.
+              All share a single <span class="code">AxiosHttpClient</span> instance that handles JWT attachment and token refresh.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/api/dataSource/</div>
+            <div class="fd">
+              Concrete implementations of each API interface. Each class extends
+              <span class="code">BaseApiDataSource</span> which provides URL construction helpers.
             </div>
           </div>
           <div class="fr">
             <div class="fp">src/rpc/</div>
             <div class="fd">
-              <span class="code">RpcClient</span> — sends JSON-RPC-style
-              requests to the node. Handles query and mutate operations.
+              <span class="code">JsonRpcClient</span> — sends JSON-RPC 2.0 requests to the node's
+              <span class="code">/jsonrpc</span> endpoint. Handles query and mutate operations on WASM applications.
             </div>
           </div>
           <div class="fr">
             <div class="fp">src/subscriptions/</div>
             <div class="fd">
-              <span class="code">SubscriptionsClient</span> — establishes
-              WebSocket or SSE connection and delivers events to application
-              callbacks.
+              <span class="code">WsSubscriptionsClient</span> and <span class="code">SseSubscriptionsClient</span> — establish
+              persistent connections and deliver <span class="code">NodeEvent</span> callbacks to the application.
             </div>
           </div>
           <div class="fr">
-            <div class="fp">src/login/</div>
+            <div class="fp">src/login/ + src/setup/</div>
             <div class="fd">
-              Auth helpers: login, token storage, refresh logic.
+              React components: <span class="code">ClientLogin</span> and <span class="code">SetupModal</span> for the
+              guided auth flow. Token storage and refresh handled automatically.
             </div>
           </div>
           <div class="fr">
             <div class="fp">src/storage/</div>
             <div class="fd">
-              Token persistence — <span class="code">localStorage</span>-backed
-              by default.
+              <span class="code">localStorage</span>-backed helpers for node URL, application ID,
+              access token, and refresh token. Used by all API layers.
+            </div>
+          </div>
+          <div class="fr">
+            <div class="fp">src/experimental/</div>
+            <div class="fd">
+              Low-level SSE/WebSocket primitives and <span class="code">CalimeroProvider</span> React context.
+              APIs here may change between releases.
             </div>
           </div>
           <div class="fr">
             <div class="fp">src/types/</div>
             <div class="fd">
               TypeScript interfaces: <span class="code">RpcQueryParams</span>,
-              <span class="code">RpcMutateParams</span>,
-              <span class="code">SubscriptionEvent</span>, error types.
+              <span class="code">NodeEvent</span>, <span class="code">ApiResponse&lt;T&gt;</span>, error types.
             </div>
           </div>
         </div>

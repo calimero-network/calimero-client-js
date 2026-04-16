@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Client JS — AuthApi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>AuthApi</span>
+        </div>
+
+        <h1>Auth API</h1>
+        <p class="page-subtitle">
+          Login, token management, and client key generation —
+          accessed via <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--green)">apiClient.auth()</span>
+        </p>
+
+        <!-- Login flow -->
+        <div class="card ga">
+          <h2>Login &amp; Redirect</h2>
+          <p style="margin-bottom:14px; font-size:0.875rem; color:var(--text-dim)">
+            <span class="code">login()</span> redirects the browser to the Calimero auth service. After the
+            user authenticates, the service redirects back to your <span class="code">callbackUrl</span>
+            with <span class="code">access_token</span> and <span class="code">refresh_token</span> in the URL.
+          </p>
+          <div class="fr">
+            <div class="fp">login(request)</div>
+            <div class="fd">Redirect to the auth service login page. Supports <span class="code">mode</span>, <span class="code">manifestUrl</span> (package-based), and legacy <span class="code">applicationId</span>.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">import</span> &#123; <span class="ty">apiClient</span> &#125; <span class="kw">from</span> <span class="comment">'@calimero-network/calimero-client'</span>;<br /><br />
+            <span class="comment">// Package-based (recommended)</span><br />
+            <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">login</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">url</span>: <span class="comment">'https://your-node.calimero.network'</span>,<br />
+            &nbsp;&nbsp;<span class="field">callbackUrl</span>: <span class="field">window</span>.<span class="field">location</span>.<span class="field">href</span>,<br />
+            &nbsp;&nbsp;<span class="field">permissions</span>: [<span class="comment">'read'</span>, <span class="comment">'write'</span>],<br />
+            &nbsp;&nbsp;<span class="field">mode</span>: <span class="comment">'multi-context'</span>,<br />
+            &nbsp;&nbsp;<span class="field">manifestUrl</span>: <span class="comment">'https://registry.calimero.network/my-app/1.0.0'</span>,<br />
+            &#125;);<br /><br />
+            <span class="comment">// Legacy (hash-based app ID)</span><br />
+            <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">login</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">url</span>: <span class="comment">'https://your-node.calimero.network'</span>,<br />
+            &nbsp;&nbsp;<span class="field">callbackUrl</span>: <span class="field">window</span>.<span class="field">location</span>.<span class="field">href</span>,<br />
+            &nbsp;&nbsp;<span class="field">permissions</span>: [<span class="comment">'read'</span>],<br />
+            &nbsp;&nbsp;<span class="field">applicationId</span>: <span class="comment">'app_hash_here'</span>,<br />
+            &nbsp;&nbsp;<span class="field">applicationPath</span>: <span class="comment">'/app'</span>,<br />
+            &#125;);
+          </div>
+        </div>
+
+        <!-- Token management -->
+        <div class="card gb">
+          <h2>Token Management</h2>
+          <div class="fr">
+            <div class="fp">refreshToken(request)</div>
+            <div class="fd">Exchange an expired access token for a new pair. Pass both <span class="code">access_token</span> and <span class="code">refresh_token</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">requestToken(requestBody)</div>
+            <div class="fd">Low-level token request with full control over auth method, public key, and provider data.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">const</span> <span class="field">tokens</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">refreshToken</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">access_token</span>: <span class="field">currentAccessToken</span>,<br />
+            &nbsp;&nbsp;<span class="field">refresh_token</span>: <span class="field">currentRefreshToken</span>,<br />
+            &#125;);<br /><br />
+            <span class="kw">if</span> (!<span class="field">tokens</span>.<span class="field">error</span>) &#123;<br />
+            &nbsp;&nbsp;<span class="field">setAccessToken</span>(<span class="field">tokens</span>.<span class="field">data</span>.<span class="field">access_token</span>);<br />
+            &nbsp;&nbsp;<span class="field">setRefreshToken</span>(<span class="field">tokens</span>.<span class="field">data</span>.<span class="field">refresh_token</span>);<br />
+            &#125;
+          </div>
+        </div>
+
+        <!-- Challenge / NEAR auth -->
+        <div class="card gc">
+          <h2>Challenge-Based Auth</h2>
+          <p style="margin-bottom:14px; font-size:0.875rem; color:var(--text-dim)">
+            Used to authenticate with NEAR or other signature-based providers.
+            The flow: request a challenge → sign it → submit the signed message to <span class="code">requestToken</span>.
+          </p>
+          <div class="fr">
+            <div class="fp">getChallenge()</div>
+            <div class="fd">Get a server-issued challenge nonce to sign. Returns <span class="code">&#123; challenge, nonce &#125;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getProviders()</div>
+            <div class="fd">List configured auth providers (NEAR, MetaMask, etc.) and their configuration status.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="comment">// 1. Get challenge</span><br />
+            <span class="kw">const</span> <span class="field">ch</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">getChallenge</span>();<br />
+            <span class="kw">const</span> &#123; <span class="field">challenge</span>, <span class="field">nonce</span> &#125; = <span class="field">ch</span>.<span class="field">data</span>!;<br /><br />
+            <span class="comment">// 2. Sign the challenge with NEAR wallet (application-specific)</span><br />
+            <span class="kw">const</span> <span class="field">signed</span> = <span class="kw">await</span> <span class="field">wallet</span>.<span class="ty">signMessage</span>(&#123; <span class="field">message</span>: <span class="field">challenge</span>, <span class="field">nonce</span>: <span class="ty">Buffer</span>.<span class="ty">from</span>(<span class="field">nonce</span>, <span class="comment">'base64'</span>) &#125;);<br /><br />
+            <span class="comment">// 3. Exchange for JWT tokens</span><br />
+            <span class="kw">const</span> <span class="field">token</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">requestToken</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">auth_method</span>: <span class="comment">'near'</span>,<br />
+            &nbsp;&nbsp;<span class="field">public_key</span>: <span class="field">signed</span>.<span class="field">publicKey</span>,<br />
+            &nbsp;&nbsp;<span class="field">client_name</span>: <span class="comment">'my-app'</span>,<br />
+            &nbsp;&nbsp;<span class="field">timestamp</span>: <span class="ty">Date</span>.<span class="ty">now</span>(),<br />
+            &nbsp;&nbsp;<span class="field">provider_data</span>: &#123; <span class="field">accountId</span>: <span class="field">signed</span>.<span class="field">accountId</span>, <span class="field">signature</span>: <span class="field">signed</span>.<span class="field">signature</span> &#125;,<br />
+            &#125;);
+          </div>
+        </div>
+
+        <!-- Client key -->
+        <div class="card gd">
+          <h2>Client Keys</h2>
+          <div class="fr">
+            <div class="fp">generateClientKey(request)</div>
+            <div class="fd">
+              Generate a scoped client key for a specific context and identity.
+              Returns a JWT pair tied to that context.
+            </div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">const</span> <span class="field">key</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">auth</span>().<span class="ty">generateClientKey</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">context_id</span>: <span class="comment">'ctx_abc...'</span>,<br />
+            &nbsp;&nbsp;<span class="field">context_identity</span>: <span class="comment">'pub_key_hex'</span>,<br />
+            &nbsp;&nbsp;<span class="field">permissions</span>: [<span class="comment">'read'</span>, <span class="comment">'write'</span>],<br />
+            &nbsp;&nbsp;<span class="field">target_node_url</span>: <span class="comment">'https://your-node.calimero.network'</span>,<br />
+            &#125;);<br />
+            <span class="comment">// key.data: { access_token, refresh_token }</span>
+          </div>
+
+          <h3>Types</h3>
+          <div class="typedef">
+            <span class="kw">interface</span> <span class="ty">LoginRequest</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">url</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">callbackUrl</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">permissions</span>: <span class="ty">string</span>[];<br />
+            &nbsp;&nbsp;<span class="field">mode</span>?: <span class="ty">string</span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 'single-context' | 'multi-context' | 'admin'</span><br />
+            &nbsp;&nbsp;<span class="field">manifestUrl</span>?: <span class="ty">string</span>;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// package-based app resolution</span><br />
+            &nbsp;&nbsp;<span class="field">applicationId</span>?: <span class="ty">string</span>;&nbsp;&nbsp;&nbsp;<span class="comment">// legacy hash-based ID</span><br />
+            &nbsp;&nbsp;<span class="field">applicationPath</span>?: <span class="ty">string</span>;<br />
+            &#125;<br /><br />
+            <span class="kw">interface</span> <span class="ty">Provider</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">name</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">type</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">description</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">configured</span>: <span class="ty">boolean</span>;<br />
+            &#125;
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>

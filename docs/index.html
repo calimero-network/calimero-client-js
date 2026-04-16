@@ -10,6 +10,7 @@
       content="Calimero TypeScript Client SDK — RpcClient for queries/mutations and SubscriptionsClient for real-time events."
     />
     <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   </head>
   <body>
     <div class="main">
@@ -25,8 +26,8 @@
 
           <div class="g4" style="margin-bottom: 36px">
             <div class="stat">
-              <div class="v">2</div>
-              <div class="l">main clients</div>
+              <div class="v">5</div>
+              <div class="l">API surfaces</div>
             </div>
             <div class="stat">
               <div class="v">TS</div>
@@ -337,8 +338,8 @@
         <h2 style="margin-top: 40px">Reference</h2>
         <div class="g3">
           <a href="rpc-client.html" class="hero-card">
-            <span class="card-icon" style="color: var(--green)">&#9670;</span>
-            <h3 style="color: var(--green)">RpcClient</h3>
+            <span class="card-icon" style="color: var(--blue)">&#9670;</span>
+            <h3 style="color: var(--blue)">RpcClient</h3>
             <p>
               Constructor, <span class="code">query()</span>,
               <span class="code">mutate()</span> — request/response shapes,
@@ -352,6 +353,38 @@
               WebSocket and SSE transports,
               <span class="code">subscribe()</span>, event callbacks, and
               connection lifecycle.
+            </p>
+          </a>
+          <a href="node-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--green)">&#9670;</span>
+            <h3 style="color: var(--green)">NodeApi</h3>
+            <p>
+              Contexts, identities, applications, capabilities, and full
+              group management — <span class="code">apiClient.node()</span>.
+            </p>
+          </a>
+          <a href="auth-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--orange)">&#9670;</span>
+            <h3 style="color: var(--orange)">AuthApi</h3>
+            <p>
+              Login redirect, token refresh, challenge-based auth, providers,
+              and client key generation — <span class="code">apiClient.auth()</span>.
+            </p>
+          </a>
+          <a href="admin-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--violet)">&#9670;</span>
+            <h3 style="color: var(--violet)">AdminApi</h3>
+            <p>
+              Root/client key management, permissions, package registry,
+              and context queries — <span class="code">apiClient.admin()</span>.
+            </p>
+          </a>
+          <a href="blob-api.html" class="hero-card">
+            <span class="card-icon" style="color: var(--amber)">&#9670;</span>
+            <h3 style="color: var(--amber)">BlobApi</h3>
+            <p>
+              Binary file upload with progress, download, metadata, list,
+              and delete — <span class="code">apiClient.blob()</span>.
             </p>
           </a>
           <a href="types.html" class="hero-card">

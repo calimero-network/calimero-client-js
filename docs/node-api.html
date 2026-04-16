@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calimero | Client JS — NodeApi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#0d1117" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <div class="main">
+      <div class="content">
+        <div class="breadcrumb">
+          <a href="index.html">Home</a><span class="sep">/</span
+          ><span>NodeApi</span>
+        </div>
+
+        <h1>Node API</h1>
+        <p class="page-subtitle">
+          Contexts, identities, applications, capabilities, and group management
+          — accessed via <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--green)">apiClient.node()</span>
+        </p>
+
+        <!-- Contexts -->
+        <div class="card ga">
+          <h2>Contexts</h2>
+          <div class="fr">
+            <div class="fp">health(request)</div>
+            <div class="fd">Check node health. <span class="code">request.url</span> overrides the stored endpoint.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getContexts()</div>
+            <div class="fd">List all contexts on the node. Returns <span class="code">&#123; contexts: Context[] &#125;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getContext(contextId)</div>
+            <div class="fd">Fetch a single context by ID.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">createContext(applicationId, jsonParams)</div>
+            <div class="fd">Create a new context for the given application. Pass <span class="code">''</span> for no init params.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">deleteContext(contextId)</div>
+            <div class="fd">Delete a context. Returns <span class="code">&#123; isDeleted: boolean &#125;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">fetchContextIdentities(contextId)</div>
+            <div class="fd">List identities owned by the caller inside a context.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">import</span> &#123; <span class="ty">apiClient</span> &#125; <span class="kw">from</span> <span class="comment">'@calimero-network/calimero-client'</span>;<br /><br />
+            <span class="comment">// List contexts</span><br />
+            <span class="kw">const</span> <span class="field">res</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">getContexts</span>();<br />
+            <span class="kw">if</span> (!<span class="field">res</span>.<span class="field">error</span>) console.<span class="ty">log</span>(<span class="field">res</span>.<span class="field">data</span>.<span class="field">contexts</span>);<br /><br />
+            <span class="comment">// Create a context</span><br />
+            <span class="kw">const</span> <span class="field">ctx</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">createContext</span>(<span class="comment">'app_id'</span>, <span class="comment">''</span>);<br />
+            console.<span class="ty">log</span>(<span class="field">ctx</span>.<span class="field">data</span>?.<span class="field">contextId</span>);
+          </div>
+        </div>
+
+        <!-- Identity -->
+        <div class="card gb">
+          <h2>Identity</h2>
+          <div class="fr">
+            <div class="fp">createNewIdentity()</div>
+            <div class="fd">Generate a new context identity (key pair). Returns <span class="code">&#123; publicKey, privateKey &#125;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">checkAuth()</div>
+            <div class="fd">Verify the current JWT is valid and return its decoded payload.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">const</span> <span class="field">identity</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">createNewIdentity</span>();<br />
+            <span class="comment">// { publicKey: '...', privateKey: '...' }</span><br /><br />
+            <span class="kw">const</span> <span class="field">auth</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">checkAuth</span>();<br />
+            <span class="comment">// { payload: { context_id, executor_public_key, ... } }</span>
+          </div>
+        </div>
+
+        <!-- Invite & Join -->
+        <div class="card gc">
+          <h2>Invite &amp; Join</h2>
+          <div class="fr">
+            <div class="fp">contextInvite(contextId, inviterId, validForSeconds)</div>
+            <div class="fd">Create a signed invitation for a new member. Returns a <span class="code">SignedOpenInvitation</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">joinContext(invitation, newMemberPublicKey)</div>
+            <div class="fd">Join an existing context using a <span class="code">SignedOpenInvitation</span>.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="comment">// Inviter side — create invitation valid for 5 minutes</span><br />
+            <span class="kw">const</span> <span class="field">inv</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">contextInvite</span>(<span class="field">contextId</span>, <span class="field">inviterId</span>, <span class="field">300</span>);<br />
+            <span class="kw">const</span> <span class="field">payload</span> = <span class="field">inv</span>.<span class="field">data</span>?.<span class="field">data</span>; <span class="comment">// SignedOpenInvitation</span><br /><br />
+            <span class="comment">// Joiner side — pass invitation + new member's public key</span><br />
+            <span class="kw">const</span> <span class="field">join</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">joinContext</span>(<span class="field">payload</span>, <span class="field">newMemberPublicKey</span>);<br />
+            console.<span class="ty">log</span>(<span class="field">join</span>.<span class="field">data</span>?.<span class="field">contextId</span>);
+          </div>
+        </div>
+
+        <!-- Applications -->
+        <div class="card gd">
+          <h2>Applications</h2>
+          <div class="fr">
+            <div class="fp">getInstalledApplications()</div>
+            <div class="fd">List all applications installed on the node.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getInstalledApplicationDetails(appId)</div>
+            <div class="fd">Fetch details for a specific installed application.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">installApplication(url, metadata?, hash?)</div>
+            <div class="fd">Install a WASM application from a URL. Returns <span class="code">&#123; applicationId &#125;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">uninstallApplication(applicationId)</div>
+            <div class="fd">Remove an installed application from the node.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">const</span> <span class="field">apps</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">getInstalledApplications</span>();<br />
+            <span class="field">apps</span>.<span class="field">data</span>?.<span class="field">apps</span>.<span class="ty">forEach</span>((<span class="field">app</span>) =&gt; console.<span class="ty">log</span>(<span class="field">app</span>.<span class="field">id</span>, <span class="field">app</span>.<span class="field">version</span>));<br /><br />
+            <span class="comment">// Install from URL</span><br />
+            <span class="kw">const</span> <span class="field">installed</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">installApplication</span>(<span class="comment">'https://example.com/app.wasm'</span>);<br />
+            console.<span class="ty">log</span>(<span class="field">installed</span>.<span class="field">data</span>?.<span class="field">applicationId</span>);
+          </div>
+        </div>
+
+        <!-- Context details -->
+        <div class="card ga">
+          <h2>Context Details</h2>
+          <div class="fr">
+            <div class="fp">getContextClientKeys(contextId)</div>
+            <div class="fd">List client keys associated with a context.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getContextUsers(contextId)</div>
+            <div class="fd">List member identities inside a context.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getContextStorageUsage(contextId)</div>
+            <div class="fd">Get storage consumption for a context in bytes.</div>
+          </div>
+        </div>
+
+        <!-- Capabilities -->
+        <div class="card gb">
+          <h2>Capabilities</h2>
+          <p style="margin-bottom:14px; font-size:0.875rem; color:var(--text-dim)">
+            Capabilities control what operations context members can perform.
+            Pass an array of <span class="code">[ContextIdentity, Capability]</span> tuples.
+          </p>
+          <div class="fr">
+            <div class="fp">grantCapabilities(contextId, request)</div>
+            <div class="fd">Grant capabilities to one or more context identities.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">revokeCapabilities(contextId, request)</div>
+            <div class="fd">Revoke capabilities from one or more context identities.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">grantCapabilities</span>(<span class="field">contextId</span>, &#123;<br />
+            &nbsp;&nbsp;<span class="field">capabilities</span>: [[<span class="comment">'identity_abc'</span>, <span class="comment">'write'</span>]],<br />
+            &nbsp;&nbsp;<span class="field">signer_id</span>: <span class="comment">'signer_pub_key'</span>,<br />
+            &#125;);
+          </div>
+        </div>
+
+        <!-- Groups -->
+        <div class="card gc">
+          <h2>Group Management</h2>
+          <p style="margin-bottom:14px; font-size:0.875rem; color:var(--text-dim)">
+            Groups are multi-context collections with role-based membership (<span class="code">Admin</span>, <span class="code">Member</span>, <span class="code">ReadOnly</span>).
+          </p>
+
+          <h3>Group lifecycle</h3>
+          <div class="fr">
+            <div class="fp">listGroups()</div>
+            <div class="fd">Return all groups visible to the current identity.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">createGroup(request)</div>
+            <div class="fd">Create a group. Accepts <span class="code">applicationId</span>, optional <span class="code">parentGroupId</span>, <span class="code">upgradePolicy</span>, and <span class="code">alias</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getGroupInfo(groupId)</div>
+            <div class="fd">Fetch metadata for a group (member count, context count, alias, etc.).</div>
+          </div>
+          <div class="fr">
+            <div class="fp">deleteGroup(groupId)</div>
+            <div class="fd">Delete a group and all its state.</div>
+          </div>
+
+          <h3>Members</h3>
+          <div class="fr">
+            <div class="fp">listGroupMembers(groupId)</div>
+            <div class="fd">List members with their roles. Also returns <span class="code">selfIdentity</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">addGroupMembers(groupId, request)</div>
+            <div class="fd">Add members with specified roles. <span class="code">request.members</span>: <span class="code">Array&lt;&#123; identity, role &#125;&gt;</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">removeGroupMembers(groupId, request)</div>
+            <div class="fd">Remove members by identity. <span class="code">request.members</span>: <span class="code">string[]</span>.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">setMemberCapabilities(groupId, memberId, capabilities)</div>
+            <div class="fd">Set capability bitmask for a group member.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">getMemberCapabilities(groupId, memberId)</div>
+            <div class="fd">Get capability bitmask for a group member.</div>
+          </div>
+
+          <h3>Contexts inside groups</h3>
+          <div class="fr">
+            <div class="fp">listGroupContexts(groupId)</div>
+            <div class="fd">List contexts belonging to a group.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">joinGroupContext(groupId, contextId)</div>
+            <div class="fd">Join an existing context within a group.</div>
+          </div>
+
+          <h3>Invite &amp; join groups</h3>
+          <div class="fr">
+            <div class="fp">createGroupInvitation(groupId)</div>
+            <div class="fd">Generate a <span class="code">SignedOpenInvitation</span> to share with prospective members.</div>
+          </div>
+          <div class="fr">
+            <div class="fp">joinGroup(request)</div>
+            <div class="fd">Join a group using a <span class="code">SignedOpenInvitation</span>. Optional <span class="code">groupAlias</span>.</div>
+          </div>
+
+          <div class="typedef" style="margin-top:16px">
+            <span class="comment">// Create a group</span><br />
+            <span class="kw">const</span> <span class="field">g</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">createGroup</span>(&#123;<br />
+            &nbsp;&nbsp;<span class="field">applicationId</span>: <span class="comment">'app_id'</span>,<br />
+            &nbsp;&nbsp;<span class="field">alias</span>: <span class="comment">'my-group'</span>,<br />
+            &#125;);<br />
+            <span class="kw">const</span> <span class="field">groupId</span> = <span class="field">g</span>.<span class="field">data</span>?.<span class="field">data</span>.<span class="field">groupId</span>;<br /><br />
+            <span class="comment">// Add members</span><br />
+            <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">addGroupMembers</span>(<span class="field">groupId</span>, &#123;<br />
+            &nbsp;&nbsp;<span class="field">members</span>: [&#123; <span class="field">identity</span>: <span class="comment">'pub_key'</span>, <span class="field">role</span>: <span class="comment">'Member'</span> &#125;],<br />
+            &#125;);<br /><br />
+            <span class="comment">// Invite someone to join</span><br />
+            <span class="kw">const</span> <span class="field">inv</span> = <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">createGroupInvitation</span>(<span class="field">groupId</span>);<br />
+            <span class="comment">// Send inv.data.data (SignedOpenInvitation) to the new member</span><br /><br />
+            <span class="comment">// Joiner side</span><br />
+            <span class="kw">await</span> <span class="field">apiClient</span>.<span class="ty">node</span>().<span class="ty">joinGroup</span>(&#123; <span class="field">invitation</span>: <span class="field">signedInv</span>, <span class="field">groupAlias</span>: <span class="comment">'my-group'</span> &#125;);
+          </div>
+        </div>
+
+        <!-- GroupMemberRole type -->
+        <div class="card gd">
+          <h2>Types</h2>
+          <div class="typedef">
+            <span class="kw">type</span> <span class="ty">GroupMemberRole</span> = <span class="comment">'Admin'</span> | <span class="comment">'Member'</span> | <span class="comment">'ReadOnly'</span>;<br /><br />
+            <span class="kw">interface</span> <span class="ty">GroupInfo</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">groupId</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">appKey</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">targetApplicationId</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">upgradePolicy</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">memberCount</span>: <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">contextCount</span>: <span class="ty">number</span>;<br />
+            &nbsp;&nbsp;<span class="field">alias</span>?: <span class="ty">string</span>;<br />
+            &#125;<br /><br />
+            <span class="kw">interface</span> <span class="ty">GroupMember</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">identity</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">role</span>: <span class="ty">GroupMemberRole</span>;<br />
+            &nbsp;&nbsp;<span class="field">alias</span>?: <span class="ty">string</span>;<br />
+            &#125;<br /><br />
+            <span class="kw">interface</span> <span class="ty">SignedOpenInvitation</span> &#123;<br />
+            &nbsp;&nbsp;<span class="field">invitation</span>: <span class="ty">InvitationFromMember</span>;<br />
+            &nbsp;&nbsp;<span class="field">inviterSignature</span>: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">applicationId</span>?: <span class="ty">number</span>[];<br />
+            &nbsp;&nbsp;<span class="field">blobId</span>?: <span class="ty">number</span>[];<br />
+            &nbsp;&nbsp;<span class="field">source</span>?: <span class="ty">string</span>;<br />
+            &nbsp;&nbsp;<span class="field">groupId</span>?: <span class="ty">number</span>[];<br />
+            &#125;
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="nav.js"></script>
+  </body>
+</html>

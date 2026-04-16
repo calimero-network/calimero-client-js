@@ -12,6 +12,10 @@
     { section: 'Reference' },
     { label: 'RpcClient', href: 'rpc-client.html', dot: '#58a6ff' },
     { label: 'Subscriptions', href: 'subscriptions.html', dot: '#f778ba' },
+    { label: 'NodeApi', href: 'node-api.html', dot: '#3fb950' },
+    { label: 'AuthApi', href: 'auth-api.html', dot: '#f0883e' },
+    { label: 'AdminApi', href: 'admin-api.html', dot: '#a371f7' },
+    { label: 'BlobApi', href: 'blob-api.html', dot: '#e3b341' },
     { label: 'Types', href: 'types.html', dot: '#39d0d8' },
   ];
 

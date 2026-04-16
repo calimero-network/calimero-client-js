@@ -14,10 +14,16 @@
 
 The **Calimero TypeScript Client SDK** helps developers interact with decentralized apps by handling server communication. It simplifies the process, letting you focus on building your app while the SDK manages the technical details. Built with TypeScript, it ensures a smoother development experience with reliable tools.
 
-The SDK has two main components:
+The SDK exposes five API surfaces through a single `apiClient` singleton:
 
-- `RpcClient`: For sending queries and updates to the server
-- `SubscriptionsClient`: For subscribing to real-time updates (supports both WebSocket and SSE)
+| Client | Access | Purpose |
+|---|---|---|
+| `RpcClient` | `apiClient.rpc()` | Query and mutate WASM application state via JSON-RPC |
+| `SubscriptionsClient` | `WsSubscriptionsClient` / `SseSubscriptionsClient` | Real-time events over WebSocket or SSE |
+| `NodeApi` | `apiClient.node()` | Contexts, identities, applications, capabilities, group management |
+| `AuthApi` | `apiClient.auth()` | Login redirect, token refresh, challenge auth, client keys |
+| `AdminApi` | `apiClient.admin()` | Root/client key management, permissions, package registry |
+| `BlobApi` | `apiClient.blob()` | Binary file upload (with progress), download, metadata |
 
 ## Installation
 
@@ -592,6 +598,153 @@ function ContextApp() {
 }
 
 export default ContextApp;
+```
+
+## Node API
+
+`apiClient.node()` covers contexts, identities, applications, capabilities, and groups.
+
+### Applications
+
+```typescript
+import { apiClient } from '@calimero-network/calimero-client';
+
+// List installed applications
+const apps = await apiClient.node().getInstalledApplications();
+apps.data?.apps.forEach((app) => console.log(app.id, app.version));
+
+// Install from URL
+const installed = await apiClient.node().installApplication('https://example.com/app.wasm');
+console.log(installed.data?.applicationId);
+```
+
+### Invite & Join
+
+```typescript
+// Inviter: create a signed invitation valid for 5 minutes
+const inv = await apiClient.node().contextInvite(contextId, inviterId, 300);
+const invitation = inv.data?.data; // SignedOpenInvitation — send to joiner
+
+// Joiner: join using the invitation
+const join = await apiClient.node().joinContext(invitation, newMemberPublicKey);
+console.log(join.data?.contextId);
+```
+
+### Group Management
+
+Groups are multi-context collections with role-based membership (`Admin`, `Member`, `ReadOnly`).
+
+```typescript
+// Create a group
+const g = await apiClient.node().createGroup({
+  applicationId: 'app_id',
+  alias: 'my-group',
+});
+const groupId = g.data?.data.groupId;
+
+// Add members
+await apiClient.node().addGroupMembers(groupId, {
+  members: [{ identity: 'pub_key', role: 'Member' }],
+});
+
+// Create an invitation and share it
+const inv = await apiClient.node().createGroupInvitation(groupId);
+// Send inv.data.data (SignedOpenInvitation) to the new member
+
+// Joiner side
+await apiClient.node().joinGroup({ invitation: signedInv, groupAlias: 'my-group' });
+
+// List members
+const members = await apiClient.node().listGroupMembers(groupId);
+members.data?.data.forEach((m) => console.log(m.identity, m.role));
+```
+
+## Auth API
+
+`apiClient.auth()` handles authentication flows.
+
+```typescript
+import { apiClient } from '@calimero-network/calimero-client';
+
+// Redirect to auth service (package-based)
+apiClient.auth().login({
+  url: 'https://your-node.calimero.network',
+  callbackUrl: window.location.href,
+  permissions: ['read', 'write'],
+  mode: 'multi-context',
+  manifestUrl: 'https://registry.calimero.network/my-app/1.0.0',
+});
+
+// Refresh an expired token pair
+const tokens = await apiClient.auth().refreshToken({
+  access_token: currentAccessToken,
+  refresh_token: currentRefreshToken,
+});
+
+// List configured auth providers (NEAR, MetaMask, etc.)
+const providers = await apiClient.auth().getProviders();
+providers.data?.providers.forEach((p) => console.log(p.name, p.configured));
+```
+
+## Admin API
+
+`apiClient.admin()` manages keys, permissions, and the package registry.
+
+```typescript
+import { apiClient } from '@calimero-network/calimero-client';
+
+// List root and client keys
+const rootKeys = await apiClient.admin().getRootKeys();
+const clientKeys = await apiClient.admin().getClientKeys();
+
+// Update permissions on a client key
+await apiClient.admin().setKeyPermissions('client_key_id', {
+  add: ['write'],
+  remove: ['read_only'],
+});
+
+// Browse the package registry
+const packages = await apiClient.admin().getPackages();
+const versions = await apiClient.admin().getPackageVersions('network.calimero.meropass');
+
+// Install a package version
+const result = await apiClient.admin().installApplication({
+  url: 'https://registry.calimero.network',
+  package: 'network.calimero.meropass',
+  version: '1.0.0',
+  metadata: [],
+});
+```
+
+## Blob API
+
+`apiClient.blob()` handles binary file storage on the node.
+
+```typescript
+import { apiClient } from '@calimero-network/calimero-client';
+
+// Upload with progress tracking
+const file: File = input.files[0];
+const upload = await apiClient.blob().uploadBlob(
+  file,
+  (pct) => console.log(`Upload: ${pct}%`),
+);
+console.log('Blob ID:', upload.data?.blobId);
+
+// Download as a Blob (throws on error)
+const blob = await apiClient.blob().downloadBlob(blobId, contextId);
+const url = URL.createObjectURL(blob);
+
+// List all blobs
+const list = await apiClient.blob().listBlobs();
+list.data?.blobs.forEach((b) => console.log(b.blobId, b.size));
+
+// Check metadata without downloading
+const meta = await apiClient.blob().getBlobMetadata(blobId);
+console.log(meta.data?.fileType, meta.data?.size);
+
+// Delete
+await apiClient.blob().deleteBlob(blobId);
 ```
 
 ## Usage Examples
